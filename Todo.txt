@@ -1,0 +1,74 @@
+TODO:
+
+* XML-Parser
+** Change "const char*" to StringRef where possible
+** Simple XML, checking structure (i.e. check that closing tags match opening tags)
+** XML-Namespace support
+** Document type declarations
+** Comments
+** Processing instructions
+** CDText
+** Validate structure... (never)
+** Profile the parser and optimize memory handling
+** Incremental feeding
+
+* Deserialization
+** Untittests
+** XML
+*** Proper error handling
+*** Bool-Types
+*** Collections
+**** Associative Containers
+** JSON
+*** Proper error handling
+*** Int-Types
+*** Float-Types
+*** String-Types
+*** String-convertable-types
+*** Bool-Types
+*** Collections
+*** Custom data structures
+**** Associative Containers
+**** List-Style collections
+*** Unescaping
+
+* Serialization
+** Untittests
+** Proper error handling
+** Bool-Types
+** Collections
+*** Associative Containers
+
+DONE:
+* Serialization
+** Int-Types
+** Float-Types
+** String-Types
+*** String-convertable-types
+*** Nested tags
+** Custom data structures
+** Collections
+*** List-Style collections
+** Escaping
+*** XML
+*** JSON
+
+* Deserialization
+** XML
+*** Untittests
+** implement in-place processing (without copying the XML-Data)
+** XML-Declaration (<? xml version="1.0" ... ?>)
+** Utf8-handling
+** Utf16-handling
+** Utf8-XML-Parser
+*** Handle BOM (Byte Order Mark)
+*** String-Types
+*** Int-Types
+*** Float-Types
+*** Custom data structures
+*** Unescaping
+*** String-convertable-types
+*** Nested tags
+*** Collections
+**** List-Style collections
+

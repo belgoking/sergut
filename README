@@ -1,0 +1,68 @@
+## Short Description
+
+This library is meant to make it simple to serialize C++ datastructures. It
+supports de-/serialization of (simple) XML and serialization of JSON. However,
+adding new formats should be more or less straight forward. Especially if those
+formats can be converted into some kind of tree notation (something like DOM
+for XML).
+
+To serialize a C++ datastructure you have to write a serialization function
+that lists the members of this datastructure. This could be something like the
+following:
+
+#include <sergut/Util.h>
+
+struct SomeStruct {
+    int    member1;
+    double member2;
+};
+SERGUT_FUNCTION(SomeStruct, data, ar) {
+  ar & sergut::children
+      & SERGUT_MMEMBER(data, member1)
+      & SERGUT_OMEMBER(data, member2);
+}
+
+Some SomeStruct can then be serialized to XML like so:
+
+#include <sergut/XmlSerializer.h>
+
+std::string serializeSomeStruct(const SomeStruct& someData) {
+    sergut::XmlSerializer ser;
+    ser.serializeData("OuterElementName", someData);
+    return ser.str();
+}
+
+And it can be deserialized from XML like this:
+
+#include <sergut/XmlDeserializer.h>
+
+SomeStruct deserializeSomeStruct(const std::string& xml) {
+    sergut::XmlDeserializer deser(xml);
+    return deser.deserializeData<SomeStruct>("OuterElementName",
+                                             sergut::ValueType::Attribute);
+}
+
+Unfortunately this is all documentation there is so far. However, you can have
+a look at test/sergut/TestSergut.cpp to get an idea of the possibilities you
+have with this library.
+
+## Dependencies & Compiling
+
+One of the XML deserializers uses the TinyXML-2 library. You can download it
+from https://github.com/leethomason/tinyxml2. In case you copy the headers and
+the libs to a non-standard location you have to tell the build system by
+creating a local.pri file in the base directory and setting the variables
+CPP_TINYXML_LIB_PATH and CPP_TINYXML_INCLUDE_PATH.
+
+The unittests require the `catch` unittesting framework. It can be downloaded
+from https://github.com/philsquared/Catch. If you install it to a non-standard
+location, you have to create a local.pri file and have the
+CPP_CATCH_INCLUDE_PATH point to it. But you don't have to compile the
+unittests.
+
+sergut is compiled using qmake. Apart from that it does not require any Qt. To
+build it you have to choose another directory, where you want the project to be
+built into. `cd` into it and call `qmake -r <path-to-sergut>/sergut.pro` from
+there. This will create the aktual Makefiles. The project can then be compiled
+by calling `make`.
+

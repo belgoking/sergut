@@ -1,0 +1,3 @@
+CPP_CATCH_INCLUDE_PATH = <optional-path-to-the-include-dir-of-catch>
+CPP_TINYXML_INCLUDE_PATH = <optional-path-to-the-include-dir-of-tinyxml>
+CPP_TINYXML_LIB_PATH = <optional-path-to-the-library-of-tinyxml>
