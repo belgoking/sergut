@@ -33,8 +33,8 @@ XmlDeserializerTiny::XmlDeserializerTiny(const std::string& xml)
   , valueType(ValueType::Attribute)
   , currentElement(nullptr)
 {
-  xmlDocument.reset(new tinyxml2::XMLDocument);
-  if(xmlDocument->Parse(xml.data(), xml.size()) != tinyxml2::XML_SUCCESS) {
+  xmlDocument.reset(new TiXmlDocument);
+  if(xmlDocument->Parse(xml.c_str()) != nullptr) {
     throw ParsingException(std::string("Error parsing XML"));
   }
   currentElement = xmlDocument->RootElement();

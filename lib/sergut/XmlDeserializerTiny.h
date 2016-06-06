@@ -27,7 +27,7 @@
 #include "sergut/SerializerBase.h"
 #include "sergut/Util.h"
 
-#include <tinyxml2.h>
+#include <tinyxml.h>
 
 #include <string>
 #include <vector>
@@ -119,7 +119,7 @@ public:
   -> decltype(serialize(DummySerializer::dummyInstance(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)),*this)
   {
     // retrieve the correct node (with exception of the root tag)
-    tinyxml2::XMLElement* el = currentElement->ToElement();
+    TiXmlElement* el = currentElement->ToElement();
     if(xmlDocument == nullptr) {
       el = currentElement->FirstChildElement(data.name);
       if(el == nullptr) {
@@ -140,8 +140,8 @@ public:
 
     // clean up (with exception of the root tag)
     if(xmlDocument == nullptr) {
-      currentElement = el->Parent();
-      currentElement->DeleteChild(el);
+      currentElement = el->Parent()->ToElement();
+      currentElement->RemoveChild(el);
     }
     return *this;
   }
@@ -158,7 +158,7 @@ public:
   /// \param name The name of the outer tag
   template<typename DT, typename NAMED_MEMBER_FOR_SERIALIZATION = NamedMemberForDeserialization<DT>>
   DT deserializeData(const char* name, const sergut::ValueType pValueType) {
-    if(name != nullptr && std::strcmp(currentElement->Value(), name) != 0) {
+    if(name != nullptr && ::strcmp(currentElement->Value(), name) != 0) {
       throw ParsingException("Wrong root tag");
     }
     DT data;
@@ -220,35 +220,35 @@ private:
 
   template<typename DT>
   void extractAttribute(const NamedMemberForDeserialization<DT>& data) {
-    tinyxml2::XMLElement* e = currentElement->ToElement();
+    TiXmlElement* e = currentElement->ToElement();
     assert(e != nullptr);
     const char* a = e->Attribute(data.name);
     readInto(a, data);
-    e->DeleteAttribute(data.name);
+    e->RemoveAttribute(data.name);
   }
 
   template<typename DT>
   void extractSimpleChild(const NamedMemberForDeserialization<DT>& data) {
-    tinyxml2::XMLElement* e = currentElement->FirstChildElement(data.name);
-    tinyxml2::XMLNode*    n = (e == nullptr) ? nullptr : e->FirstChild();
-    tinyxml2::XMLText*    t = (n == nullptr) ? nullptr : n->ToText();
+    TiXmlElement* e = currentElement->FirstChildElement(data.name);
+    TiXmlNode*    n = (e == nullptr) ? nullptr : e->FirstChild();
+    TiXmlText*    t = (n == nullptr) ? nullptr : n->ToText();
     readInto((t == nullptr) ? nullptr : t->Value(), data);
-    currentElement->DeleteChild(e);
+    currentElement->RemoveChild(e);
   }
 
   template<typename DT>
   void extractSingleChild(const NamedMemberForDeserialization<DT>& data) {
-    tinyxml2::XMLNode* n = currentElement->FirstChild();
-    tinyxml2::XMLText* t = (n == nullptr) ? nullptr : n->ToText();
+    TiXmlNode* n = currentElement->FirstChild();
+    TiXmlText* t = (n == nullptr) ? nullptr : n->ToText();
     readInto((t == nullptr) ? nullptr : t->Value(), data);
-    currentElement->DeleteChild(t);
+    currentElement->RemoveChild(t);
   }
 
 private:
   const ValueType parentValueType;
   ValueType valueType;
-  std::unique_ptr<tinyxml2::XMLDocument> xmlDocument;
-  tinyxml2::XMLNode* currentElement;
+  std::unique_ptr<TiXmlDocument> xmlDocument;
+  TiXmlElement* currentElement;
 };
 
 } // namespace sergut
