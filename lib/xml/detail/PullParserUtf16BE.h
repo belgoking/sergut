@@ -22,14 +22,14 @@
 #pragma once
 
 #include "unicode/Utf16Codec.h"
-#include "xml/detail/BasicPullParserNV.h"
+#include "xml/detail/BasicPullParser.h"
 
 namespace xml {
 namespace detail {
 
-class PullParserNVUtf16LE: public BasicPullParserNV<unicode::Utf16LECodec>
+class PullParserUtf16BE: public BasicPullParser<unicode::Utf16BECodec>
 {
-  using BasicPullParserNV<unicode::Utf16LECodec>::BasicPullParserNV;
+  using BasicPullParser<unicode::Utf16BECodec>::BasicPullParser;
 };
 
 }

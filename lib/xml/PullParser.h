@@ -46,16 +46,15 @@ public:
     Incomplete = static_cast<std::size_t>(-2)
   };
 
-  static std::unique_ptr<PullParser> createParser(const misc::StringRef& data);
+  static std::unique_ptr<PullParser> createParser(const misc::ConstStringRef& data);
 
   virtual ~PullParser();
   virtual std::vector<char>&& extractXmlData() = 0;
   virtual ParseTokenType parseNext() = 0;
   virtual ParseTokenType getCurrentTokenType() const = 0;
-  virtual misc::StringRef getCurrentTagName() const = 0;
-  virtual misc::StringRef getCurrentAttributeName() const = 0;
-  virtual DecodingResult getCurrentValue(char* buf, const std::size_t bufSize) const = 0;
-  misc::StringRef getCurrentValue();
+  virtual misc::ConstStringRef getCurrentTagName() const = 0;
+  virtual misc::ConstStringRef getCurrentAttributeName() const = 0;
+  virtual misc::ConstStringRef getCurrentValue() const = 0;
   bool isOk() const { return xml::isOk(getCurrentTokenType()); }
 
   static bool isError(DecodingResult r) noexcept { return r < DecodingResult::Empty; }

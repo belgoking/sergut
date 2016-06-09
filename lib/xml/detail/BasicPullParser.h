@@ -23,6 +23,7 @@
 
 #include "unicode/Utf32Char.h"
 #include "xml/PullParser.h"
+#include "xml/detail/ParseStack.h"
 #include "xml/detail/ReaderState.h"
 #include "xml/detail/ReaderStateResetter.h"
 #include "xml/detail/TextDecodingHelper.h"
@@ -34,6 +35,23 @@
 namespace xml {
 namespace detail {
 
+template<bool isUtf8>
+struct DecodedNameBuffers;
+
+template<>
+struct DecodedNameBuffers<true> {
+  misc::ConstStringRef   decodedTagName;
+  misc::ConstStringRef   decodedAttrName;
+};
+
+template<>
+struct DecodedNameBuffers<false> {
+  std::vector<char> decodedTagNameBuffer;
+  misc::StringRef   decodedTagName;
+  std::vector<char> decodedAttrNameBuffer;
+  misc::StringRef   decodedAttrName;
+};
+
 /**
  * @brief The PullParserNV class implements a very simple XML-Pull-Parser
  *
@@ -44,7 +62,7 @@ namespace detail {
  * The parser operates on a constant buffer that it receives from outside.
  */
 template<typename CharDecoder>
-class BasicPullParserNV: public PullParser
+class BasicPullParser: public PullParser
 {
 public:
   typedef CharDecoder CharDecoderT;
@@ -53,15 +71,14 @@ public:
     Attribute,
   };
 
-  BasicPullParserNV(const misc::StringRef& data);
-  BasicPullParserNV(std::vector<char>&& data);
+  BasicPullParser(const misc::ConstStringRef& data);
+  BasicPullParser(std::vector<char>&& data);
   std::vector<char>&& extractXmlData() override;
   ParseTokenType parseNext() override;
   ParseTokenType getCurrentTokenType() const override;
-  misc::StringRef getCurrentTagName() const override;
-  misc::StringRef getCurrentAttributeName() const override;
-  DecodingResult getCurrentValue(char* buf, const std::size_t bufSize) const override;
-  using PullParser::getCurrentValue;
+  misc::ConstStringRef getCurrentTagName() const override;
+  misc::ConstStringRef getCurrentAttributeName() const override;
+  misc::ConstStringRef getCurrentValue() const override;
 
 private:
   /** Check whether there is an XML declaration and if so whether it is correct
@@ -80,12 +97,12 @@ private:
    * ParseTokenType::Error.
    * \return false in case memory allocation failed.
    */
-  bool ensureDecodedNameCapacity(char** currentWritePointer);
+  bool ensureDecodedNameCapacity(std::vector<char>& nameBuffer, misc::StringRef& name);
   /** writes a char to the buffer pointed to by \c currentWritePointer.
    * In case of an error the currentTokenType is set to ParseTokenType::Error.
    * /return false in case the character could not be written or memory allocation failed.
    */
-  bool writeNameChar(char** currentWritePointer);
+  bool writeNameChar(std::vector<char>& nameBuffer, misc::StringRef& name);
 
   // The parseXXX() functions return \c true, if their type of text has been handled.
   // In case of an error, they return \c true and set the error.
@@ -101,9 +118,19 @@ private:
 private:
   friend class xml::detail::ReaderStateResetter;
   std::vector<char> inputData;
-  std::vector<char> decodedName;
   ReaderState readerState;
-  std::size_t descendCount = 0;
+  ParseStack<std::is_same<CharDecoder, unicode::Utf8Codec>::value> parseStack;
+
+//  const char* startOfCurrentAttrNamePointer;
+//  const char* endOfCurrentAttrNamePointer;
+//  const char* startOfCurrentValuePointer;
+//  const char* endOfCurrentValuePointer;
+//  std::size_t currentValueDecodedSize = 0;
+
+  DecodedNameBuffers<std::is_same<CharDecoder, unicode::Utf8Codec>::value> decodedNameBuffers;
+  std::vector<char> decodedValueBuffer;
+
+//  std::size_t descendCount = 0;
   ParseTokenType currentTokenType = ParseTokenType::InitialState;
   bool incompleteDocument = true;
 };
@@ -111,12 +138,12 @@ private:
 }
 
 template<typename CharDecoder>
-xml::detail::BasicPullParserNV<CharDecoder>::BasicPullParserNV(const misc::StringRef& data)
-  : BasicPullParserNV(std::vector<char>(data.begin(), data.end()))
+xml::detail::BasicPullParser<CharDecoder>::BasicPullParser(const misc::ConstStringRef& data)
+  : BasicPullParser(std::vector<char>(data.begin(), data.end()))
 { }
 
 template<typename CharDecoder>
-xml::detail::BasicPullParserNV<CharDecoder>::BasicPullParserNV(std::vector<char>&& data)
+xml::detail::BasicPullParser<CharDecoder>::BasicPullParser(std::vector<char>&& data)
   : inputData(std::move(data))
   , readerState(&*inputData.begin())
 {
@@ -128,38 +155,33 @@ xml::detail::BasicPullParserNV<CharDecoder>::BasicPullParserNV(std::vector<char>
 }
 
 template<typename CharDecoder>
-std::vector<char>&& xml::detail::BasicPullParserNV<CharDecoder>::extractXmlData()
+std::vector<char>&& xml::detail::BasicPullParser<CharDecoder>::extractXmlData()
 {
   incompleteDocument = true;
   return std::move(inputData);
 }
 
 template<typename CharDecoder>
-misc::StringRef xml::detail::BasicPullParserNV<CharDecoder>::getCurrentTagName() const
+misc::ConstStringRef xml::detail::BasicPullParser<CharDecoder>::getCurrentTagName() const
 {
-  return misc::StringRef(readerState.startOfCurrentTagNamePointer, readerState.endOfCurrentTagNamePointer);
+  return parseStack.getTopData();
 }
 
 template<typename CharDecoder>
-misc::StringRef xml::detail::BasicPullParserNV<CharDecoder>::getCurrentAttributeName() const
+misc::ConstStringRef xml::detail::BasicPullParser<CharDecoder>::getCurrentAttributeName() const
 {
-  return misc::StringRef(readerState.startOfCurrentAttrNamePointer, readerState.endOfCurrentAttrNamePointer);
+  return decodedNameBuffers.decodedAttrName;
 }
 
 template<typename CharDecoder>
-xml::PullParser::DecodingResult xml::detail::BasicPullParserNV<CharDecoder>::getCurrentValue(char* buf, const std::size_t bufSize) const
+misc::ConstStringRef xml::detail::BasicPullParser<CharDecoder>::getCurrentValue() const
 {
-  TextDecodingHelper<CharDecoder> helper(buf, buf + bufSize, TextDecodingHelper<CharDecoder>::TextType::Plain,
-                            readerState.startOfCurrentValuePointer, readerState.endOfCurrentValuePointer);
-  if(!helper.decodeText()) {
-    return DecodingResult::Error;
-  }
-  return DecodingResult(helper.getWriteCount());
+  return misc::ConstStringRef(&*decodedValueBuffer.begin(), &*decodedValueBuffer.end());
 }
 
 template<typename CharDecoder>
 inline
-bool xml::detail::BasicPullParserNV<CharDecoder>::skipWhitespaces()
+bool xml::detail::BasicPullParser<CharDecoder>::skipWhitespaces()
 {
   while(std::isspace(readerState.currentChar) && nextChar()) { }
   return !incompleteDocument && currentTokenType != ParseTokenType::Error;
@@ -167,7 +189,7 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::skipWhitespaces()
 
 template<typename CharDecoder>
 inline
-bool xml::detail::BasicPullParserNV<CharDecoder>::nextChar()
+bool xml::detail::BasicPullParser<CharDecoder>::nextChar()
 {
   const unicode::ParseResult parseResult =
       CharDecoderT::parseNext(readerState.currentChar, readerState.readPointer, &*inputData.end());
@@ -188,7 +210,7 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::nextChar()
 
 template<typename CharDecoder>
 inline
-bool xml::detail::BasicPullParserNV<CharDecoder>::nextAsciiChar()
+bool xml::detail::BasicPullParser<CharDecoder>::nextAsciiChar()
 {
   if(!nextChar()) {
     return false;
@@ -200,44 +222,37 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::nextAsciiChar()
   return true;
 }
 
-
 template<typename CharDecoder>
-bool xml::detail::BasicPullParserNV<CharDecoder>::ensureDecodedNameCapacity(char** currentWritePointer)
+bool xml::detail::BasicPullParser<CharDecoder>::ensureDecodedNameCapacity(std::vector<char>& nameBuffer, misc::StringRef& name)
 {
-  if(currentWritePointer == nullptr || *currentWritePointer + 4 > &*decodedName.end()) {
-    try {
-      const std::size_t startOfCurrentTagNameOffset  = readerState.startOfCurrentTagNamePointer  - decodedName.data();
-      const std::size_t endOfCurrentTagNameOffset    = readerState.endOfCurrentTagNamePointer    - decodedName.data();
-      const std::size_t startOfCurrentAttrNameOffset = readerState.startOfCurrentAttrNamePointer - decodedName.data();
-      const std::size_t endOfCurrentAttrNameOffset   = readerState.endOfCurrentAttrNamePointer   - decodedName.data();
-      decodedName.resize(decodedName.size() + 50);
-      readerState.startOfCurrentTagNamePointer  = decodedName.data() + startOfCurrentTagNameOffset;
-      readerState.endOfCurrentTagNamePointer    = decodedName.data() + endOfCurrentTagNameOffset;
-      readerState.startOfCurrentAttrNamePointer = decodedName.data() + startOfCurrentAttrNameOffset;
-      readerState.endOfCurrentAttrNamePointer   = decodedName.data() + endOfCurrentAttrNameOffset;
-    } catch(const std::exception&) {
-      currentTokenType = ParseTokenType::Error;
-      return false;
+  try {
+    if(&*nameBuffer.end() - name.end() < 4) {
+      const std::size_t offset = name.end() - nameBuffer.data();
+      nameBuffer.resize(nameBuffer.size() + 50);
+      name = misc::StringRef(nameBuffer.data(), nameBuffer.data() + offset);
     }
+  } catch(const std::exception&) {
+    currentTokenType = ParseTokenType::Error;
+    return false;
   }
   return true;
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParserNV<CharDecoder>::writeNameChar(char** currentWritePointer)
+bool xml::detail::BasicPullParser<CharDecoder>::writeNameChar(std::vector<char>& nameBuffer, misc::StringRef& name)
 {
-  if(!ensureDecodedNameCapacity(currentWritePointer)) { return false; }
-  const unicode::ParseResult res = unicode::Utf8Codec::encodeChar(readerState.currentChar, *currentWritePointer, &*decodedName.end());
+  if(!ensureDecodedNameCapacity(nameBuffer, name)) { return false; }
+  const unicode::ParseResult res = unicode::Utf8Codec::encodeChar(readerState.currentChar, name.end(), &*nameBuffer.end());
   if(unicode::isError(res)) {
     currentTokenType = ParseTokenType::Error;
-    return true;
+    return false;
   }
-  *currentWritePointer += static_cast<std::size_t>(res);
+  name = misc::StringRef(name.begin(), name.end() + static_cast<std::size_t>(res));
   return true;
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParserNV<CharDecoder>::handleXmlDecl()
+bool xml::detail::BasicPullParser<CharDecoder>::handleXmlDecl()
 {
 //  [22]   	prolog	   ::=   	XMLDecl? Misc* (doctypedecl Misc*)?
 //  [23]   	XMLDecl	   ::=   	'<?xml' VersionInfo EncodingDecl? SDDecl? S? '?>'
@@ -255,23 +270,22 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::handleXmlDecl()
     currentTokenType = ParseTokenType::Error;
     return false;
   }
-  if(getCurrentTagName() != misc::StringRef("xml")) {
+  if(decodedNameBuffers.decodedTagName != misc::ConstStringRef("xml")) {
     currentTokenType = ParseTokenType::Error;
     return false;
   }
   if(!skipWhitespaces()) { return false; }
 
   while(parseAttribute(false)) {
-    misc::StringRef attrName(readerState.startOfCurrentAttrNamePointer, readerState.endOfCurrentAttrNamePointer);
-    if(attrName == misc::StringRef("version")) {
-      const misc::StringRef ver = getCurrentValue();
+    if(decodedNameBuffers.decodedAttrName == misc::ConstStringRef("version")) {
+      const misc::ConstStringRef ver = getCurrentValue();
       if(ver.size() < 3 || ver[0] != '1' || ver[1] != '.') {
         // Wrong version
         currentTokenType = ParseTokenType::Error;
         return false;
       }
-    } else if(attrName == misc::StringRef("encoding")) {
-      if(!CharDecoder::isSupportedEncoding(misc::StringRef(getCurrentValue()))) {
+    } else if(decodedNameBuffers.decodedAttrName == misc::ConstStringRef("encoding")) {
+      if(!CharDecoder::isSupportedEncoding(getCurrentValue())) {
         currentTokenType= ParseTokenType::Error;
         return false;
       }
@@ -297,47 +311,32 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::handleXmlDecl()
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParserNV<CharDecoder>::parseName(const NameType nameType)
+bool xml::detail::BasicPullParser<CharDecoder>::parseName(const NameType nameType)
 {
   // [4] NameStartChar ::=  ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] |
   //                        [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] |
   //                        [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
   // [4a] NameChar ::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
   if(!Helper::isNameStartChar(readerState.currentChar)) { return false; }
-  if(!ensureDecodedNameCapacity(nullptr)) { return true; }
-  switch (nameType) {
-  case NameType::Tag:
-    readerState.startOfCurrentTagNamePointer = &*decodedName.begin();
-    readerState.endOfCurrentTagNamePointer   = readerState.startOfCurrentTagNamePointer;
-    // fall through
-  case NameType::Attribute:
-    readerState.startOfCurrentAttrNamePointer = readerState.endOfCurrentTagNamePointer;
-    readerState.endOfCurrentAttrNamePointer   = readerState.startOfCurrentAttrNamePointer;
-  }
-  char* currentWritePointer = const_cast<char*>(nameType==NameType::Tag
-                                                ? readerState.startOfCurrentTagNamePointer
-                                                : readerState.startOfCurrentAttrNamePointer);
-  if(!writeNameChar(&currentWritePointer)) { return true; }
+  std::vector<char>& nameBuffer = (nameType == NameType::Tag) ? decodedNameBuffers.decodedTagNameBuffer
+                                                              : decodedNameBuffers.decodedAttrNameBuffer;
+  misc::StringRef&   name       = (nameType == NameType::Tag) ? decodedNameBuffers.decodedTagName
+                                                              : decodedNameBuffers.decodedAttrName;
+
+  // clean up
+  name = misc::StringRef(name.begin(), name.begin());
+  if(!writeNameChar(nameBuffer, name)) { return true; }
 
   if(!nextChar()) return true;
   while(Helper::isNameChar(readerState.currentChar)) {
-    if(!writeNameChar(&currentWritePointer)) { return true; }
+    if(!writeNameChar(nameBuffer, name)) { return true; }
     if(!nextChar()) { return true; }
   }
-  switch(nameType) {
-  case NameType::Tag:
-    readerState.endOfCurrentTagNamePointer   = currentWritePointer;
-    return true;
-  case NameType::Attribute:
-    readerState.endOfCurrentAttrNamePointer   = currentWritePointer;
-    return true;
-  }
-  assert(false);
   return true;
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParserNV<CharDecoder>::parseAfterTag()
+bool xml::detail::BasicPullParser<CharDecoder>::parseAfterTag()
 {
   if(parseCloseTag()) {
     return true;
@@ -364,7 +363,7 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::parseAfterTag()
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParserNV<CharDecoder>::parseOpenTag()
+bool xml::detail::BasicPullParser<CharDecoder>::parseOpenTag()
 {
 // [40] STag ::= '<' Name (S Attribute)* S? '>'
   if(readerState.currentChar != '<') { return false; }
@@ -373,13 +372,13 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::parseOpenTag()
   if(!parseName(NameType::Tag)) { return false; }
   if(!skipWhitespaces())        { return true;  }
   readStateResetter.release();
-  ++descendCount;
+  parseStack.pushData(decodedNameBuffers.decodedTagName);
   currentTokenType = ParseTokenType::OpenTag;
   return true;
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParserNV<CharDecoder>::parseAttribute(const bool setCurrentTokenTypeToAttribute)
+bool xml::detail::BasicPullParser<CharDecoder>::parseAttribute(const bool setCurrentTokenTypeToAttribute)
 {
   // [10] AttValue ::= '"' ([^<&"] | Reference)* '"' |
   // [25] Eq        ::= S? '=' S?
@@ -410,7 +409,7 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::parseAttribute(const bool setC
       readerState.currentChar == '"' ? TextDecodingHelper<CharDecoder>::TextType::AttValueQuote
                                      : TextDecodingHelper<CharDecoder>::TextType::AttValueApos;
 
-  TextDecodingHelper<CharDecoder> helper(nullptr, nullptr, tt, readerState.readPointer, &*inputData.end());
+  TextDecodingHelper<CharDecoder> helper(decodedValueBuffer, tt, readerState.readPointer, &*inputData.end());
   if(!helper.decodeText()) {
     if(helper.isError()) {
       currentTokenType = ParseTokenType::Error;
@@ -423,9 +422,6 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::parseAttribute(const bool setC
   readerState.readPointer = helper.getReadPointer();
   if(!nextChar()) { return true; }
   if(!skipWhitespaces()) { return true; }
-  readerState.startOfCurrentValuePointer = helper.getStartOfTextPointer();
-  readerState.endOfCurrentValuePointer   = helper.getEndOfTextPointer();
-  readerState.currentValueDecodedSize    = helper.getWriteCount();
   if(setCurrentTokenTypeToAttribute) {
     currentTokenType = ParseTokenType::Attribute;
   }
@@ -433,7 +429,7 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::parseAttribute(const bool setC
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParserNV<CharDecoder>::parseText()
+bool xml::detail::BasicPullParser<CharDecoder>::parseText()
 {
   // [43] content ::= CharData? ((element | Reference | CDSect | PI | Comment) CharData?)*
 
@@ -441,7 +437,7 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::parseText()
     return false;
   }
 
-  TextDecodingHelper<CharDecoder> helper(nullptr, nullptr, TextDecodingHelper<CharDecoder>::TextType::CharData,
+  TextDecodingHelper<CharDecoder> helper(decodedValueBuffer, TextDecodingHelper<CharDecoder>::TextType::CharData,
                                          readerState.readPointer - static_cast<std::size_t>(CharDecoder::encodeChar(readerState.currentChar)),
                                          &*inputData.end());
   if(!helper.decodeText()) {
@@ -456,16 +452,12 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::parseText()
   if(!nextChar()) {
     return true;
   }
-
-  readerState.startOfCurrentValuePointer = helper.getStartOfTextPointer();
-  readerState.endOfCurrentValuePointer = helper.getEndOfTextPointer();
-  readerState.currentValueDecodedSize = helper.getWriteCount();
   currentTokenType = ParseTokenType::Text;
   return true;
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParserNV<CharDecoder>::parseCloseTag()
+bool xml::detail::BasicPullParser<CharDecoder>::parseCloseTag()
 {
   // [42] ETag ::= '</' Name S? '>'
   if(readerState.currentChar != '<') return false;
@@ -474,10 +466,16 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::parseCloseTag()
     return true;
   }
   if(readerState.currentChar != '/') return false;
+  readStateResetter.release();
   if(!nextChar()) {
     return true;
   }
   if(!parseName(NameType::Tag)) {
+    currentTokenType = ParseTokenType::Error;
+    return true;
+  }
+  if(decodedNameBuffers.decodedTagName != parseStack.getTopData()) {
+    // tags don't match
     currentTokenType = ParseTokenType::Error;
     return true;
   }
@@ -488,13 +486,12 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::parseCloseTag()
     currentTokenType = ParseTokenType::Error;
     return true;
   }
-  if(descendCount > 1) {
+  if(parseStack.frameCount() > 1) {
     // don't try to read past the last tag
     if(!nextChar()) {
       return true;
     }
   }
-  readStateResetter.release();
   currentTokenType = ParseTokenType::CloseTag;
   return true;
 }
@@ -508,7 +505,7 @@ bool xml::detail::BasicPullParserNV<CharDecoder>::parseCloseTag()
 //}
 
 template<typename CharDecoder>
-xml::ParseTokenType xml::detail::BasicPullParserNV<CharDecoder>::parseNext()
+xml::ParseTokenType xml::detail::BasicPullParser<CharDecoder>::parseNext()
 {
   if(incompleteDocument) {
     return ParseTokenType::IncompleteDocument;
@@ -567,7 +564,7 @@ xml::ParseTokenType xml::detail::BasicPullParserNV<CharDecoder>::parseNext()
         return currentTokenType;
       }
       currentTokenType = ParseTokenType::CloseTag;
-      if(descendCount == 1) {
+      if(parseStack.frameCount() == 1) {
         // If we are on the last closing tag, we don't continue checking
         // otherwise we might get incomplete document errors.
         readerState.currentChar = '\0';
@@ -579,8 +576,8 @@ xml::ParseTokenType xml::detail::BasicPullParserNV<CharDecoder>::parseNext()
     currentTokenType = ParseTokenType::Error;
     return getCurrentTokenType();
   case ParseTokenType::CloseTag:
-    --descendCount;
-    if(descendCount == 0) {
+    parseStack.popData();
+    if(parseStack.frameCount() == 0) {
       currentTokenType = ParseTokenType::CloseDocument;
       return currentTokenType;
     }
@@ -606,7 +603,7 @@ xml::ParseTokenType xml::detail::BasicPullParserNV<CharDecoder>::parseNext()
 }
 
 template<typename CharDecoder>
-xml::ParseTokenType xml::detail::BasicPullParserNV<CharDecoder>::getCurrentTokenType() const
+xml::ParseTokenType xml::detail::BasicPullParser<CharDecoder>::getCurrentTokenType() const
 {
   if(currentTokenType == ParseTokenType::Error || currentTokenType == ParseTokenType::CloseDocument) {
     return currentTokenType;

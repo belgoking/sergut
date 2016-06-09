@@ -39,7 +39,7 @@ static ParseResult parseNext(Utf32Char& chr, const char* data, const char* dataE
 static unicode::ParseResult encodeChar(const unicode::Utf32Char chr, char* bufStart = nullptr, const char* bufEnd = nullptr) noexcept;
 static ParseResult appendChar(std::string& out, const Utf32Char chr);
 static bool hasBom(const char* data, const char* dataEnd) noexcept;
-static bool isSupportedEncoding(const misc::StringRef& encodingStringAscii) noexcept;
+static bool isSupportedEncoding(const misc::ConstStringRef& encodingStringAscii) noexcept;
 
 };
 
@@ -192,9 +192,9 @@ bool unicode::BasicUtf16Codec<byteOrderType>::hasBom(const char* data, const cha
 }
 
 template<unicode::Utf16ByteOrderType byteOrderType>
-bool unicode::BasicUtf16Codec<byteOrderType>::isSupportedEncoding(const misc::StringRef& encodingStringAscii) noexcept
+bool unicode::BasicUtf16Codec<byteOrderType>::isSupportedEncoding(const misc::ConstStringRef& encodingStringAscii) noexcept
 {
-  return encodingStringAscii == misc::StringRef("UTF-16");
+  return encodingStringAscii == misc::ConstStringRef("UTF-16");
 }
 
 namespace unicode {

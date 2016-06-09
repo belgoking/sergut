@@ -26,7 +26,7 @@ SOURCES += \
     sergut/XmlDeserializerTiny.cpp \
     sergut/XmlSerializer.cpp \
     unicode/Utf8Codec.cpp \
-    xml/PullParser.cpp \
+    xml/PullParser.cpp
 
 HEADERS += \
     misc/StringRef.h \
@@ -47,12 +47,14 @@ HEADERS += \
     unicode/Utf8Codec.h \
     xml/ParseTokenType.h \
     xml/PullParser.h \
-    xml/detail/BasicPullParserNV.h \
     xml/detail/Helper.h \
-    xml/detail/PullParserNVUtf16BE.h \
-    xml/detail/PullParserNVUtf16LE.h \
-    xml/detail/PullParserNVUtf8.h \
     xml/detail/ReaderState.h \
     xml/detail/ReaderStateResetter.h \
     xml/detail/TextDecodingHelper.h \
+    xml/detail/ParseStack.h \
+    misc/ConstStringRef.h \
+    xml/detail/BasicPullParser.h \
+    xml/detail/PullParserUtf8.h \
+    xml/detail/PullParserUtf16LE.h \
+    xml/detail/PullParserUtf16BE.h
 

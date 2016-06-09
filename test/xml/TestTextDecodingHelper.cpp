@@ -56,12 +56,11 @@ TEST_CASE("XML-Parser UTF-8 (EntityHandling - OK)", "[XML]")
         WHEN("Parsing using the TextDecodingHelper in TextType=" + std::to_string(int(tt.first))) {
           THEN("The result is the specified sequence") {
             const std::string in = chr.first + tt.second;
-            std::string out(chr.second.size(), '\0');
-            Utf8DecodingHelper helper(&*out.begin(), &*out.end(), tt.first,
-                                           &*in.begin(), &*in.end());
+            std::vector<char> out;
+            Utf8DecodingHelper helper(out, tt.first, &*in.begin(), &*in.end());
             CHECK(helper.decodeText());
             CHECK(helper.getWriteCount() == chr.second.size());
-            CHECK(out == chr.second);
+            CHECK(std::string(out.begin(), out.end()) == chr.second);
           }
         }
       }
@@ -156,9 +155,8 @@ TEST_CASE("XML-Parser UTF-8 (EntityHandling - error)", "[XML]")
         WHEN("Parsing using the TextDecodingHelper in TextType=" + std::to_string(int(tt.first))) {
           THEN("A parsing error occurs") {
             const std::string in = chr + tt.second;
-            std::string out(13, '\0');
-            Utf8DecodingHelper helper(&*out.begin(), &*out.end(), tt.first,
-                                           &*in.begin(), &*in.end());
+            std::vector<char> out;
+            Utf8DecodingHelper helper(out, tt.first, &*in.begin(), &*in.end());
             CHECK(!helper.decodeText());
             CHECK(helper.isError());
             CHECK(!helper.isIncomplete());
@@ -192,9 +190,8 @@ TEST_CASE("XML-Parser UTF-8 (EntityHandling - incomplete)", "[XML]")
       for(const Utf8DecodingHelper::TextType tt: textTypesNTerminatingChars) {
         WHEN("Parsing using the TextDecodingHelper in TextType=" + std::to_string(int(tt))) {
           THEN("The result is the specified sequence") {
-            std::string out(13, '\0');
-            Utf8DecodingHelper helper(&*out.begin(), &*out.end(), tt,
-                                           &*chr.begin(), &*chr.end());
+            std::vector<char> out;
+            Utf8DecodingHelper helper(out, tt, &*chr.begin(), &*chr.end());
             CHECK(!helper.decodeText());
             CHECK(!helper.isError());
             CHECK(helper.isIncomplete());
@@ -226,9 +223,8 @@ TEST_CASE("XML-Parser UTF-8 (Illegal character Handling)", "[XML]")
     GIVEN("The illegal Character in String '" + tt.second +"'") {
       WHEN("Parsing using the TextDecodingHelper in TextType=" + std::to_string(int(tt.first))) {
         THEN("The result is the specified sequence") {
-          std::string out(13, '\0');
-          Utf8DecodingHelper helper(&*out.begin(), &*out.end(), tt.first,
-                                         &*tt.second.begin(), &*tt.second.end());
+          std::vector<char> out;
+          Utf8DecodingHelper helper(out, tt.first, &*tt.second.begin(), &*tt.second.end());
           CHECK(!helper.decodeText());
           CHECK(helper.isError());
           CHECK(!helper.isIncomplete());
@@ -271,13 +267,12 @@ TEST_CASE("XML-Parser UTF-8 (Legal character Handling)", "[XML]")
     GIVEN("The legal Characters in String '" + std::get<1>(tt) +"'") {
       WHEN("Parsing using the TextDecodingHelper in TextType=" + std::to_string(int(std::get<0>(tt)))) {
         THEN("The result is the specified sequence") {
-          std::string out(std::get<1>(tt).size(), '\0');
-          Utf8DecodingHelper helper(&*out.begin(), &*out.end(), std::get<0>(tt),
-                                         &*std::get<1>(tt).begin(), &*std::get<1>(tt).end());
+          std::vector<char> out;
+          Utf8DecodingHelper helper(out, std::get<0>(tt), &*std::get<1>(tt).begin(), &*std::get<1>(tt).end());
           CHECK(helper.decodeText());
           CHECK(helper.getWriteCount() == std::get<2>(tt).size());
           out.resize(helper.getWriteCount());
-          CHECK(out == std::get<2>(tt));
+          CHECK(std::string(out.begin(), out.end()) == std::get<2>(tt));
           CHECK(!helper.isError());
           CHECK(!helper.isIncomplete());
         }

@@ -35,7 +35,7 @@ struct Utf8Codec {
   static unicode::ParseResult encodeChar(const unicode::Utf32Char chr, char* bufStart = nullptr, const char* bufEnd = nullptr) noexcept;
   static ParseResult appendChar(std::string& out, const Utf32Char chr);
   static bool hasBom(const char* data, const char* dataEnd) noexcept;
-  static bool isSupportedEncoding(const misc::StringRef& encodingString) noexcept;
+  static bool isSupportedEncoding(const misc::ConstStringRef& encodingString) noexcept;
 };
 
 }

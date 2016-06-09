@@ -48,10 +48,9 @@ public:
     AttValueApos
   };
 
-  TextDecodingHelper(char* pwritePointer, const char* const pWritePointerEnd, const TextType pTextType, const char* pReadPointer, const char* pReadPointerEnd)
+  TextDecodingHelper(std::vector<char>& pDecodedTextBuffer, const TextType pTextType, const char* pReadPointer, const char* pReadPointerEnd)
     : originalReadPointer(pReadPointer), readPointer(pReadPointer), readPointerEnd(pReadPointerEnd)
-    , writePointer(pwritePointer), writePointerEnd(pWritePointerEnd)
-    , textType(pTextType)
+    , decodedTextBuffer(pDecodedTextBuffer), writePointer(decodedTextBuffer.data()), textType(pTextType)
   { }
 
   bool decodeText();
@@ -62,8 +61,7 @@ public:
   const char* getEndOfTextPointer() const { return std::max(readPointer - static_cast<std::size_t>(CharDecoder::encodeChar(currentChar)),
                                                             originalReadPointer); }
   const char* getStartOfTextPointer() const { return originalReadPointer; }
-  std::size_t getWriteCount() const { return currentWriteCount; }
-
+  std::size_t getWriteCount() const { return writePointer - decodedTextBuffer.data(); }
 
 private:
   bool nextChar();
@@ -82,9 +80,8 @@ private:
   std::size_t currentCharSize = 0;
   unicode::Utf32Char currentChar = '\0';
   DecodingType currentTokenType = DecodingType::Parsing;
+  std::vector<char>& decodedTextBuffer;
   char* writePointer;
-  const char* const writePointerEnd;
-  std::size_t currentWriteCount = 0;
   TextType textType;
 };
 
@@ -96,6 +93,8 @@ inline
 bool xml::detail::TextDecodingHelper<CharDecoder>::decodeText()
 {
   if(readPointer == readPointerEnd) {
+    // TextType::Plain is mainly for unit-tests where we want to be able
+    // to decode text without having to add dummy characters at the end
     currentTokenType = (textType == TextType::Plain) ? DecodingType::AtEnd : DecodingType::IncompleteText;
   }
   while(currentTokenType == DecodingType::Parsing) {
@@ -107,6 +106,7 @@ bool xml::detail::TextDecodingHelper<CharDecoder>::decodeText()
     case DecodingType::IncompleteText:
       return false;
     case DecodingType::AtEnd:
+      decodedTextBuffer.resize(writePointer - decodedTextBuffer.data());
       return true;
     case DecodingType::Parsing:
       break;
@@ -130,6 +130,8 @@ bool xml::detail::TextDecodingHelper<CharDecoder>::decodeText()
       currentTokenType = (textType == TextType::Plain) ? DecodingType::AtEnd : DecodingType::IncompleteText;
     }
   }
+  // chop off the part of decodedTextBuffer that is beyond writePointer
+  decodedTextBuffer.resize(writePointer - decodedTextBuffer.data());
   return currentTokenType == DecodingType::AtEnd;
 }
 
@@ -387,7 +389,21 @@ template<typename CharDecoder>
 inline
 bool xml::detail::TextDecodingHelper<CharDecoder>::writeChar(const unicode::Utf32Char chr)
 {
-  unicode::ParseResult r = unicode::Utf8Codec::encodeChar(chr, writePointer, writePointerEnd);
+  // ensure there is enough spare space in decodedTextBuffer
+  if(&*decodedTextBuffer.end() - writePointer < 4) {
+    std::size_t writePointerOffset = writePointer - decodedTextBuffer.data();
+    try {
+      decodedTextBuffer.resize(decodedTextBuffer.size() + 50);
+    } catch(const std::exception&) {
+      currentTokenType = DecodingType::Error;
+      return false;
+    }
+
+    writePointer = decodedTextBuffer.data() + writePointerOffset;
+  }
+
+  // then decode the current character to decodedTextBuffer
+  unicode::ParseResult r = unicode::Utf8Codec::encodeChar(chr, writePointer, &*decodedTextBuffer.end());
   if(unicode::isError(r)) {
     switch(r) {
     case unicode::ParseResult::IncompleteCharacter:
@@ -399,9 +415,6 @@ bool xml::detail::TextDecodingHelper<CharDecoder>::writeChar(const unicode::Utf3
     }
     return false;
   }
-  currentWriteCount += std::size_t(r);
-  if(writePointer != nullptr) {
-    writePointer += std::size_t(r);
-  }
+  writePointer += std::size_t(r);
   return true;
 }

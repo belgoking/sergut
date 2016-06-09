@@ -22,19 +22,19 @@
 #pragma once
 
 #include "unicode/Utf8Codec.h"
-#include "xml/detail/BasicPullParserNV.h"
+#include "xml/detail/BasicPullParser.h"
 
 namespace xml {
 namespace detail {
 
-class PullParserNVUtf8: public BasicPullParserNV<unicode::Utf8Codec>
+class PullParserUtf8: public BasicPullParser<unicode::Utf8Codec>
 {
-  using BasicPullParserNV<unicode::Utf8Codec>::BasicPullParserNV;
+  using BasicPullParser<unicode::Utf8Codec>::BasicPullParser;
 };
 
 template<>
 inline
-bool BasicPullParserNV<unicode::Utf8Codec>::nextAsciiChar()
+bool BasicPullParser<unicode::Utf8Codec>::nextAsciiChar()
 {
   if(readerState.readPointer == &*inputData.end()) {
     incompleteDocument = true;
@@ -50,7 +50,7 @@ bool BasicPullParserNV<unicode::Utf8Codec>::nextAsciiChar()
 }
 
 template<>
-bool BasicPullParserNV<unicode::Utf8Codec>::parseName(const NameType nameType)
+bool BasicPullParser<unicode::Utf8Codec>::parseName(const NameType nameType)
 {
   // [4] NameStartChar ::=  ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] |
   //                        [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] |
@@ -64,12 +64,11 @@ bool BasicPullParserNV<unicode::Utf8Codec>::parseName(const NameType nameType)
   }
   switch(nameType) {
   case NameType::Tag:
-    readerState.startOfCurrentTagNamePointer = startOfName;
-    readerState.endOfCurrentTagNamePointer   = readerState.readPointer - 1;
+    decodedNameBuffers.decodedTagName = misc::ConstStringRef(startOfName, readerState.readPointer - 1);
+//    parseStack.pushData(decodedNameBuffers.decodedTagName);
     return true;
   case NameType::Attribute:
-    readerState.startOfCurrentAttrNamePointer = startOfName;
-    readerState.endOfCurrentAttrNamePointer   = readerState.readPointer - 1;
+    decodedNameBuffers.decodedAttrName = misc::ConstStringRef(startOfName, readerState.readPointer - 1);
     return true;
   }
   assert(false);

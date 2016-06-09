@@ -29,18 +29,8 @@ namespace detail {
 struct ReaderState {
   ReaderState(const char* pReadPointer)
     : readPointer(pReadPointer)
-    , startOfCurrentTagNamePointer(readPointer), endOfCurrentTagNamePointer(readPointer)
-    , startOfCurrentAttrNamePointer(readPointer), endOfCurrentAttrNamePointer(readPointer)
-    , startOfCurrentValuePointer(readPointer), endOfCurrentValuePointer(readPointer)
   { }
   const char* readPointer;
-  const char* startOfCurrentTagNamePointer;
-  const char* endOfCurrentTagNamePointer;
-  const char* startOfCurrentAttrNamePointer;
-  const char* endOfCurrentAttrNamePointer;
-  const char* startOfCurrentValuePointer;
-  const char* endOfCurrentValuePointer;
-  std::size_t currentValueDecodedSize = 0;
   unicode::Utf32Char currentChar = 0;
 };
 

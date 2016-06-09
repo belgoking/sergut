@@ -23,35 +23,22 @@
 
 #include "unicode/Utf16Codec.h"
 #include "unicode/Utf8Codec.h"
-#include "xml/detail/PullParserNVUtf16BE.h"
-#include "xml/detail/PullParserNVUtf16LE.h"
-#include "xml/detail/PullParserNVUtf8.h"
+#include "xml/detail/PullParserUtf16BE.h"
+#include "xml/detail/PullParserUtf16LE.h"
+#include "xml/detail/PullParserUtf8.h"
 
 xml::PullParser::~PullParser() { }
 
-std::unique_ptr<xml::PullParser> xml::PullParser::createParser(const misc::StringRef& data)
+std::unique_ptr<xml::PullParser> xml::PullParser::createParser(const misc::ConstStringRef& data)
 {
   if(unicode::Utf16BECodec::hasBom(data.begin(), data.end())) {
-    return std::unique_ptr<xml::detail::PullParserNVUtf16BE>(new xml::detail::PullParserNVUtf16BE(misc::StringRef(data.begin()+2, data.end())));
+    return std::unique_ptr<xml::detail::PullParserUtf16BE>(new xml::detail::PullParserUtf16BE(misc::ConstStringRef(data.begin()+2, data.end())));
   }
   if(unicode::Utf16LECodec::hasBom(data.begin(), data.end())) {
-    return std::unique_ptr<xml::detail::PullParserNVUtf16LE>(new xml::detail::PullParserNVUtf16LE(misc::StringRef(data.begin()+2, data.end())));
+    return std::unique_ptr<xml::detail::PullParserUtf16LE>(new xml::detail::PullParserUtf16LE(misc::ConstStringRef(data.begin()+2, data.end())));
   }
   if(unicode::Utf8Codec::hasBom(data.begin(), data.end())) {
-    return std::unique_ptr<xml::detail::PullParserNVUtf8>(new xml::detail::PullParserNVUtf8(misc::StringRef(data.begin()+3, data.end())));
+    return std::unique_ptr<xml::detail::PullParserUtf8>(new xml::detail::PullParserUtf8(misc::ConstStringRef(data.begin()+3, data.end())));
   }
-  return std::unique_ptr<xml::detail::PullParserNVUtf8>(new xml::detail::PullParserNVUtf8(misc::StringRef(data.begin(), data.end())));
-}
-
-misc::StringRef xml::PullParser::getCurrentValue()
-{
-  const DecodingResult sz = getCurrentValue(nullptr, 0);
-  if(isError(sz)) {
-    return misc::StringRef();
-  }
-  currentValueBuffer.resize(static_cast<std::size_t>(sz));
-  if(isError(getCurrentValue(&*currentValueBuffer.begin(), currentValueBuffer.size()))) {
-    currentValueBuffer.clear();
-  }
-  return misc::StringRef(currentValueBuffer);
+  return std::unique_ptr<xml::detail::PullParserUtf8>(new xml::detail::PullParserUtf8(misc::ConstStringRef(data.begin(), data.end())));
 }

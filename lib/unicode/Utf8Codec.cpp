@@ -21,7 +21,7 @@
 
 #include "Utf8Codec.h"
 
-static const misc::StringRef utf8EncodingName("UTF-8");
+static const misc::ConstStringRef utf8EncodingName("UTF-8");
 
 static unicode::ParseResult computeCharSize(unicode::Utf32Char& firstCharValue, char firstChar) noexcept
 {
@@ -172,7 +172,7 @@ bool unicode::Utf8Codec::hasBom(const char* data, const char* dataEnd) noexcept
       && data[2] == char(0xBF);
 }
 
-bool unicode::Utf8Codec::isSupportedEncoding(const misc::StringRef& encodingString) noexcept
+bool unicode::Utf8Codec::isSupportedEncoding(const misc::ConstStringRef& encodingString) noexcept
 {
   return encodingString == utf8EncodingName;
 }

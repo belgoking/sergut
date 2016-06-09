@@ -31,7 +31,7 @@ namespace sergut {
 
 struct XmlDeserializer::Impl {
   Impl(const std::string& xml)
-    : xmlDocument(xml::PullParser::createParser(misc::StringRef(xml)))
+    : xmlDocument(xml::PullParser::createParser(misc::ConstStringRef(xml)))
   { }
   Impl(const Impl&) = delete;
   Impl& operator=(const Impl&) = delete;
@@ -42,13 +42,13 @@ public:
 
 template<typename DT>
 static
-void readInto(const misc::StringRef& str, DT& dest)
+void readInto(const misc::ConstStringRef& str, DT& dest)
 {
   std::istringstream(std::string(str.begin(), str.end())) >> dest;
 }
 
 static
-void readInto(const misc::StringRef& str, unsigned char& dest)
+void readInto(const misc::ConstStringRef& str, unsigned char& dest)
 {
   unsigned int i;
   std::istringstream(std::string(str.begin(), str.end())) >> i;
@@ -89,16 +89,13 @@ void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const Value
     if(currentNode.parseNext() != xml::ParseTokenType::CloseTag) {
       throw ParsingException("Expecting closing tag");
     }
-    if(currentNode.getCurrentTagName() != data.name) {
-      throw ParsingException("Wrong closing tag");
-    }
     // move the parser one element after the current one
     currentNode.parseNext();
     return;
   }
   case ValueType::SingleChild: {
     assert(currentNode.getCurrentTokenType() == xml::ParseTokenType::Text);
-    const misc::StringRef content = currentNode.getCurrentValue();
+    const misc::ConstStringRef content = currentNode.getCurrentValue();
     if(content.empty() && data.mandatory) {
       throw ParsingException("Text missing for mandatory simple datatype");
     }

@@ -21,94 +21,26 @@
 
 #pragma once
 
-#include <string>
-#include <iosfwd>
+#include "misc/ConstStringRef.h"
 
 namespace misc {
 
-class StringRef
+class StringRef: public ConstStringRef
 {
 public:
-  typedef const char* const_iterator;
-  StringRef() noexcept : beginPtr(), endPtr() { }
-  StringRef(const char* pBegin, const char* pEnd) noexcept
-    : beginPtr(pBegin), endPtr(pEnd)
+  typedef char* iterator;
+  StringRef() noexcept { }
+  StringRef(char* pBegin, char* pEnd) noexcept
+    : ConstStringRef(pBegin, pEnd)
   { }
-  template<std::size_t N>
-  explicit StringRef(const char(&str)[N]) noexcept : beginPtr(str), endPtr(str+N-1) { }
-  explicit StringRef(const std::string& str) noexcept
-    : beginPtr(&*str.begin()), endPtr(&*str.end())
+  explicit StringRef(std::string& str) noexcept
+    : ConstStringRef(str)
   { }
 
-  std::size_t size() const noexcept { return endPtr - beginPtr; }
-  bool empty() const noexcept { return size() == 0; }
+  iterator begin() noexcept { return const_cast<iterator>(beginPtr); }
+  iterator end()   noexcept { return const_cast<iterator>(endPtr);   }
 
-  const_iterator begin() const noexcept { return beginPtr; }
-  const_iterator end() const noexcept { return endPtr; }
-
-  const char& operator[](const std::size_t pos) const { return  *(beginPtr + pos); }
-
-  std::string toString() const { return std::string(beginPtr, endPtr); }
-
-  bool consumeFront(const std::size_t charsToConsume) noexcept {
-    if(beginPtr + charsToConsume > endPtr) {
-      beginPtr = endPtr;
-      return false;
-    }
-    beginPtr += charsToConsume;
-    return true;
-  }
-
-private:
-  friend bool operator==(const StringRef& lhs, const StringRef& rhs) noexcept;
-
-private:
-  const char* beginPtr;
-  const char* endPtr;
+  char& operator[](const std::size_t pos) { return  const_cast<char&>(*(beginPtr + pos)); }
 };
 
-inline
-bool operator==(const StringRef& lhs, const StringRef& rhs) noexcept {
-  if(lhs.size() != rhs.size()) {
-    return false;
-  }
-  StringRef::const_iterator lhsPos = lhs.begin();
-  StringRef::const_iterator rhsPos = rhs.begin();
-  for(; lhsPos != lhs.end(); ++lhsPos, ++rhsPos) {
-    if(*lhsPos != *rhsPos) {
-      return false;
-    }
-  }
-  return true;
-}
-
-inline
-bool operator==(const StringRef& lhs, const std::string& rhs) noexcept {
-  return lhs == StringRef(rhs);
-}
-
-inline
-bool operator==(const std::string& lhs, const StringRef& rhs) noexcept {
-  return StringRef(lhs) == rhs;
-}
-
-inline
-bool operator!=(const StringRef& lhs, const StringRef& rhs) noexcept {
-  return !operator==(lhs, rhs);
-}
-
-inline
-bool operator!=(const StringRef& lhs, const std::string& rhs) noexcept {
-  return !operator==(lhs, rhs);
-}
-
-inline
-bool operator!=(const std::string& lhs, const StringRef& rhs) noexcept {
-  return !operator==(lhs, rhs);
-}
-
-inline std::ostream& operator<<(std::ostream& out, const StringRef& str) {
-  out << std::string(str.begin(), str.end());
-  return out;
-}
 }
