@@ -36,6 +36,8 @@
 #include <cassert>
 #include <iostream>
 
+#include <cstring>
+
 /*
  * <foo>
  *   <bar baz="1">val</bar>
