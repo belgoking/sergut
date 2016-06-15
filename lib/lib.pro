@@ -3,6 +3,9 @@
 # Project created by QtCreator 2016-02-24T06:21:30
 #
 #-------------------------------------------------
+include(../local.pri)
+
+TEMPLATE = lib
 
 QT -= core
 QT -= gui
@@ -15,8 +18,7 @@ CONFIG += staticlib
 
 INCLUDEPATH += "$${CPP_TINYXML_INCLUDE_PATH}"
 
-TEMPLATE = lib
-
+QMAKE_CXXFLAGS += -ggdb3
 
 SOURCES += \
     sergut/JsonSerializer.cpp \

@@ -182,9 +182,9 @@ public:
 
   /// Initial call to the serializer
   /// \param name The name of the outer tag
-  template<typename DT, typename NAMED_MEMBER_FOR_SERIALIZATION = NamedMemberForSerialization<DT>>
+  template<typename DT>
   void serializeData(const char* name, const DT& data) {
-    *this & NAMED_MEMBER_FOR_SERIALIZATION(name, data, true);
+    *this & toNamedMember(name, data, true);
   }
 
   std::string str() const;

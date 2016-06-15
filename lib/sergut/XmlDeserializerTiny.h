@@ -156,14 +156,27 @@ public:
 
   /// Initial call to the serializer
   /// \param name The name of the outer tag
-  template<typename DT, typename NAMED_MEMBER_FOR_SERIALIZATION = NamedMemberForDeserialization<DT>>
+  template<typename DT>
   DT deserializeData(const char* name, const sergut::ValueType pValueType) {
     if(name != nullptr && ::strcmp(currentElement->Value(), name) != 0) {
       throw ParsingException("Wrong root tag");
     }
     DT data;
     valueType = pValueType;
-    *this & NAMED_MEMBER_FOR_SERIALIZATION(name, data, true);
+    *this & toNamedMember(name, data, true);
+    return data;
+  }
+
+  /// Initial call to the serializer
+  /// \param name The name of the outer tag
+  template<typename DT>
+  DT deserializeNestedData(const char* outerName, const char* innerName, const sergut::ValueType pValueType) {
+    if(outerName != nullptr && std::strcmp(currentElement->Value(), outerName) != 0) {
+      throw ParsingException("Wrong root tag");
+    }
+    DT data;
+    valueType = pValueType;
+    *this & toNamedMember(outerName, toNamedMember(innerName, data, true), true);
     return data;
   }
 
