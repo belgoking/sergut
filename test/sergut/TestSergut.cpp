@@ -889,9 +889,9 @@ int main_disabled(int /*argc*/, char */*argv*/[])
     const std::string origXml("<vector>1:00:03</vector><vector>20:34:35</vector>");
     sergut::XmlDeserializer deser(origXml);
     const std::vector<Time> res =
-        deser.deserializeData<std::vector<Time>, sergut::NamedMemberForDeserialization<std::vector<Time>>>("vector", sergut::ValueType::Child);
+        deser.deserializeData<std::vector<Time>>("vector", sergut::ValueType::Child);
     sergut::XmlSerializer ser;
-    ser.serializeData<std::vector<Time>, sergut::NamedMemberForSerialization<std::vector<Time>>>("vector", res);
+    ser.serializeData<std::vector<Time>>("vector", res);
     std::cout << "Orig:  " << origXml << "\n"
               << "Later: " << ser.str() << "\n";
   }

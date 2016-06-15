@@ -11,8 +11,7 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG += c++11
 
-LIBS += -L "$${OUT_PWD}/../lib" -L "$${CPP_TINYXML_LIB_PATH}" -lsergut
-QMAKE_LFLAGS += -ltinyxml2
+LIBS += -L "$${OUT_PWD}/../lib" -L "$${CPP_TINYXML_LIB_PATH}" -lsergut -ltinyxml2
 
 QMAKE_CXXFLAGS += -ggdb3
 

@@ -58,9 +58,24 @@ public:
 
   /// Initial call to the serializer
   /// \param name The name of the outer tag
-  template<typename DT, typename NAMED_MEMBER_FOR_DESERIALIZATION = NamedMemberForDeserialization<DT>>
+  template<typename DT>
   DT deserializeData(const char* name, const ValueType valueType) {
     DT data;
+    doDeserializeData(MyMemberDeserializer::toNamedMember(name, data, true), valueType);
+    return data;
+  }
+
+  template<typename DT>
+  DT deserializeNestedData(const char* outerName, const char* innerName, const ValueType valueType) {
+    DT data;
+    doDeserializeData(MyMemberDeserializer::toNamedMember(outerName, MyMemberDeserializer::toNamedMember(innerName, data, true), true), valueType);
+    return data;
+  }
+
+private:
+  template<typename DT>
+  void doDeserializeData(const NamedMemberForDeserialization<DT>& data, const ValueType valueType)
+  {
     xml::PullParser& pullParser = getPullParser();
     if(pullParser.parseNext() != xml::ParseTokenType::OpenDocument) {
       throw ParsingException("Invalid XML-Document");
@@ -68,12 +83,10 @@ public:
     if(pullParser.parseNext() != xml::ParseTokenType::OpenTag) {
       throw ParsingException("Invalid XML-Document");
     }
-    if(name != nullptr && pullParser.getCurrentTagName() != name) {
+    if(data.name != nullptr && pullParser.getCurrentTagName() != data.name) {
       throw ParsingException("Wrong opening Tag in XML-Document");
     }
-//    tinyxml2::XMLNode* currentNode = &getCheckedXmlRootNode(name);
-    handleChild(NAMED_MEMBER_FOR_DESERIALIZATION(name, data, true), valueType, pullParser);
-    return data;
+    handleChild(data, valueType, pullParser);
   }
 
 private:

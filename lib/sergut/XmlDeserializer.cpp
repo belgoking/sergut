@@ -281,7 +281,8 @@ void XmlDeserializer::feedMembers(MyMemberDeserializer &retriever, xml::PullPars
   // finally check whether mandatory members are missing
   for(const std::pair<const std::string, std::shared_ptr<MyMemberDeserializer::HolderBase>>& e: retriever.getMembers()) {
     if(e.second->isMandatory() && !e.second->isContainer()) {
-      throw ParsingException("Mandatory child is missing");
+      std::cerr << "Mandatory Member '" << e.first << "' is missing" << std::endl;
+      throw ParsingException("Mandatory child '" + e.first + "' is missing");
     }
   }
 }
