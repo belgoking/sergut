@@ -169,22 +169,6 @@ void XmlDeserializer::handleChild(const NamedMemberForDeserialization<char>& dat
   handleSimpleType(data, valueType, state);
 }
 
-//tinyxml2::XMLNode& XmlDeserializer::getCheckedXmlRootNode(const char* expectedName)
-//{
-//  tinyxml2::XMLNode* ret = impl->xmlDocument.RootElement();
-//  if(ret == nullptr) {
-//    throw ParsingException("XML has empty root node");
-//  }
-//  tinyxml2::XMLElement* el = ret->ToElement();
-//  if(el == nullptr) {
-//    throw ParsingException("Root node is not an element node");
-//  }
-//  if(expectedName != nullptr && expectedName[0] != '\0' && std::strcmp(expectedName, el->Name()) != 0) {
-//    throw ParsingException("Wrong root element tag");
-//  }
-//  return *ret;
-//}
-
 static void skipText(xml::PullParser& parser)
 {
   if(parser.getCurrentTokenType() == xml::ParseTokenType::Text) {
