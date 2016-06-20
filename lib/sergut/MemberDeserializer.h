@@ -23,6 +23,8 @@
 
 #include "sergut/DeserializerBase.h"
 
+#include "sergut/XmlValueType.h"
+
 #include <list>
 #include <memory>
 #include <map>
@@ -30,8 +32,6 @@
 #include <vector>
 
 namespace sergut {
-
-enum class ValueType { Attribute, Child, SingleChild };
 
 class MemberDeserializerBase: public DeserializerBase {
 public:
@@ -44,7 +44,7 @@ public:
   typedef SERIALIZER SerializerType;
   typedef SERIALIZATION_STATE SerializationState;
   struct HolderBase {
-    HolderBase(const ValueType pValueType) : valueType(pValueType) { }
+    HolderBase(const XmlValueType pValueType) : valueType(pValueType) { }
     HolderBase(const HolderBase& ref) = delete;
     HolderBase& operator=(const HolderBase& ref) = delete;
     virtual ~HolderBase() { }
@@ -53,13 +53,13 @@ public:
     virtual bool isContainer() const = 0;
     virtual const char* getName() const = 0;
   protected:
-    const ValueType valueType;
+    const XmlValueType valueType;
   };
   typedef std::map<std::string, std::shared_ptr<HolderBase>> Members;
 
   template<typename WrappedDT>
   struct Holder: public HolderBase {
-    Holder(const WrappedDT& pWrappedDT, const ValueType pValueType)
+    Holder(const WrappedDT& pWrappedDT, const XmlValueType pValueType)
       : HolderBase(pValueType), wrappedDT(pWrappedDT)
     { }
     void execute(SerializationState state) override {
@@ -93,7 +93,7 @@ public:
   /// Members until this marker are rendered as XML-Attributes, after it as sub-elements
   MemberDeserializer& operator&(const ChildrenFollow&)
   {
-    valueType = ValueType::Child;
+    valueType = XmlValueType::Child;
     return *this;
   }
 
@@ -102,13 +102,13 @@ public:
   /// renderable as a simple XML-Type (i.e. a number or a string)
   MemberDeserializer& operator&(const PlainChildFollows&)
   {
-    valueType = ValueType::SingleChild;
+    valueType = XmlValueType::SingleChild;
     return *this;
   }
 
   template<typename WrappedDT>
   MemberDeserializer& operator&(WrappedDT const& data) {
-    if(singleChildSupported && valueType == ValueType::SingleChild) {
+    if(singleChildSupported && valueType == XmlValueType::SingleChild) {
       members[SINGLE_CHILD] = std::make_shared<Holder<WrappedDT>>(data, valueType);
     } else {
       members[data.name] = std::make_shared<Holder<WrappedDT>>(data, valueType);
@@ -116,7 +116,7 @@ public:
     return *this;
   }
 
-  ValueType getValueType() const { return valueType; }
+  XmlValueType getValueType() const { return valueType; }
   std::shared_ptr<HolderBase> popMember(const std::string& memberName) {
     std::shared_ptr<HolderBase> ret;
     typename Members::const_iterator membersIt = members.find(memberName);
@@ -132,7 +132,7 @@ public:
 private:
   const bool singleChildSupported = true;
   Members members;
-  ValueType valueType = ValueType::Attribute;
+  XmlValueType valueType = XmlValueType::Attribute;
 };
 
 

@@ -62,10 +62,10 @@ void readInto(const misc::ConstStringRef& str, unsigned char& dest)
 //}
 
 template<typename DT>
-void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const ValueType valueType, xml::PullParser& currentNode)
+void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const XmlValueType valueType, xml::PullParser& currentNode)
 {
   switch(valueType) {
-  case ValueType::Attribute: {
+  case XmlValueType::Attribute: {
     if(currentNode.getCurrentTokenType() != xml::ParseTokenType::Attribute) {
       throw ParsingException("Expecting Attribute but got something else");
     }
@@ -74,7 +74,7 @@ void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const Value
     currentNode.parseNext();
     return;
   }
-  case ValueType::Child: {
+  case XmlValueType::Child: {
     if(currentNode.parseNext() != xml::ParseTokenType::Text) {
       if(data.mandatory) {
         throw ParsingException("Text missing for mandatory simple datatype");
@@ -93,7 +93,7 @@ void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const Value
     currentNode.parseNext();
     return;
   }
-  case ValueType::SingleChild: {
+  case XmlValueType::SingleChild: {
     assert(currentNode.getCurrentTokenType() == xml::ParseTokenType::Text);
     const misc::ConstStringRef content = currentNode.getCurrentValue();
     if(content.empty() && data.mandatory) {
@@ -117,55 +117,55 @@ XmlDeserializer::~XmlDeserializer() {
   delete impl;
 }
 
-void XmlDeserializer::handleChild(const NamedMemberForDeserialization<long long>& data, const ValueType valueType, xml::PullParser& state) {
+void XmlDeserializer::handleChild(const NamedMemberForDeserialization<long long>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
 }
 
-void XmlDeserializer::handleChild(const NamedMemberForDeserialization<long>& data, const ValueType valueType, xml::PullParser& state) {
+void XmlDeserializer::handleChild(const NamedMemberForDeserialization<long>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
 }
 
-void XmlDeserializer::handleChild(const NamedMemberForDeserialization<int>& data, const ValueType valueType, xml::PullParser& state) {
+void XmlDeserializer::handleChild(const NamedMemberForDeserialization<int>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
 }
 
-void XmlDeserializer::handleChild(const NamedMemberForDeserialization<short>& data, const ValueType valueType, xml::PullParser& state) {
+void XmlDeserializer::handleChild(const NamedMemberForDeserialization<short>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
 }
 
-void XmlDeserializer::handleChild(const NamedMemberForDeserialization<unsigned long long>& data, const ValueType valueType, xml::PullParser& state) {
+void XmlDeserializer::handleChild(const NamedMemberForDeserialization<unsigned long long>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
 }
 
-void XmlDeserializer::handleChild(const NamedMemberForDeserialization<unsigned long>& data, const ValueType valueType, xml::PullParser& state) {
+void XmlDeserializer::handleChild(const NamedMemberForDeserialization<unsigned long>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
 }
 
-void XmlDeserializer::handleChild(const NamedMemberForDeserialization<unsigned int>& data, const ValueType valueType, xml::PullParser& state) {
+void XmlDeserializer::handleChild(const NamedMemberForDeserialization<unsigned int>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
 }
 
-void XmlDeserializer::handleChild(const NamedMemberForDeserialization<unsigned short>& data, const ValueType valueType, xml::PullParser& state) {
+void XmlDeserializer::handleChild(const NamedMemberForDeserialization<unsigned short>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
 }
 
-void XmlDeserializer::handleChild(const NamedMemberForDeserialization<unsigned char>& data, const ValueType valueType, xml::PullParser& state) {
+void XmlDeserializer::handleChild(const NamedMemberForDeserialization<unsigned char>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
 }
 
-void XmlDeserializer::handleChild(const NamedMemberForDeserialization<double>& data, const ValueType valueType, xml::PullParser& state) {
+void XmlDeserializer::handleChild(const NamedMemberForDeserialization<double>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
 }
 
-void XmlDeserializer::handleChild(const NamedMemberForDeserialization<float>& data, const ValueType valueType, xml::PullParser& state) {
+void XmlDeserializer::handleChild(const NamedMemberForDeserialization<float>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
 }
 
-void XmlDeserializer::handleChild(const NamedMemberForDeserialization<std::string>& data, const ValueType valueType, xml::PullParser& state) {
+void XmlDeserializer::handleChild(const NamedMemberForDeserialization<std::string>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
 }
 
-void XmlDeserializer::handleChild(const NamedMemberForDeserialization<char>& data, const ValueType valueType, xml::PullParser& state) {
+void XmlDeserializer::handleChild(const NamedMemberForDeserialization<char>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
 }
 
@@ -251,7 +251,7 @@ void XmlDeserializer::feedMembers(MyMemberDeserializer &retriever, xml::PullPars
     if(memberHolder) {
       memberHolder->execute(state);
     } else {
-      std::cerr << "Member handler for '" << state.getCurrentTagName() << "' does not exist" << std::endl;
+//      std::cerr << "Member handler for '" << state.getCurrentTagName() << "' does not exist" << std::endl;
       skipSubTree(state);
     }
     skipText(state);
@@ -271,10 +271,10 @@ void XmlDeserializer::feedMembers(MyMemberDeserializer &retriever, xml::PullPars
   }
 }
 
-std::string XmlDeserializer::popString(const ValueType valueType, xml::PullParser& state)
+std::string XmlDeserializer::popString(const XmlValueType valueType, xml::PullParser& state)
 {
   switch(valueType) {
-  case ValueType::Attribute: {
+  case XmlValueType::Attribute: {
     if(state.getCurrentTokenType() != xml::ParseTokenType::Attribute) {
       throw ParsingException("Expecting Attribute, but got something else");
     }
@@ -282,7 +282,7 @@ std::string XmlDeserializer::popString(const ValueType valueType, xml::PullParse
     state.parseNext();
     return attrVal;
   }
-  case ValueType::Child: {
+  case XmlValueType::Child: {
     assert(state.getCurrentTokenType() == xml::ParseTokenType::OpenTag);
     if(state.parseNext() != xml::ParseTokenType::Text) {
       if(state.getCurrentTokenType() != xml::ParseTokenType::CloseTag) {
@@ -298,7 +298,7 @@ std::string XmlDeserializer::popString(const ValueType valueType, xml::PullParse
     state.parseNext();
     return txt;
   }
-  case ValueType::SingleChild: {
+  case XmlValueType::SingleChild: {
     assert(state.getCurrentTokenType() == xml::ParseTokenType::Text);
     const std::string txt = state.getCurrentValue().toString();
     if(state.parseNext() != xml::ParseTokenType::CloseTag) {
@@ -311,16 +311,16 @@ std::string XmlDeserializer::popString(const ValueType valueType, xml::PullParse
   return std::string();
 }
 
-bool XmlDeserializer::checkNextContainerElement(const char* name, const ValueType valueType, xml::PullParser& state)
+bool XmlDeserializer::checkNextContainerElement(const char* name, const XmlValueType valueType, xml::PullParser& state)
 {
   switch(valueType) {
-  case ValueType::Attribute: {
+  case XmlValueType::Attribute: {
     return state.getCurrentTokenType() == xml::ParseTokenType::Attribute && state.getCurrentAttributeName() == name;
   }
-  case ValueType::Child: {
+  case XmlValueType::Child: {
     return state.getCurrentTokenType() == xml::ParseTokenType::OpenTag && state.getCurrentTagName() == name;
   }
-  case ValueType::SingleChild:
+  case XmlValueType::SingleChild:
     break;
   }
   return false;

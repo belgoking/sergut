@@ -197,7 +197,7 @@ int main()
     {
       Timer t("XmlDeserializer");
       sergut::XmlDeserializer deser(data);
-      deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0", sergut::ValueType::Attribute);
+      deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0", sergut::XmlValueType::Attribute);
     }
   }
   for(int i = 0; i < 20; ++i) {

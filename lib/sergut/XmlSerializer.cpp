@@ -28,7 +28,7 @@ namespace sergut {
 struct XmlSerializer::LevelStatus {
 
 public:
-  ValueType valueType = ValueType::Attribute;
+  XmlValueType valueType = XmlValueType::Attribute;
 };
 
 struct XmlSerializer::Impl {
@@ -48,7 +48,7 @@ XmlSerializer::XmlSerializer()
 {
   impl->levelStatus.push_back(LevelStatus{});
   // The initial level allways starts up at Children-level
-  impl->levelStatus.back().valueType = ValueType::Child;
+  impl->levelStatus.back().valueType = XmlValueType::Child;
 }
 
 XmlSerializer::XmlSerializer(const XmlSerializer &ref)
@@ -66,17 +66,17 @@ XmlSerializer::~XmlSerializer() {
 
 XmlSerializer &XmlSerializer::operator&(const ChildrenFollow &)
 {
-  assert(getValueType()==ValueType::Attribute);
+  assert(getValueType()==XmlValueType::Attribute);
   out() << ">";
-  impl->levelStatus.back().valueType = ValueType::Child;
+  impl->levelStatus.back().valueType = XmlValueType::Child;
   return *this;
 }
 
 XmlSerializer &XmlSerializer::operator&(const PlainChildFollows &)
 {
-  assert(getValueType()==ValueType::Attribute);
+  assert(getValueType()==XmlValueType::Attribute);
   out() << ">";
-  impl->levelStatus.back().valueType = ValueType::SingleChild;
+  impl->levelStatus.back().valueType = XmlValueType::SingleChild;
   return *this;
 }
 
@@ -123,7 +123,7 @@ void XmlSerializer::writeEscaped(const std::string& str)
   }
 }
 
-XmlSerializer::ValueType XmlSerializer::getValueType() const
+XmlValueType XmlSerializer::getValueType() const
 {
   return impl->levelStatus.back().valueType;
 }

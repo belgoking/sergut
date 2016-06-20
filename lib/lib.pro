@@ -58,5 +58,6 @@ HEADERS += \
     xml/detail/BasicPullParser.h \
     xml/detail/PullParserUtf8.h \
     xml/detail/PullParserUtf16LE.h \
-    xml/detail/PullParserUtf16BE.h
+    xml/detail/PullParserUtf16BE.h \
+    sergut/XmlValueType.h
 

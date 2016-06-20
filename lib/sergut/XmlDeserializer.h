@@ -59,14 +59,14 @@ public:
   /// Initial call to the serializer
   /// \param name The name of the outer tag
   template<typename DT>
-  DT deserializeData(const char* name, const ValueType valueType) {
+  DT deserializeData(const char* name, const XmlValueType valueType) {
     DT data;
     doDeserializeData(MyMemberDeserializer::toNamedMember(name, data, true), valueType);
     return data;
   }
 
   template<typename DT>
-  DT deserializeNestedData(const char* outerName, const char* innerName, const ValueType valueType) {
+  DT deserializeNestedData(const char* outerName, const char* innerName, const XmlValueType valueType) {
     DT data;
     doDeserializeData(MyMemberDeserializer::toNamedMember(outerName, MyMemberDeserializer::toNamedMember(innerName, data, true), true), valueType);
     return data;
@@ -74,7 +74,7 @@ public:
 
 private:
   template<typename DT>
-  void doDeserializeData(const NamedMemberForDeserialization<DT>& data, const ValueType valueType)
+  void doDeserializeData(const NamedMemberForDeserialization<DT>& data, const XmlValueType valueType)
   {
     xml::PullParser& pullParser = getPullParser();
     if(pullParser.parseNext() != xml::ParseTokenType::OpenDocument) {
@@ -93,31 +93,31 @@ private:
   // the following functions are called by MemberDeserializer
 
   // Signed integers
-  static void handleChild(const NamedMemberForDeserialization<long long>& data, const ValueType valueType, xml::PullParser& state);
-  static void handleChild(const NamedMemberForDeserialization<long>& data, const ValueType valueType, xml::PullParser& state);
-  static void handleChild(const NamedMemberForDeserialization<int>& data, const ValueType valueType, xml::PullParser& state);
-  static void handleChild(const NamedMemberForDeserialization<short>& data, const ValueType valueType, xml::PullParser& state);
+  static void handleChild(const NamedMemberForDeserialization<long long>& data, const XmlValueType valueType, xml::PullParser& state);
+  static void handleChild(const NamedMemberForDeserialization<long>& data, const XmlValueType valueType, xml::PullParser& state);
+  static void handleChild(const NamedMemberForDeserialization<int>& data, const XmlValueType valueType, xml::PullParser& state);
+  static void handleChild(const NamedMemberForDeserialization<short>& data, const XmlValueType valueType, xml::PullParser& state);
 
   // Unsigned integers
-  static void handleChild(const NamedMemberForDeserialization<unsigned long long>& data, const ValueType valueType, xml::PullParser& state);
-  static void handleChild(const NamedMemberForDeserialization<unsigned long>& data, const ValueType valueType, xml::PullParser& state);
-  static void handleChild(const NamedMemberForDeserialization<unsigned int>& data, const ValueType valueType, xml::PullParser& state);
-  static void handleChild(const NamedMemberForDeserialization<unsigned short>& data, const ValueType valueType, xml::PullParser& state);
-  static void handleChild(const NamedMemberForDeserialization<unsigned char>& data, const ValueType valueType, xml::PullParser& state);
+  static void handleChild(const NamedMemberForDeserialization<unsigned long long>& data, const XmlValueType valueType, xml::PullParser& state);
+  static void handleChild(const NamedMemberForDeserialization<unsigned long>& data, const XmlValueType valueType, xml::PullParser& state);
+  static void handleChild(const NamedMemberForDeserialization<unsigned int>& data, const XmlValueType valueType, xml::PullParser& state);
+  static void handleChild(const NamedMemberForDeserialization<unsigned short>& data, const XmlValueType valueType, xml::PullParser& state);
+  static void handleChild(const NamedMemberForDeserialization<unsigned char>& data, const XmlValueType valueType, xml::PullParser& state);
 
-  static void handleChild(const NamedMemberForDeserialization<double>& data, const ValueType valueType, xml::PullParser& state);
-  static void handleChild(const NamedMemberForDeserialization<float>& data, const ValueType valueType, xml::PullParser& state);
+  static void handleChild(const NamedMemberForDeserialization<double>& data, const XmlValueType valueType, xml::PullParser& state);
+  static void handleChild(const NamedMemberForDeserialization<float>& data, const XmlValueType valueType, xml::PullParser& state);
 
   // String types
-  static void handleChild(const NamedMemberForDeserialization<std::string>& data, const ValueType valueType, xml::PullParser& state);
-  static void handleChild(const NamedMemberForDeserialization<char>& data, const ValueType valueType, xml::PullParser& state);
+  static void handleChild(const NamedMemberForDeserialization<std::string>& data, const XmlValueType valueType, xml::PullParser& state);
+  static void handleChild(const NamedMemberForDeserialization<char>& data, const XmlValueType valueType, xml::PullParser& state);
 
-  static void handleChild(const NamedMemberForDeserialization<char*>& data, const ValueType valueType, xml::PullParser& state) = delete;
+  static void handleChild(const NamedMemberForDeserialization<char*>& data, const XmlValueType valueType, xml::PullParser& state) = delete;
 
 
   // Containers as members
   template<typename DT>
-  static void handleChild(const NamedMemberForDeserialization<std::vector<DT>>& data, const ValueType valueType, xml::PullParser& state) {
+  static void handleChild(const NamedMemberForDeserialization<std::vector<DT>>& data, const XmlValueType valueType, xml::PullParser& state) {
     while(checkNextContainerElement(data.name, valueType, state)) {
       DT element;
       handleChild(NamedMemberForDeserialization<DT>(data.name, element, true), valueType, state);
@@ -130,7 +130,7 @@ private:
 
   // structured data
   template<typename DT>
-  static auto handleChild(const NamedMemberForDeserialization<DT>& data, const ValueType valueType, xml::PullParser& state)
+  static auto handleChild(const NamedMemberForDeserialization<DT>& data, const XmlValueType valueType, xml::PullParser& state)
   -> decltype(serialize(DummySerializer::dummyInstance(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)),void())
   {
     (void)valueType;
@@ -140,7 +140,7 @@ private:
   }
 
   template<typename DT>
-  static auto handleChild(const NamedMemberForDeserialization<DT>& data, const ValueType valueType, xml::PullParser& state)
+  static auto handleChild(const NamedMemberForDeserialization<DT>& data, const XmlValueType valueType, xml::PullParser& state)
   -> decltype(deserializeFromString(data.data, std::string()),void())
   {
     deserializeFromString(data.data, popString(valueType, state));
@@ -148,8 +148,8 @@ private:
 
 private:
   static void feedMembers(MyMemberDeserializer& retriever, xml::PullParser& state);
-  static std::string popString(const ValueType valueType, xml::PullParser& state);
-  static bool checkNextContainerElement(const char* name, const ValueType valueType, xml::PullParser& state);
+  static std::string popString(const XmlValueType valueType, xml::PullParser& state);
+  static bool checkNextContainerElement(const char* name, const XmlValueType valueType, xml::PullParser& state);
   xml::PullParser& getPullParser();
 private:
   Impl* impl = nullptr;

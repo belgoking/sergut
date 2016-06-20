@@ -74,7 +74,7 @@ public:
   // Containers as members
   template<typename CDT>
   XmlDeserializerTiny& operator&(const NamedMemberForDeserialization<std::vector<CDT>>& data) {
-    assert(valueType == ValueType::Child);
+    assert(valueType == XmlValueType::Child);
     while(currentElement->FirstChildElement(data.name) != nullptr) {
       CDT tmp;
       operator&(NamedMemberForDeserialization<CDT>(data.name, tmp, true));
@@ -85,7 +85,7 @@ public:
 
   template<typename CDT>
   XmlDeserializerTiny& operator&(const NamedMemberForDeserialization<std::list<CDT>>& data) {
-    assert(valueType == ValueType::Child);
+    assert(valueType == XmlValueType::Child);
     while(currentElement->FirstChildElement(data.name) != nullptr) {
       CDT tmp;
       operator&(NamedMemberForDeserialization<CDT>(data.name, tmp, true));
@@ -96,7 +96,7 @@ public:
 
   template<typename CDT>
   XmlDeserializerTiny& operator&(const NamedMemberForDeserialization<std::set<CDT>>& data) {
-    assert(valueType == ValueType::Child);
+    assert(valueType == XmlValueType::Child);
     while(currentElement->FirstChildElement(data.name) != nullptr) {
       CDT tmp;
       operator&(NamedMemberForDeserialization<CDT>(data.name, tmp, true));
@@ -157,7 +157,7 @@ public:
   /// Initial call to the serializer
   /// \param name The name of the outer tag
   template<typename DT>
-  DT deserializeData(const char* name, const sergut::ValueType pValueType) {
+  DT deserializeData(const char* name, const sergut::XmlValueType pValueType) {
     if(name != nullptr && std::strcmp(currentElement->Value(), name) != 0) {
       throw ParsingException("Wrong root tag");
     }
@@ -170,7 +170,7 @@ public:
   /// Initial call to the serializer
   /// \param name The name of the outer tag
   template<typename DT>
-  DT deserializeNestedData(const char* outerName, const char* innerName, const sergut::ValueType pValueType) {
+  DT deserializeNestedData(const char* outerName, const char* innerName, const sergut::XmlValueType pValueType) {
     if(outerName != nullptr && std::strcmp(currentElement->Value(), outerName) != 0) {
       throw ParsingException("Wrong root tag");
     }
@@ -190,13 +190,13 @@ private:
   template<typename DT>
   XmlDeserializerTiny& extractSimpleType(const NamedMemberForDeserialization<DT>& data) {
     switch(valueType) {
-    case ValueType::Attribute:
+    case XmlValueType::Attribute:
       extractAttribute(data);
     break;
-    case ValueType::Child:
+    case XmlValueType::Child:
       extractSimpleChild(data);
       break;
-    case ValueType::SingleChild:
+    case XmlValueType::SingleChild:
       extractSingleChild(data);
       break;
     }
@@ -258,8 +258,8 @@ private:
   }
 
 private:
-  const ValueType parentValueType;
-  ValueType valueType;
+  const XmlValueType parentValueType;
+  XmlValueType valueType;
   std::unique_ptr<tinyxml2::XMLDocument> xmlDocument;
   tinyxml2::XMLNode* currentElement;
 };

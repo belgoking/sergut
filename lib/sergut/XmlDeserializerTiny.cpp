@@ -29,8 +29,8 @@
 namespace sergut {
 
 XmlDeserializerTiny::XmlDeserializerTiny(const std::string& xml)
-  : parentValueType(ValueType::Child)
-  , valueType(ValueType::Attribute)
+  : parentValueType(XmlValueType::Child)
+  , valueType(XmlValueType::Attribute)
   , currentElement(nullptr)
 {
   xmlDocument.reset(new tinyxml2::XMLDocument);
@@ -42,7 +42,7 @@ XmlDeserializerTiny::XmlDeserializerTiny(const std::string& xml)
 
 XmlDeserializerTiny::XmlDeserializerTiny(const XmlDeserializerTiny& ref)
   : parentValueType(ref.valueType)
-  , valueType(ValueType::Attribute)
+  , valueType(XmlValueType::Attribute)
   , currentElement(ref.currentElement)
 { }
 
@@ -59,15 +59,15 @@ void XmlDeserializerTiny::doReadInto(const char* str, unsigned char& data) {
 
 XmlDeserializerTiny &XmlDeserializerTiny::operator&(const ChildrenFollow &)
 {
-  assert(valueType == ValueType::Attribute);
-  valueType = ValueType::Child;
+  assert(valueType == XmlValueType::Attribute);
+  valueType = XmlValueType::Child;
   return *this;
 }
 
 XmlDeserializerTiny &XmlDeserializerTiny::operator&(const PlainChildFollows &)
 {
-  assert(valueType==ValueType::Attribute);
-  valueType = ValueType::SingleChild;
+  assert(valueType==XmlValueType::Attribute);
+  valueType = XmlValueType::SingleChild;
   return *this;
 }
 

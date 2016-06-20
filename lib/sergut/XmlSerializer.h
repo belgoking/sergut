@@ -23,6 +23,7 @@
 
 #include "sergut/SerializerBase.h"
 #include "sergut/Util.h"
+#include "sergut/XmlValueType.h"
 
 #include <cassert>
 #include <list>
@@ -49,7 +50,6 @@ class XmlSerializer : public SerializerBase
 {
   class Impl;
   class LevelStatus;
-  enum class ValueType { Attribute, Child, SingleChild };
 public:
   XmlSerializer();
   XmlSerializer(const XmlSerializer& ref);
@@ -108,7 +108,7 @@ public:
   // Containers as members
   template<typename DT>
   XmlSerializer& serializeCollection(const NamedMemberForSerialization<DT>& data) {
-    if(getValueType() != ValueType::Child) {
+    if(getValueType() != XmlValueType::Child) {
       throw std::logic_error(std::string("Wrong ValueType to serialize '")+ data.name + "' get your code right!");
     }
     for(auto&& value: data.data) {
@@ -148,7 +148,7 @@ public:
   auto operator&(const NamedMemberForSerialization<DT>& data)
   -> decltype(serialize(DummySerializer::dummyInstance(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)),*this)
   {
-    assert(getValueType()==ValueType::Child);
+    assert(getValueType()==XmlValueType::Child);
 
     {
       XmlSerializer ser(*this);
@@ -160,11 +160,11 @@ public:
 
       // Render closing tag
       switch(getValueType()) {
-      case ValueType::Attribute:
+      case XmlValueType::Attribute:
         out() << "/>";
         break;
-      case ValueType::Child:
-      case ValueType::SingleChild:
+      case XmlValueType::Child:
+      case XmlValueType::SingleChild:
         out() << "</" << data.name << ">";
         break;
       }
@@ -193,13 +193,13 @@ private:
   template<typename DT>
   XmlSerializer& writeSimpleType(const NamedMemberForSerialization<DT>& data) {
     switch(getValueType()) {
-    case ValueType::Attribute:
+    case XmlValueType::Attribute:
       writeAttribute(data);
     break;
-    case ValueType::Child:
+    case XmlValueType::Child:
       writeSimpleChild(data);
       break;
-    case ValueType::SingleChild:
+    case XmlValueType::SingleChild:
       writeEscaped(data.data);
       break;
     }
@@ -225,7 +225,7 @@ private:
 
   void writeEscaped(const std::string& str);
 
-  ValueType getValueType() const;
+  XmlValueType getValueType() const;
   std::ostringstream& out();
 
 private:
