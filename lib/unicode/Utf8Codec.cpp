@@ -25,6 +25,17 @@ static const misc::ConstStringRef utf8EncodingName("UTF-8");
 
 static unicode::ParseResult computeCharSize(unicode::Utf32Char& firstCharValue, char firstChar) noexcept
 {
+//  8421 8421
+//  0xxx xxxx
+//  110x xxxx xxxx xxxx
+//  1110 xxxx xxxx xxxx xxxx xxxx
+//  1111 0xxx xxxx xxxx xxxx xxxx xxxx xxxx
+
+  if((firstChar & 0x80) == 0) {
+    firstCharValue = firstChar;
+    return unicode::ParseResult(1);
+  }
+
   if((firstChar & 0x80) == 0) {
     firstCharValue = firstChar;
     return unicode::ParseResult(1);
@@ -56,11 +67,12 @@ unicode::ParseResult unicode::Utf8Codec::parseNext(Utf32Char& chr, const char* d
   }
   Utf32Char tmpChr;
   const int32_t charSize = static_cast<int32_t>(computeCharSize(tmpChr, *data));
-  if(charSize < 0) {
+  if(charSize == 1) {
+    chr = tmpChr;
     return static_cast<ParseResult>(charSize);
   }
-  if(static_cast<std::size_t>(charSize) > 4) {
-    return ParseResult::InvalidCharacter;
+  if(charSize < 0) {
+    return static_cast<ParseResult>(charSize);
   }
   if(data + static_cast<std::size_t>(charSize) > dataEnd) {
     return ParseResult::IncompleteCharacter;
@@ -73,6 +85,9 @@ unicode::ParseResult unicode::Utf8Codec::parseNext(Utf32Char& chr, const char* d
     tmpChr <<= 6;
     tmpChr |= *data & 0x3F;
   }
+  if(static_cast<std::size_t>(charSize) > 4) {
+    return ParseResult::InvalidCharacter;
+  }
   switch(charSize) {
   case 2:
     if(tmpChr < 0x80) {
@@ -83,18 +98,18 @@ unicode::ParseResult unicode::Utf8Codec::parseNext(Utf32Char& chr, const char* d
     if(tmpChr < 0x800) {
       return ParseResult::InvalidCharacter;
     }
+    if(0xD800 <= tmpChr && tmpChr <= 0xDFFF) {
+      return ParseResult::InvalidCharacter;
+    }
     break;
   case 4:
     if(tmpChr < 0x10000) {
       return ParseResult::InvalidCharacter;
     }
+    if(tmpChr > 0x10FFFF) {
+      return ParseResult::InvalidCharacter;
+    }
     break;
-  }
-  if(0xD800 <= tmpChr && tmpChr <= 0xDFFF) {
-    return ParseResult::InvalidCharacter;
-  }
-  if(tmpChr > 0x10FFFF) {
-    return ParseResult::InvalidCharacter;
   }
 
   chr = tmpChr;
@@ -108,9 +123,6 @@ bool unicode::Utf8Codec::isAscii(const char c) noexcept
 
 unicode::ParseResult unicode::Utf8Codec::encodeChar(const unicode::Utf32Char chr, char* bufStart, const char* bufEnd) noexcept
 {
-  if(chr > 0x10FFFF)                 { return ParseResult::InvalidCharacter; }
-  if(0xD800 <= chr && chr <= 0xDFFF) { return ParseResult::InvalidCharacter; }
-
   const uint bufSize = bufEnd - bufStart;
   // 0xxx xxxx
   if(chr <= 0x7F) {
@@ -120,6 +132,7 @@ unicode::ParseResult unicode::Utf8Codec::encodeChar(const unicode::Utf32Char chr
     }
     return ParseResult(1);
   }
+
   // 110x xxxx 10xx xxxx
   if(chr <= 0x07FF) {
     if(bufStart != nullptr) {
@@ -129,9 +142,13 @@ unicode::ParseResult unicode::Utf8Codec::encodeChar(const unicode::Utf32Char chr
     }
     return ParseResult(2);
   }
+
+  if(chr > 0x10FFFF)                 { return ParseResult::InvalidCharacter; }
+
   // 1110 xxxx 10xx xxxx 10xx xxxx
   if(chr <= 0xFFFF) {
     if(bufStart != nullptr) {
+      if(0xD800 <= chr && chr <= 0xDFFF) { return ParseResult::InvalidCharacter; }
       if(bufSize < 3) { return ParseResult::IncompleteCharacter; }
       bufStart[0] = 0xE0 |   chr >> 12;
       bufStart[1] = 0x80 | ((chr >>  6) & 0x3F);
