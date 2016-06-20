@@ -193,29 +193,21 @@ int main()
 
   std::cout << "XML String Size: " << data.size() << std::endl;
 
-  {
-    Timer t("XmlDeserializer");
-    sergut::XmlDeserializer deser(data);
-    deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0", sergut::ValueType::Attribute);
+  for(int i = 0; i < 20; ++i) {
+    {
+      Timer t("XmlDeserializer");
+      sergut::XmlDeserializer deser(data);
+      deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0", sergut::ValueType::Attribute);
+    }
+  }
+  for(int i = 0; i < 20; ++i) {
+    {
+      Timer t("XmlDeserializerTiny2");
+      sergut::XmlDeserializerTiny deser(data);
+      deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0", sergut::XmlValueType::Attribute);
+    }
   }
 
-  {
-    Timer t("XmlDeserializerTiny");
-    sergut::XmlDeserializerTiny deser(data);
-    deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0", sergut::ValueType::Attribute);
-  }
-
-  {
-    Timer t("XmlDeserializerTiny");
-    sergut::XmlDeserializerTiny deser(data);
-    deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0", sergut::ValueType::Attribute);
-  }
-
-  {
-    Timer t("XmlDeserializer");
-    sergut::XmlDeserializer deser(data);
-    deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0", sergut::ValueType::Attribute);
-  }
 
 //  std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
