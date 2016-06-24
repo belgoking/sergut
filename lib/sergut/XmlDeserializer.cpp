@@ -48,18 +48,18 @@ void readInto(const misc::StringRef& str, DT& dest)
 }
 
 static
+void readInto(const misc::StringRef& str, std::string& dest)
+{
+  dest = str.toString();
+}
+
+static
 void readInto(const misc::StringRef& str, unsigned char& dest)
 {
   unsigned int i;
   std::istringstream(std::string(str.begin(), str.end())) >> i;
   dest = i;
 }
-
-//static
-//void readInto(const char* str, std::string& dest)
-//{
-//  dest = std::string(str);
-//}
 
 template<typename DT>
 void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const ValueType valueType, xml::PullParser& currentNode)

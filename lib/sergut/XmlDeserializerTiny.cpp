@@ -49,6 +49,10 @@ XmlDeserializerTiny::XmlDeserializerTiny(const XmlDeserializerTiny& ref)
 
 XmlDeserializerTiny::~XmlDeserializerTiny() { }
 
+void XmlDeserializerTiny::doReadInto(const char* str, std::string& data) {
+  data = std::string(str);
+}
+
 void XmlDeserializerTiny::doReadInto(const char* str, unsigned char& data) {
   unsigned short tmp;
   std::istringstream(str) >> tmp;
