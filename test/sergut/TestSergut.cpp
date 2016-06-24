@@ -165,11 +165,11 @@ DEFINE_SIMPLE_DATATYPE_TEST(double,     2.25, "<double value=\"2.25\"/>")
 DEFINE_SIMPLE_DATATYPE_TEST(Time,     (Time{14, 34, 15}), "<Time value=\"14:34:15\"/>")
 namespace {
 typedef std::string string;
-DEFINE_SIMPLE_DATATYPE_TEST(string, "hallo", "<string value=\"hallo\"/>")
+DEFINE_SIMPLE_DATATYPE_TEST(string, "hallo Du", "<string value=\"hallo Du\"/>")
 }
 namespace {
 typedef std::string escapedString;
-DEFINE_SIMPLE_DATATYPE_TEST(escapedString, "<b>\"STRING&amp;\"</b>", "<escapedString value=\"&lt;b&gt;&quot;STRING&amp;amp;&quot;&lt;/b&gt;\"/>")
+DEFINE_SIMPLE_DATATYPE_TEST(escapedString, "<b>\"STRING&amp; STRONG\"</b>", "<escapedString value=\"&lt;b&gt;&quot;STRING&amp;amp; STRONG&quot;&lt;/b&gt;\"/>")
 }
 
 
@@ -215,11 +215,11 @@ DEFINE_SIMPLE_DATATYPE_AS_CHILD_TEST(double,     2.25, "<double><value>2.25</val
 DEFINE_SIMPLE_DATATYPE_AS_CHILD_TEST(Time,     (Time{14, 34, 15}), "<Time><value>14:34:15</value></Time>")
 namespace {
 typedef std::string string;
-DEFINE_SIMPLE_DATATYPE_AS_CHILD_TEST(string, "hallo", "<string><value>hallo</value></string>")
+DEFINE_SIMPLE_DATATYPE_AS_CHILD_TEST(string, "hallo Du", "<string><value>hallo Du</value></string>")
 }
 namespace {
 typedef std::string escapedString;
-DEFINE_SIMPLE_DATATYPE_AS_CHILD_TEST(escapedString, "<b>\"STRING&amp;\"</b>", "<escapedString><value>&lt;b&gt;&quot;STRING&amp;amp;&quot;&lt;/b&gt;</value></escapedString>")
+DEFINE_SIMPLE_DATATYPE_AS_CHILD_TEST(escapedString, "<b>\"STRING&amp; STRONG\"</b>", "<escapedString><value>&lt;b&gt;&quot;STRING&amp;amp; STRONG&quot;&lt;/b&gt;</value></escapedString>")
 }
 
 

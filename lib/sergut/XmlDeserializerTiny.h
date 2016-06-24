@@ -208,6 +208,7 @@ private:
     std::istringstream(str) >> data;
   }
 
+  void doReadInto(const char* str, std::string& data);
   void doReadInto(const char* str, unsigned char& data);
 
   template<typename DT>
