@@ -22,19 +22,20 @@
 #pragma once
 
 #include "sergut/DeserializerBase.h"
-#include "sergut/MemberDeserializer.h"
 #include "sergut/ParsingException.h"
 #include "sergut/SerializerBase.h"
 #include "sergut/Util.h"
+#include "sergut/ValueType.h"
 
 #include <tinyxml.h>
 
-#include <string>
-#include <vector>
-#include <list>
-#include <set>
 #include <cassert>
 #include <iostream>
+#include <list>
+#include <memory>
+#include <set>
+#include <string>
+#include <vector>
 
 #include <cstring>
 

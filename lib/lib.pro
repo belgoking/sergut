@@ -57,4 +57,5 @@ HEADERS += \
     xml/detail/ReaderState.h \
     xml/detail/ReaderStateResetter.h \
     xml/detail/TextDecodingHelper.h \
+    sergut/ValueType.h
 

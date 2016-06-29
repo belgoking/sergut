@@ -22,6 +22,7 @@
 #pragma once
 
 #include "sergut/DeserializerBase.h"
+#include "sergut/ValueType.h"
 
 #include <list>
 #include <memory>
@@ -30,8 +31,6 @@
 #include <vector>
 
 namespace sergut {
-
-enum class ValueType { Attribute, Child, SingleChild };
 
 class MemberDeserializerBase: public DeserializerBase {
 public:
