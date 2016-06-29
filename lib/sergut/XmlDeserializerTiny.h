@@ -52,6 +52,15 @@ namespace sergut {
 class XmlDeserializerTiny : public DeserializerBase
 {
 public:
+  class ErrorContext:  public ParsingException::ErrorContext {
+  public:
+    // ErrorPosition is not supported in tinyxml2
+    ErrorContext(const tinyxml2::XMLNode&) { }
+    std::size_t getRow() const override;
+    std::size_t getColumn() const override;
+  };
+
+public:
   XmlDeserializerTiny(const std::string& xml);
   XmlDeserializerTiny(const XmlDeserializerTiny& ref);
   ~XmlDeserializerTiny();
@@ -124,7 +133,7 @@ public:
       el = currentElement->FirstChildElement(data.name);
       if(el == nullptr) {
         if(data.mandatory) {
-          throw ParsingException("Misssing mandatory child element");
+          throw ParsingException("Misssing mandatory child element", ErrorContext(*currentElement));
         }
         return *this;
       }
@@ -159,7 +168,7 @@ public:
   template<typename DT>
   DT deserializeData(const char* name, const sergut::XmlValueType pValueType) {
     if(name != nullptr && std::strcmp(currentElement->Value(), name) != 0) {
-      throw ParsingException("Wrong root tag");
+      throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
     }
     DT data;
     valueType = pValueType;
@@ -172,7 +181,7 @@ public:
   template<typename DT>
   DT deserializeNestedData(const char* outerName, const char* innerName, const sergut::XmlValueType pValueType) {
     if(outerName != nullptr && std::strcmp(currentElement->Value(), outerName) != 0) {
-      throw ParsingException("Wrong root tag");
+      throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
     }
     DT data;
     valueType = pValueType;
@@ -212,20 +221,20 @@ private:
   void doReadInto(const char* str, unsigned char& data);
 
   template<typename DT>
-  void readInto(const char* str, const NamedMemberForDeserialization<DT>& data) {
+  void readInto(const char* str, const NamedMemberForDeserialization<DT>& data, const ParsingException::ErrorContext& errorContext) {
     if(str == nullptr) {
       if(data.mandatory) {
-        throw ParsingException("Missing mandatory Attribute");
+        throw ParsingException("missing mandatory attribute '" + std::string(data.name) + "'", errorContext);
       }
       return;
     }
     doReadInto(str, data.data);
   }
 
-  void readInto(const char* str, const NamedMemberForDeserialization<char>& data) {
+  void readInto(const char* str, const NamedMemberForDeserialization<char>& data, const ParsingException::ErrorContext& errorContext) {
     if(str == nullptr || str[0] == '\0') {
       if(data.mandatory) {
-        throw ParsingException("Missing mandatory Attribute");
+        throw ParsingException("Missing mandatory attribute '" + std::string(data.name) + "'", errorContext);
       }
       return;
     }
@@ -237,7 +246,7 @@ private:
     tinyxml2::XMLElement* e = currentElement->ToElement();
     assert(e != nullptr);
     const char* a = e->Attribute(data.name);
-    readInto(a, data);
+    readInto(a, data, ErrorContext(*e));
     e->DeleteAttribute(data.name);
   }
 
@@ -246,7 +255,7 @@ private:
     tinyxml2::XMLElement* e = currentElement->FirstChildElement(data.name);
     tinyxml2::XMLNode*    n = (e == nullptr) ? nullptr : e->FirstChild();
     tinyxml2::XMLText*    t = (n == nullptr) ? nullptr : n->ToText();
-    readInto((t == nullptr) ? nullptr : t->Value(), data);
+    readInto((t == nullptr) ? nullptr : t->Value(), data, t != nullptr ? ErrorContext(*t) : ErrorContext(*currentElement));
     currentElement->DeleteChild(e);
   }
 
@@ -254,7 +263,7 @@ private:
   void extractSingleChild(const NamedMemberForDeserialization<DT>& data) {
     tinyxml2::XMLNode* n = currentElement->FirstChild();
     tinyxml2::XMLText* t = (n == nullptr) ? nullptr : n->ToText();
-    readInto((t == nullptr) ? nullptr : t->Value(), data);
+    readInto((t == nullptr) ? nullptr : t->Value(), data, t != nullptr ? ErrorContext(*t) : ErrorContext(*currentElement));
     currentElement->DeleteChild(t);
   }
 

@@ -29,6 +29,22 @@
 
 namespace sergut {
 
+std::size_t XmlDeserializer::ErrorContext::getRow() const
+{
+//  if(node != nullptr) {
+//    return node->Row();
+//  }
+  return std::size_t(-1);
+}
+
+std::size_t XmlDeserializer::ErrorContext::getColumn() const
+{
+//  if(node != nullptr) {
+//    return node->Column();
+//  }
+  return std::size_t(-1);
+}
+
 struct XmlDeserializer::Impl {
   Impl(const std::string& xml)
     : xmlDocument(xml::PullParser::createParser(misc::ConstStringRef(xml)))
@@ -67,7 +83,7 @@ void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const XmlVa
   switch(valueType) {
   case XmlValueType::Attribute: {
     if(currentNode.getCurrentTokenType() != xml::ParseTokenType::Attribute) {
-      throw ParsingException("Expecting Attribute but got something else");
+      throw ParsingException("Expecting Attribute but got something else", XmlDeserializer::ErrorContext(currentNode));
     }
     assert(currentNode.getCurrentAttributeName() == data.name);
     readInto(currentNode.getCurrentValue(), data.data);
@@ -77,17 +93,17 @@ void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const XmlVa
   case XmlValueType::Child: {
     if(currentNode.parseNext() != xml::ParseTokenType::Text) {
       if(data.mandatory) {
-        throw ParsingException("Text missing for mandatory simple datatype");
+        throw ParsingException("Text missing for mandatory simple datatype", XmlDeserializer::ErrorContext(currentNode));
       }
       if(currentNode.getCurrentTokenType() != xml::ParseTokenType::CloseTag) {
-        throw ParsingException("Got wrong datatype, expecting simple type");
+        throw ParsingException("Got wrong datatype, expecting simple type", XmlDeserializer::ErrorContext(currentNode));
       }
       currentNode.parseNext();
       return;
     }
     readInto(currentNode.getCurrentValue(), data.data);
     if(currentNode.parseNext() != xml::ParseTokenType::CloseTag) {
-      throw ParsingException("Expecting closing tag");
+      throw ParsingException("Expecting closing tag", XmlDeserializer::ErrorContext(currentNode));
     }
     // move the parser one element after the current one
     currentNode.parseNext();
@@ -97,11 +113,11 @@ void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const XmlVa
     assert(currentNode.getCurrentTokenType() == xml::ParseTokenType::Text);
     const misc::ConstStringRef content = currentNode.getCurrentValue();
     if(content.empty() && data.mandatory) {
-      throw ParsingException("Text missing for mandatory simple datatype");
+      throw ParsingException("Text missing for mandatory simple datatype", XmlDeserializer::ErrorContext(currentNode));
     }
     readInto(content, data.data);
     if(currentNode.parseNext() != xml::ParseTokenType::CloseTag) {
-      throw ParsingException("Expecting closing Tag but got something else");
+      throw ParsingException("Expecting closing Tag but got something else", XmlDeserializer::ErrorContext(currentNode));
     }
     // staying on the closing tag, as the SingleChild does not have own tags
     break;
@@ -179,7 +195,7 @@ static void skipText(xml::PullParser& parser)
 static void skipSubTree(xml::PullParser& parser)
 {
   if(!parser.isOk()) {
-    throw ParsingException("Errors while parsing");
+    throw ParsingException("Errors while parsing", XmlDeserializer::ErrorContext(parser));
   }
   assert(parser.getCurrentTokenType() == xml::ParseTokenType::OpenTag || parser.getCurrentTokenType() == xml::ParseTokenType::Attribute);
   std::vector<std::string> parseStack;
@@ -191,13 +207,13 @@ static void skipSubTree(xml::PullParser& parser)
       break;
     case xml::ParseTokenType::CloseTag:
       if(parseStack.back() != parser.getCurrentTagName()) {
-        throw ParsingException("Wrong closing Tag");
+        throw ParsingException("Wrong closing Tag", XmlDeserializer::ErrorContext(parser));
       }
       parseStack.pop_back();
       break;
     default:
       if(!parser.isOk()) {
-        throw ParsingException("Error with XML-Document");
+        throw ParsingException("Error with XML-Document", XmlDeserializer::ErrorContext(parser));
       }
       break;
     }
@@ -231,10 +247,10 @@ void XmlDeserializer::feedMembers(MyMemberDeserializer &retriever, xml::PullPars
       const std::string tagName = state.getCurrentTagName().toString();
       memberHolder->execute(state);
       if(state.getCurrentTokenType() != xml::ParseTokenType::CloseTag) {
-        throw ParsingException("Not correctly closing a SingleChild");
+        throw ParsingException("Not correctly closing a SingleChild", XmlDeserializer::ErrorContext(state));
       }
       if(state.getCurrentTagName() != tagName) {
-        throw ParsingException("Expecting closing Tag but got something else");
+        throw ParsingException("Expecting closing Tag but got something else", XmlDeserializer::ErrorContext(state));
       }
     } else {
       state.parseNext();
@@ -266,7 +282,7 @@ void XmlDeserializer::feedMembers(MyMemberDeserializer &retriever, xml::PullPars
   for(const std::pair<const std::string, std::shared_ptr<MyMemberDeserializer::HolderBase>>& e: retriever.getMembers()) {
     if(e.second->isMandatory() && !e.second->isContainer()) {
       std::cerr << "Mandatory Member '" << e.first << "' is missing" << std::endl;
-      throw ParsingException("Mandatory child '" + e.first + "' is missing");
+      throw ParsingException("Mandatory child '" + e.first + "' is missing", XmlDeserializer::ErrorContext(state));
     }
   }
 }
@@ -276,7 +292,7 @@ std::string XmlDeserializer::popString(const XmlValueType valueType, xml::PullPa
   switch(valueType) {
   case XmlValueType::Attribute: {
     if(state.getCurrentTokenType() != xml::ParseTokenType::Attribute) {
-      throw ParsingException("Expecting Attribute, but got something else");
+      throw ParsingException("Expecting Attribute, but got something else", XmlDeserializer::ErrorContext(state));
     }
     const std::string attrVal = state.getCurrentValue().toString();
     state.parseNext();
@@ -286,14 +302,14 @@ std::string XmlDeserializer::popString(const XmlValueType valueType, xml::PullPa
     assert(state.getCurrentTokenType() == xml::ParseTokenType::OpenTag);
     if(state.parseNext() != xml::ParseTokenType::Text) {
       if(state.getCurrentTokenType() != xml::ParseTokenType::CloseTag) {
-        throw ParsingException("String serializable child is missing and contains an opening tag");
+        throw ParsingException("String serializable child is missing and contains an opening tag", XmlDeserializer::ErrorContext(state));
       }
       state.parseNext();
       return std::string();
     }
     const std::string txt = state.getCurrentValue().toString();
     if(state.parseNext() != xml::ParseTokenType::CloseTag) {
-      throw ParsingException("Expecting closing tag in string serializable element");
+      throw ParsingException("Expecting closing tag in string serializable element", XmlDeserializer::ErrorContext(state));
     }
     state.parseNext();
     return txt;
@@ -302,7 +318,7 @@ std::string XmlDeserializer::popString(const XmlValueType valueType, xml::PullPa
     assert(state.getCurrentTokenType() == xml::ParseTokenType::Text);
     const std::string txt = state.getCurrentValue().toString();
     if(state.parseNext() != xml::ParseTokenType::CloseTag) {
-      throw ParsingException("expecting closing tag after poping single child");
+      throw ParsingException("expecting closing tag after poping single child", XmlDeserializer::ErrorContext(state));
     }
     // stay on the closing tag, as this is the one of the parent (SingleChilds don't have own tags)
     return txt;

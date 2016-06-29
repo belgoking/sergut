@@ -28,7 +28,15 @@ namespace sergut {
 class ParsingException: public Exception
 {
 public:
-  using Exception::Exception;
+  class ErrorContext {
+  public:
+    virtual ~ErrorContext() noexcept { }
+    virtual std::size_t getRow() const = 0;
+    virtual std::size_t getColumn() const = 0;
+  };
+
+public:
+  ParsingException(const std::string& txt, const ErrorContext& errorContext);
   ParsingException(const std::string& txt, const std::size_t row, const std::size_t column);
 };
 
