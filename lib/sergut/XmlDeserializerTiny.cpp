@@ -28,6 +28,22 @@
 
 namespace sergut {
 
+std::size_t XmlDeserializerTiny::ErrorContext::getRow() const
+{
+  if(node != nullptr) {
+    return node->Row();
+  }
+  return std::size_t(-1);
+}
+
+std::size_t XmlDeserializerTiny::ErrorContext::getColumn() const
+{
+  if(node != nullptr) {
+    return node->Column();
+  }
+  return std::size_t(-1);
+}
+
 XmlDeserializerTiny::XmlDeserializerTiny(const std::string& xml)
   : parentValueType(ValueType::Child)
   , valueType(ValueType::Attribute)
@@ -36,7 +52,10 @@ XmlDeserializerTiny::XmlDeserializerTiny(const std::string& xml)
   xmlDocument.reset(new TiXmlDocument);
   xmlDocument->Parse(xml.c_str());
   if(xmlDocument->Error()) {
-    throw ParsingException(std::string("Error parsing XML"));
+    std::cout << "ErrorId: " << xmlDocument->ErrorId()
+              << " ErrorPos: " << xmlDocument->ErrorRow() << ":" << xmlDocument->ErrorCol()
+              << ":" << xmlDocument->ErrorDesc() << std::endl;
+    throw ParsingException("Error parsing XML", ErrorContext(*xmlDocument));
   }
   currentElement = xmlDocument->RootElement();
 }
@@ -57,7 +76,7 @@ void XmlDeserializerTiny::doReadInto(const char* str, unsigned char& data) {
   unsigned short tmp;
   std::istringstream(str) >> tmp;
   if(tmp > 0xFF) {
-    throw ParsingException("unsigned char value is out of range");
+    throw ParsingException("unsigned char value is out of range", ErrorContext(*currentElement));
   }
   data = tmp;
 }

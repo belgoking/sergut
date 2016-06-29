@@ -54,6 +54,16 @@ namespace sergut {
 class XmlDeserializerTiny : public DeserializerBase
 {
 public:
+  class ErrorContext:  public ParsingException::ErrorContext {
+  public:
+    ErrorContext(const TiXmlNode& pNode) : node(&pNode) { }
+    std::size_t getRow() const override;
+    std::size_t getColumn() const override;
+  private:
+    const TiXmlNode* node = nullptr;
+  };
+
+public:
   XmlDeserializerTiny(const std::string& xml);
   XmlDeserializerTiny(const XmlDeserializerTiny& ref);
   ~XmlDeserializerTiny();
@@ -126,7 +136,7 @@ public:
       el = currentElement->FirstChildElement(data.name);
       if(el == nullptr) {
         if(data.mandatory) {
-          throw ParsingException("Misssing mandatory child element");
+          throw ParsingException("Misssing mandatory child element", ErrorContext(*currentElement));
         }
         return *this;
       }
@@ -161,7 +171,7 @@ public:
   template<typename DT>
   DT deserializeData(const char* name, const sergut::ValueType pValueType) {
     if(name != nullptr && ::strcmp(currentElement->Value(), name) != 0) {
-      throw ParsingException("Wrong root tag");
+      throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
     }
     DT data;
     valueType = pValueType;
@@ -174,7 +184,7 @@ public:
   template<typename DT>
   DT deserializeNestedData(const char* outerName, const char* innerName, const sergut::ValueType pValueType) {
     if(outerName != nullptr && std::strcmp(currentElement->Value(), outerName) != 0) {
-      throw ParsingException("Wrong root tag");
+      throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
     }
     DT data;
     valueType = pValueType;
@@ -214,20 +224,20 @@ private:
   void doReadInto(const char* str, unsigned char& data);
 
   template<typename DT>
-  void readInto(const char* str, const NamedMemberForDeserialization<DT>& data) {
+  void readInto(const char* str, const NamedMemberForDeserialization<DT>& data, const ParsingException::ErrorContext& errorContext) {
     if(str == nullptr) {
       if(data.mandatory) {
-        throw ParsingException("Missing mandatory Attribute");
+        throw ParsingException("missing mandatory attribute '" + std::string(data.name) + "'", errorContext);
       }
       return;
     }
     doReadInto(str, data.data);
   }
 
-  void readInto(const char* str, const NamedMemberForDeserialization<char>& data) {
+  void readInto(const char* str, const NamedMemberForDeserialization<char>& data, const ParsingException::ErrorContext& errorContext) {
     if(str == nullptr || str[0] == '\0') {
       if(data.mandatory) {
-        throw ParsingException("Missing mandatory Attribute");
+        throw ParsingException("Missing mandatory attribute '" + std::string(data.name) + "'", errorContext);
       }
       return;
     }
@@ -239,7 +249,7 @@ private:
     TiXmlElement* e = currentElement->ToElement();
     assert(e != nullptr);
     const char* a = e->Attribute(data.name);
-    readInto(a, data);
+    readInto(a, data, ErrorContext(*e));
     e->RemoveAttribute(data.name);
   }
 
@@ -248,7 +258,7 @@ private:
     TiXmlElement* e = currentElement->FirstChildElement(data.name);
     TiXmlNode*    n = (e == nullptr) ? nullptr : e->FirstChild();
     TiXmlText*    t = (n == nullptr) ? nullptr : n->ToText();
-    readInto((t == nullptr) ? nullptr : t->Value(), data);
+    readInto((t == nullptr) ? nullptr : t->Value(), data, t != nullptr ? ErrorContext(*t) : ErrorContext(*currentElement));
     currentElement->RemoveChild(e);
   }
 
@@ -256,7 +266,7 @@ private:
   void extractSingleChild(const NamedMemberForDeserialization<DT>& data) {
     TiXmlNode* n = currentElement->FirstChild();
     TiXmlText* t = (n == nullptr) ? nullptr : n->ToText();
-    readInto((t == nullptr) ? nullptr : t->Value(), data);
+    readInto((t == nullptr) ? nullptr : t->Value(), data, t != nullptr ? ErrorContext(*t) : ErrorContext(*currentElement));
     currentElement->RemoveChild(t);
   }
 

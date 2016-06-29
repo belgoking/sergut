@@ -27,12 +27,20 @@ static
 std::string toErrorString(const std::string& txt, const std::size_t row, const std::size_t column)
 {
   std::ostringstream out;
-  out << "Parsing error at (" << row << ", " << column << "): '" << txt << "'";
+  if(row == std::size_t(-1)) {
+    out << "Parsing error: '" << txt << "'";
+  } else {
+    out << "Parsing error at (" << row << ", " << column << "): '" << txt << "'";
+  }
   return out.str();
 }
 
+
+
+sergut::ParsingException::ParsingException(const std::string& txt, const ErrorContext& errorContext)
+  : ParsingException(txt, errorContext.getRow(), errorContext.getColumn())
+{ }
+
 sergut::ParsingException::ParsingException(const std::string& txt, const std::size_t row, const std::size_t column)
   : Exception(toErrorString(txt, row, column))
-{
-
-}
+{ }

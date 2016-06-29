@@ -53,6 +53,17 @@ class XmlDeserializer
   typedef MemberDeserializer<XmlDeserializer, xml::PullParser&> MyMemberDeserializer;
   struct Impl;
 public:
+  class ErrorContext: public ParsingException::ErrorContext {
+  public:
+    ErrorContext(const xml::PullParser& pParser) : parser(&pParser) { }
+    std::size_t getRow() const override;
+    std::size_t getColumn() const override;
+
+  private:
+    const xml::PullParser* parser;
+  };
+
+public:
   XmlDeserializer(const std::string& xml);
   ~XmlDeserializer();
 
@@ -78,13 +89,13 @@ private:
   {
     xml::PullParser& pullParser = getPullParser();
     if(pullParser.parseNext() != xml::ParseTokenType::OpenDocument) {
-      throw ParsingException("Invalid XML-Document");
+      throw ParsingException("Invalid XML-Document", ErrorContext(pullParser));
     }
     if(pullParser.parseNext() != xml::ParseTokenType::OpenTag) {
-      throw ParsingException("Invalid XML-Document");
+      throw ParsingException("Invalid XML-Document", ErrorContext(pullParser));
     }
     if(data.name != nullptr && pullParser.getCurrentTagName() != data.name) {
-      throw ParsingException("Wrong opening Tag in XML-Document");
+      throw ParsingException("Wrong opening Tag in XML-Document", ErrorContext(pullParser));
     }
     handleChild(data, valueType, pullParser);
   }
