@@ -133,7 +133,7 @@ public:
       el = currentElement->FirstChildElement(data.name);
       if(el == nullptr) {
         if(data.mandatory) {
-          throw ParsingException("Misssing mandatory child element", ErrorContext(*currentElement));
+          throw ParsingException("Missing mandatory child element", ErrorContext(*currentElement));
         }
         return *this;
       }
