@@ -121,16 +121,9 @@ private:
   ReaderState readerState;
   ParseStack<std::is_same<CharDecoder, unicode::Utf8Codec>::value> parseStack;
 
-//  const char* startOfCurrentAttrNamePointer;
-//  const char* endOfCurrentAttrNamePointer;
-//  const char* startOfCurrentValuePointer;
-//  const char* endOfCurrentValuePointer;
-//  std::size_t currentValueDecodedSize = 0;
-
   DecodedNameBuffers<std::is_same<CharDecoder, unicode::Utf8Codec>::value> decodedNameBuffers;
   std::vector<char> decodedValueBuffer;
 
-//  std::size_t descendCount = 0;
   ParseTokenType currentTokenType = ParseTokenType::InitialState;
   bool incompleteDocument = true;
 };
