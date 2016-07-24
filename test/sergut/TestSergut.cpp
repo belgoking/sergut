@@ -25,6 +25,7 @@
 #include "sergut/JsonSerializer.h"
 #include "sergut/XmlDeserializer.h"
 #include "sergut/XmlDeserializerTiny.h"
+#include "sergut/XmlDeserializerTiny2.h"
 #include "sergut/XmlSerializer.h"
 #include "sergut/SerializerBase.h"
 #include "sergut/DeserializerBase.h"
@@ -150,6 +151,11 @@ TEST_CASE("DeSerialize datatype " #type " as XML", "[sergut]") \
   const Ser_ ## type tpDeser2 = deser.deserializeData<Ser_ ## type>(#type, sergut::XmlValueType::Attribute); \
   CHECK(tpDeser2 == Ser_ ## type{ datatypeValue }); \
   } \
+  SECTION("Deserialize XmlDeserializerTiny2") { \
+  sergut::XmlDeserializerTiny2 deser(expectedResult); \
+  const Ser_ ## type tpDeser2 = deser.deserializeData<Ser_ ## type>(#type, sergut::XmlValueType::Attribute); \
+  CHECK(tpDeser2 == Ser_ ## type{ datatypeValue }); \
+  } \
 } \
 
 DEFINE_SIMPLE_DATATYPE_TEST(char,        'a', "<char value=\"a\"/>")
@@ -200,6 +206,11 @@ TEST_CASE("DeSerialize datatype " #type " as child in XML", "[sergut]") \
   const SerAsChild_ ## type tpDeser2 = deser.deserializeData<SerAsChild_ ## type>(#type, sergut::XmlValueType::Attribute); \
   CHECK(tpDeser2 == SerAsChild_ ## type{ datatypeValue }); \
   } \
+  SECTION("Deserialize XmlDeserializerTiny2") { \
+  sergut::XmlDeserializerTiny2 deser(expectedResult); \
+  const SerAsChild_ ## type tpDeser2 = deser.deserializeData<SerAsChild_ ## type>(#type, sergut::XmlValueType::Attribute); \
+  CHECK(tpDeser2 == SerAsChild_ ## type{ datatypeValue }); \
+  } \
 } \
 
 DEFINE_SIMPLE_DATATYPE_AS_CHILD_TEST(char,        'a', "<char><value>a</value></char>")
@@ -247,6 +258,11 @@ TEST_CASE("DeSerialize vector of " #type " as XML", "[sergut]") \
   } \
   SECTION("Deserialize XmlDeserializerTiny") { \
   sergut::XmlDeserializerTiny deser(expectedResult); \
+  const Ser_VectorOf ## type tpDeser2 = deser.deserializeData<Ser_VectorOf ## type>("VectorOf" #type, sergut::XmlValueType::Attribute); \
+  CHECK(tpDeser2 == Ser_VectorOf ## type{ datatypeValue }); \
+  } \
+  SECTION("Deserialize XmlDeserializerTiny2") { \
+  sergut::XmlDeserializerTiny2 deser(expectedResult); \
   const Ser_VectorOf ## type tpDeser2 = deser.deserializeData<Ser_VectorOf ## type>("VectorOf" #type, sergut::XmlValueType::Attribute); \
   CHECK(tpDeser2 == Ser_VectorOf ## type{ datatypeValue }); \
   } \
@@ -301,6 +317,11 @@ TEST_CASE("DeSerialize empty vector of " #type " as XML", "[sergut]") \
   const Ser_EmptyVectorOf ## type tpDeser2 = deser.deserializeData<Ser_EmptyVectorOf ## type>("VectorOf" #type, sergut::XmlValueType::Attribute); \
   CHECK(tpDeser2 == Ser_EmptyVectorOf ## type()); \
   } \
+  SECTION("Deserialize XmlDeserializerTiny2") { \
+  sergut::XmlDeserializerTiny2 deser("<VectorOf" #type "></VectorOf" #type ">"); \
+  const Ser_EmptyVectorOf ## type tpDeser2 = deser.deserializeData<Ser_EmptyVectorOf ## type>("VectorOf" #type, sergut::XmlValueType::Attribute); \
+  CHECK(tpDeser2 == Ser_EmptyVectorOf ## type()); \
+  } \
 } \
 
 DEFINE_EMPTY_VECTOR_TEST(char)
@@ -340,6 +361,11 @@ TEST_CASE("DeSerialize nested vector of " #type " as XML", "[sergut]") \
   } \
   SECTION("Deserialize XmlDeserializerTiny") { \
   sergut::XmlDeserializerTiny deser(expectedResult); \
+  const Ser_NestedVectorOf ## type tpDeser2 = deser.deserializeData<Ser_NestedVectorOf ## type>("NestedVectorOf" #type, sergut::XmlValueType::Attribute); \
+  CHECK(tpDeser2 == Ser_NestedVectorOf ## type{ datatypeValue }); \
+  } \
+  SECTION("Deserialize XmlDeserializerTiny2") { \
+  sergut::XmlDeserializerTiny2 deser(expectedResult); \
   const Ser_NestedVectorOf ## type tpDeser2 = deser.deserializeData<Ser_NestedVectorOf ## type>("NestedVectorOf" #type, sergut::XmlValueType::Attribute); \
   CHECK(tpDeser2 == Ser_NestedVectorOf ## type{ datatypeValue }); \
   } \
@@ -394,6 +420,11 @@ TEST_CASE("DeSerialize nested " #type " as XML", "[sergut]") \
   const Ser_Nested ## type tpDeser2 = deser.deserializeData<Ser_Nested ## type>("Nested" #type, sergut::XmlValueType::Attribute); \
   CHECK(tpDeser2 == Ser_Nested ## type{ datatypeValue }); \
   } \
+  SECTION("Deserialize XmlDeserializerTiny2") { \
+  sergut::XmlDeserializerTiny2 deser(expectedResult); \
+  const Ser_Nested ## type tpDeser2 = deser.deserializeData<Ser_Nested ## type>("Nested" #type, sergut::XmlValueType::Attribute); \
+  CHECK(tpDeser2 == Ser_Nested ## type{ datatypeValue }); \
+  } \
 } \
 
 DEFINE_NESTED_SIMPLE_TEST(char,      'a', "<Nestedchar><value><nested>a</nested></value></Nestedchar>")
@@ -442,6 +473,11 @@ TEST_CASE("DeSerialize nested member of " #type " as XML", "[sergut]") \
   } \
   SECTION("Deserialize XmlDeserializerTiny") { \
   sergut::XmlDeserializerTiny deser(expectedResult); \
+  const Ser_DoubleNested ## type tpDeser2 = deser.deserializeData<Ser_DoubleNested ## type>("DoubleNested" #type, sergut::XmlValueType::Attribute); \
+  CHECK(tpDeser2 == Ser_DoubleNested ## type{ datatypeValue }); \
+  } \
+  SECTION("Deserialize XmlDeserializerTiny2") { \
+  sergut::XmlDeserializerTiny2 deser(expectedResult); \
   const Ser_DoubleNested ## type tpDeser2 = deser.deserializeData<Ser_DoubleNested ## type>("DoubleNested" #type, sergut::XmlValueType::Attribute); \
   CHECK(tpDeser2 == Ser_DoubleNested ## type{ datatypeValue }); \
   } \
@@ -777,6 +813,15 @@ TEST_CASE("Serialize complex class", "[sergut]")
         ser2.serializeData("Dummy", tp);
         CHECK(ser.str() == ser2.str());
       }
+      THEN("The two serializations are equal using XmlDeserializerTiny2") {
+        sergut::XmlSerializer ser;
+        ser.serializeData("Dummy", tp);
+        sergut::XmlDeserializerTiny2 deser(ser.str());
+        const TestParent tpDeser = deser.deserializeData<TestParent>("Dummy", sergut::XmlValueType::Attribute);
+        sergut::XmlSerializer ser2;
+        ser2.serializeData("Dummy", tp);
+        CHECK(ser.str() == ser2.str());
+      }
     }
   }
 }
@@ -828,6 +873,11 @@ TEST_CASE("Serialize simple class", "[sergut]")
     }
     WHEN("The XML-string is serialized into the simple class (XmlDeserializerTiny)") {
       sergut::XmlDeserializerTiny deser(origXml);
+      const Simple res = deser.deserializeData<Simple>("Dummy", sergut::XmlValueType::Attribute);
+      CHECK(res == origVal);
+    }
+    WHEN("The XML-string is serialized into the simple class (XmlDeserializerTiny2)") {
+      sergut::XmlDeserializerTiny2 deser(origXml);
       const Simple res = deser.deserializeData<Simple>("Dummy", sergut::XmlValueType::Attribute);
       CHECK(res == origVal);
     }

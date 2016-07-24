@@ -28,7 +28,8 @@ SOURCES += \
     sergut/XmlDeserializerTiny.cpp \
     sergut/XmlSerializer.cpp \
     unicode/Utf8Codec.cpp \
-    xml/PullParser.cpp
+    xml/PullParser.cpp \
+    sergut/XmlDeserializerTiny2.cpp
 
 HEADERS += \
     misc/StringRef.h \
@@ -59,5 +60,7 @@ HEADERS += \
     xml/detail/PullParserUtf8.h \
     xml/detail/PullParserUtf16LE.h \
     xml/detail/PullParserUtf16BE.h \
-    sergut/XmlValueType.h
+    sergut/XmlValueType.h \
+    sergut/XmlDeserializerTiny2.h \
+    sergut/detail/XmlDeserializerDomBase.h
 

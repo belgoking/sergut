@@ -21,20 +21,9 @@
 
 #pragma once
 
-#include "sergut/DeserializerBase.h"
-#include "sergut/MemberDeserializer.h"
-#include "sergut/ParsingException.h"
-#include "sergut/SerializerBase.h"
-#include "sergut/Util.h"
+#include "sergut/detail/XmlDeserializerDomBase.h"
 
-#include <tinyxml2.h>
-
-#include <string>
-#include <vector>
-#include <list>
-#include <set>
-#include <cassert>
-#include <iostream>
+#include <tinyxml.h>
 
 /*
  * <foo>
@@ -49,229 +38,98 @@
  */
 namespace sergut {
 
-class XmlDeserializerTiny : public DeserializerBase
-{
-public:
-  class ErrorContext:  public ParsingException::ErrorContext {
-  public:
-    // ErrorPosition is not supported in tinyxml2
-    ErrorContext(const tinyxml2::XMLNode&) { }
-    std::size_t getRow() const override;
-    std::size_t getColumn() const override;
-  };
+namespace detail {
 
-public:
-  XmlDeserializerTiny(const std::string& xml);
-  XmlDeserializerTiny(const XmlDeserializerTiny& ref);
-  ~XmlDeserializerTiny();
+struct TinyDom {
 
-
-  template<typename T>
-  typename std::enable_if<std::is_arithmetic<T>::value, XmlDeserializerTiny&>::type
-  operator&(const NamedMemberForDeserialization<T>& data) {
-    return extractSimpleType(data);
-  }
-
-  // String types
-  XmlDeserializerTiny& operator&(const NamedMemberForDeserialization<std::string>& data) {
-    return extractSimpleType(data);
-  }
-
-
-  XmlDeserializerTiny& operator&(const NamedMemberForDeserialization<const char*>& data) = delete;
-
-  // Containers as members
-  template<typename CDT>
-  XmlDeserializerTiny& operator&(const NamedMemberForDeserialization<std::vector<CDT>>& data) {
-    assert(valueType == XmlValueType::Child);
-    while(currentElement->FirstChildElement(data.name) != nullptr) {
-      CDT tmp;
-      operator&(NamedMemberForDeserialization<CDT>(data.name, tmp, true));
-      data.data.push_back(tmp);
-    }
-    return *this;
-  }
-
-  template<typename CDT>
-  XmlDeserializerTiny& operator&(const NamedMemberForDeserialization<std::list<CDT>>& data) {
-    assert(valueType == XmlValueType::Child);
-    while(currentElement->FirstChildElement(data.name) != nullptr) {
-      CDT tmp;
-      operator&(NamedMemberForDeserialization<CDT>(data.name, tmp, true));
-      data.data.push_back(tmp);
-    }
-    return *this;
-  }
-
-  template<typename CDT>
-  XmlDeserializerTiny& operator&(const NamedMemberForDeserialization<std::set<CDT>>& data) {
-    assert(valueType == XmlValueType::Child);
-    while(currentElement->FirstChildElement(data.name) != nullptr) {
-      CDT tmp;
-      operator&(NamedMemberForDeserialization<CDT>(data.name, tmp, true));
-      data.data.insert(tmp);
-    }
-    return *this;
-  }
-
-  // Members that can be converted to string
-  template<typename DT>
-  auto operator&(const NamedMemberForDeserialization<DT>& data)
-  -> decltype(deserializeFromString(data.data, std::string()),*this)
-  {
-    deserializeFromString(data.data, popString(data.name, data.mandatory));
-    return *this;
-  }
+  typedef TiXmlDocument Document;
+  typedef TiXmlNode Node;
 
   template<typename DT>
-  auto operator&(const NamedMemberForDeserialization<DT>& data)
-  -> decltype(serialize(DummySerializer::dummyInstance(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)),*this)
-  {
-    // retrieve the correct node (with exception of the root tag)
-    tinyxml2::XMLElement* el = currentElement->ToElement();
-    if(xmlDocument == nullptr) {
-      el = currentElement->FirstChildElement(data.name);
-      if(el == nullptr) {
-        if(data.mandatory) {
-          throw ParsingException("Missing mandatory child element", ErrorContext(*currentElement));
-        }
-        return *this;
-      }
-      currentElement = el;
-    }
-
-    {
-      // deserialize the children
-      XmlDeserializerTiny ser(*this);
-      serialize(ser, data.data, static_cast<typename std::decay<DT>::type*>(nullptr));
-      assert(currentElement == el);
-    }
-
-    // clean up (with exception of the root tag)
-    if(xmlDocument == nullptr) {
-      currentElement = el->Parent();
-      currentElement->DeleteChild(el);
-    }
-    return *this;
-  }
-
-  /// Members until this marker are rendered as XML-Attributes, after it as sub-elements
-  XmlDeserializerTiny& operator&(const ChildrenFollow&);
-
-  /// Members until this marker are rendered as XML-Attributes,
-  /// After this marker there should only be one member left, that must be
-  /// renderable as a simple XML-Type (i.e. a number or a string)
-  XmlDeserializerTiny& operator&(const PlainChildFollows&);
-
-  /// Initial call to the serializer
-  /// \param name The name of the outer tag
-  template<typename DT>
-  DT deserializeData(const char* name, const sergut::XmlValueType pValueType) {
-    if(name != nullptr && std::strcmp(currentElement->Value(), name) != 0) {
-      throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
-    }
-    DT data;
-    valueType = pValueType;
-    *this & toNamedMember(name, data, true);
-    return data;
-  }
-
-  /// Initial call to the serializer
-  /// \param name The name of the outer tag
-  template<typename DT>
-  DT deserializeNestedData(const char* outerName, const char* innerName, const sergut::XmlValueType pValueType) {
-    if(outerName != nullptr && std::strcmp(currentElement->Value(), outerName) != 0) {
-      throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
-    }
-    DT data;
-    valueType = pValueType;
-    *this & toNamedMember(outerName, toNamedMember(innerName, data, true), true);
-    return data;
-  }
-
-private:
-  std::string popString(const char* name, const bool mandatory) {
-    std::string d;
-    *this & toNamedMember(name, d, mandatory);
-    return d;
-  }
+  static void extractAndDeleteAttribute(const NamedMemberForDeserialization<DT>& data, TiXmlNode& currentElement);
 
   template<typename DT>
-  XmlDeserializerTiny& extractSimpleType(const NamedMemberForDeserialization<DT>& data) {
-    switch(valueType) {
-    case XmlValueType::Attribute:
-      extractAttribute(data);
-    break;
-    case XmlValueType::Child:
-      extractSimpleChild(data);
-      break;
-    case XmlValueType::SingleChild:
-      extractSingleChild(data);
-      break;
-    }
-    return *this;
-  }
+  static void extractAndDeleteSimpleChild(const NamedMemberForDeserialization<DT>& data, TiXmlNode& currentElement);
 
   template<typename DT>
-  void doReadInto(const char* str, DT& data) {
-    std::istringstream(str) >> data;
-  }
+  static void extractAndDeleteSingleChild(const NamedMemberForDeserialization<DT>& data, TiXmlNode& currentElement);
 
-  void doReadInto(const char* str, std::string& data);
-  void doReadInto(const char* str, unsigned char& data);
-
-  template<typename DT>
-  void readInto(const char* str, const NamedMemberForDeserialization<DT>& data, const ParsingException::ErrorContext& errorContext) {
-    if(str == nullptr) {
-      if(data.mandatory) {
-        throw ParsingException("missing mandatory attribute '" + std::string(data.name) + "'", errorContext);
-      }
-      return;
-    }
-    doReadInto(str, data.data);
-  }
-
-  void readInto(const char* str, const NamedMemberForDeserialization<char>& data, const ParsingException::ErrorContext& errorContext) {
-    if(str == nullptr || str[0] == '\0') {
-      if(data.mandatory) {
-        throw ParsingException("Missing mandatory attribute '" + std::string(data.name) + "'", errorContext);
-      }
-      return;
-    }
-    data.data = str[0];
-  }
-
-  template<typename DT>
-  void extractAttribute(const NamedMemberForDeserialization<DT>& data) {
-    tinyxml2::XMLElement* e = currentElement->ToElement();
-    assert(e != nullptr);
-    const char* a = e->Attribute(data.name);
-    readInto(a, data, ErrorContext(*e));
-    e->DeleteAttribute(data.name);
-  }
-
-  template<typename DT>
-  void extractSimpleChild(const NamedMemberForDeserialization<DT>& data) {
-    tinyxml2::XMLElement* e = currentElement->FirstChildElement(data.name);
-    tinyxml2::XMLNode*    n = (e == nullptr) ? nullptr : e->FirstChild();
-    tinyxml2::XMLText*    t = (n == nullptr) ? nullptr : n->ToText();
-    readInto((t == nullptr) ? nullptr : t->Value(), data, t != nullptr ? ErrorContext(*t) : ErrorContext(*currentElement));
-    currentElement->DeleteChild(e);
-  }
-
-  template<typename DT>
-  void extractSingleChild(const NamedMemberForDeserialization<DT>& data) {
-    tinyxml2::XMLNode* n = currentElement->FirstChild();
-    tinyxml2::XMLText* t = (n == nullptr) ? nullptr : n->ToText();
-    readInto((t == nullptr) ? nullptr : t->Value(), data, t != nullptr ? ErrorContext(*t) : ErrorContext(*currentElement));
-    currentElement->DeleteChild(t);
-  }
-
-private:
-  const XmlValueType parentValueType;
-  XmlValueType valueType;
-  std::unique_ptr<tinyxml2::XMLDocument> xmlDocument;
-  tinyxml2::XMLNode* currentElement;
+  static TiXmlNode* getParentNode(TiXmlNode& currentElement);
+  static void deleteChildNode(TiXmlNode& parentNode, TiXmlNode& childNode);
 };
+
+template<>
+class XmlDeserializerDomBase<detail::TinyDom>::ErrorContext: public ParsingException::ErrorContext {
+public:
+  ErrorContext(const TiXmlNode& pNode) : node(&pNode) { }
+  std::size_t getRow() const override {
+    if(node != nullptr) {
+      return node->Row();
+    }
+    return std::size_t(-1);
+  }
+  std::size_t getColumn() const override {
+    if(node != nullptr) {
+      return node->Column();
+    }
+    return std::size_t(-1);
+  }
+
+private:
+  const TiXmlNode* node = nullptr;
+};
+
+template<>
+XmlDeserializerDomBase<detail::TinyDom>::XmlDeserializerDomBase(const std::string& xml);
+
+template<typename DT>
+inline
+void TinyDom::extractAndDeleteAttribute(const NamedMemberForDeserialization<DT>& data, TiXmlNode& currentElement)
+{
+  TiXmlElement* e = currentElement.ToElement();
+  assert(e != nullptr);
+  const char* a = e->Attribute(data.name);
+  readInto(a, data, XmlDeserializerDomBase<detail::TinyDom>::ErrorContext(*e));
+  e->RemoveAttribute(data.name);
+}
+
+template<typename DT>
+inline
+void TinyDom::extractAndDeleteSimpleChild(const NamedMemberForDeserialization<DT>& data, TiXmlNode& currentElement)
+{
+  TiXmlElement* e = currentElement.FirstChildElement(data.name);
+  TiXmlNode*    n = (e == nullptr) ? nullptr : e->FirstChild();
+  TiXmlText*    t = (n == nullptr) ? nullptr : n->ToText();
+  readInto((t == nullptr) ? nullptr : t->Value(),
+           data, t != nullptr ? XmlDeserializerDomBase<detail::TinyDom>::ErrorContext(*t)
+                              : XmlDeserializerDomBase<detail::TinyDom>::ErrorContext(currentElement));
+  currentElement.RemoveChild(e);
+}
+
+template<typename DT>
+inline
+void TinyDom::extractAndDeleteSingleChild(const NamedMemberForDeserialization<DT>& data, TiXmlNode& currentElement) {
+  TiXmlNode* n = currentElement.FirstChild();
+  TiXmlText* t = (n == nullptr) ? nullptr : n->ToText();
+  readInto((t == nullptr) ? nullptr : t->Value(), data,
+           t != nullptr ? XmlDeserializerDomBase<detail::TinyDom>::ErrorContext(*t)
+                        : XmlDeserializerDomBase<detail::TinyDom>::ErrorContext(currentElement));
+  currentElement.RemoveChild(t);
+}
+
+inline
+TiXmlNode* TinyDom::getParentNode(TiXmlNode& currentElement) {
+  return currentElement.Parent();
+}
+
+inline
+void TinyDom::deleteChildNode(TiXmlNode& parentNode, TiXmlNode& childNode) {
+  parentNode.RemoveChild(&childNode);
+}
+
+} // namespace detail
+
+
+typedef detail::XmlDeserializerDomBase<detail::TinyDom> XmlDeserializerTiny;
 
 } // namespace sergut

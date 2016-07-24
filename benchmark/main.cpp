@@ -1,6 +1,7 @@
 #include "sergut/Util.h"
 #include "sergut/XmlDeserializer.h"
 #include "sergut/XmlDeserializerTiny.h"
+#include "sergut/XmlDeserializerTiny2.h"
 
 #include <chrono>
 #include <iostream>
@@ -202,8 +203,15 @@ int main()
   }
   for(int i = 0; i < 20; ++i) {
     {
-      Timer t("XmlDeserializerTiny2");
+      Timer t("XmlDeserializerTiny");
       sergut::XmlDeserializerTiny deser(data);
+      deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0", sergut::XmlValueType::Attribute);
+    }
+  }
+  for(int i = 0; i < 20; ++i) {
+    {
+      Timer t("XmlDeserializerTiny2");
+      sergut::XmlDeserializerTiny2 deser(data);
       deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0", sergut::XmlValueType::Attribute);
     }
   }

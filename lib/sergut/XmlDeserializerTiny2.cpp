@@ -19,25 +19,20 @@
  * SOFTWARE.
  */
 
-#include "XmlDeserializerTiny.h"
-
-#include "sergut/ParsingException.h"
+#include "XmlDeserializerTiny2.h"
 
 namespace sergut {
 namespace detail {
 
 template<>
-XmlDeserializerDomBase<detail::TinyDom>::XmlDeserializerDomBase(const std::string& xml)
+XmlDeserializerDomBase<detail::Tiny2Dom>::XmlDeserializerDomBase(const std::string& xml)
   : parentValueType(XmlValueType::Child)
   , valueType(XmlValueType::Attribute)
   , currentElement(nullptr)
 {
-  xmlDocument.reset(new TiXmlDocument);
-  xmlDocument->Parse(xml.c_str());
-  if(xmlDocument->Error()) {
-    std::cout << "ErrorId: " << xmlDocument->ErrorId()
-              << " ErrorPos: " << xmlDocument->ErrorRow() << ":" << xmlDocument->ErrorCol()
-              << ":" << xmlDocument->ErrorDesc() << std::endl;
+  xmlDocument.reset(new tinyxml2::XMLDocument);
+  tinyxml2::XMLError xmlError;
+  if((xmlError = xmlDocument->Parse(xml.data(), xml.size())) != tinyxml2::XML_SUCCESS) {
     throw ParsingException("Error parsing XML", ErrorContext(*xmlDocument));
   }
   currentElement = xmlDocument->RootElement();
