@@ -18,13 +18,16 @@ QMAKE_CXXFLAGS += -ggdb3
 INCLUDEPATH = ../lib "$${CPP_CATCH_INCLUDE_PATH}" "$${CPP_TINYXML_INCLUDE_PATH}"
 
 SOURCES += \
+    hypercall/hypercall.cpp \
     main.cpp \
+    sergut/TestJavaClassGenerator.cpp \
     sergut/TestSergut.cpp \
+    sergut/XmlDeSerializerTiny.cpp \
+    unicode/TestUtf16Codec.cpp \
+    unicode/TestUtf8Codec.cpp \
     xml/TestPullParser.cpp \
     xml/TestTextDecodingHelper.cpp \
-    unicode/TestUtf8Codec.cpp \
-    unicode/TestUtf16Codec.cpp \
-    sergut/XmlDeSerializerTiny.cpp
 
 HEADERS +=
+    sergut/TestSupportClasses.h \
 

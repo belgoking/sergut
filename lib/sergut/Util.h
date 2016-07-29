@@ -34,19 +34,27 @@
   Archive::toNamedMember(#mem, Archive::toNamedMember(#innerName, cls.mem, false), false)
 
 #define SERGUT_FUNCTION(DataType, dataName, archiveName) \
+  inline const char* getTypeName(const DataType*) { return #DataType; } \
   template<typename DT, typename Archive> \
-  void serialize(Archive& ar, DT& dataName, const volatile DataType*)
+  void serialize(Archive& archiveName, DT& dataName, const DataType*)
 
-#define SERGUT_FUNCTION_FRIEND_DECL(DataType) \
+#define SERGUT_FUNCTION_FRIEND_DECL(DataType, dataName, archiveName) \
   template<typename DT, typename Archive> \
   friend \
-  void serialize(Archive& ar, DT& dataName, const volatile DataType*)
+  void serialize(Archive& archiveName, DT& dataName, const DataType*)
 
 #define SERGUT_SERIALIZE_TO_STRING(DT, variableName) \
-  std::string serializeToString(const volatile DT& variableName)
+  inline const char* getTypeName(const DT*) { return #DT; } \
+  inline std::string serializeToString(const DT& variableName)
+
+#define SERGUT_SERIALIZE_TO_STRING_FRIEND_DECL(DT, variableName) \
+  friend std::string serializeToString(const DT& variableName)
 
 #define SERGUT_DESERIALIZE_FROM_STRING(DT, variableName, stringVariableName) \
-  void deserializeFromString(DT& variableName, const std::string& stringVariableName)
+  inline void deserializeFromString(DT& variableName, const std::string& stringVariableName)
+
+#define SERGUT_DESERIALIZE_FROM_STRING_FRIEND_DECL(DT, variableName, stringVariableName) \
+  friend void deserializeFromString(DT& variableName, const std::string& stringVariableName)
 
 namespace sergut {
 

@@ -21,7 +21,8 @@
 
 #include <catch.hpp>
 
-#include "sergut/Util.h"
+#include "TestSupportClasses.h"
+
 #include "sergut/JsonSerializer.h"
 #include "sergut/XmlDeserializer.h"
 #include "sergut/XmlDeserializerTiny.h"
@@ -32,58 +33,8 @@
 
 #include <cctype>
 #include <cinttypes>
-#include <iomanip>
 #include <iostream>
 #include <vector>
-
-struct SomeTestData {
-  SomeTestData() = default;
-  SomeTestData(const uint32_t m, const uint32_t o) : mandatoryMember(m), optionalMember(o) { }
-  bool operator==(const SomeTestData& rhs) const
-  {
-    return mandatoryMember == rhs.mandatoryMember &&
-        optionalMember == rhs.optionalMember;
-  }
-  uint32_t mandatoryMember = 0;
-  uint32_t optionalMember = 0;
-};
-SERGUT_FUNCTION(SomeTestData, data, ar) {
-  ar & sergut::children
-      & SERGUT_MMEMBER(data, mandatoryMember)
-      & SERGUT_OMEMBER(data, optionalMember);
-}
-
-class Time {
-public:
-  Time(const std::uint8_t hour = 0, const std::uint8_t minute = 0, const std::uint8_t seconds = 0) : val(hour*10000+minute*100+seconds) { }
-  bool operator==(const Time& rhs) const { return val == rhs.val; }
-private:
-  friend SERGUT_SERIALIZE_TO_STRING(Time, time);
-  friend SERGUT_DESERIALIZE_FROM_STRING(Time, time, str);
-  std::uint32_t val;
-};
-
-SERGUT_SERIALIZE_TO_STRING(Time, time)
-{
-  std::ostringstream tmp;
-  tmp << std::setfill('0') << time.val / 10000 << ":" << std::setw(2) << time.val / 100 % 100 << ":" << std::setw(2) << time.val % 100;
-  return tmp.str();
-}
-
-SERGUT_DESERIALIZE_FROM_STRING(Time, time, str)
-{
-  std::istringstream tmp(str);
-  std::uint32_t hours;
-  tmp >> hours;
-  char dummyChar;
-  tmp >> dummyChar;
-  std::uint32_t minutes;
-  tmp >> minutes;
-  tmp >> dummyChar;
-  std::uint32_t seconds;
-  tmp >> seconds;
-  time.val = hours * 10000 + minutes * 100 + seconds;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // check error handling
@@ -655,7 +606,7 @@ class TestChild2
 public:
   TestChild2(int pGrandChildValue = 0) : grandChildValue(pGrandChildValue) { }
 private:
-  SERGUT_FUNCTION_FRIEND_DECL(TestChild2);
+  SERGUT_FUNCTION_FRIEND_DECL(TestChild2, data, ar);
   int grandChildValue;
 };
 

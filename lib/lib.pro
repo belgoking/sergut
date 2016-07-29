@@ -26,41 +26,52 @@ SOURCES += \
     sergut/ParsingException.cpp \
     sergut/XmlDeserializer.cpp \
     sergut/XmlDeserializerTiny.cpp \
+    sergut/XmlDeserializerTiny2.cpp \
     sergut/XmlSerializer.cpp \
+    sergut/detail/JavaClassGeneratorBase.cpp \
+    sergut/detail/Member.cpp \
+    sergut/detail/NameSpace.cpp \
+    sergut/detail/TypeName.cpp \
     unicode/Utf8Codec.cpp \
     xml/PullParser.cpp \
-    sergut/XmlDeserializerTiny2.cpp
 
 HEADERS += \
+    misc/ConstStringRef.h \
     misc/StringRef.h \
     sergut/DeserializerBase.h \
     sergut/Exception.h \
+    sergut/JavaClassGenerator.h \
     sergut/JsonSerializer.h \
     sergut/MemberDeserializer.h \
     sergut/Misc.h \
     sergut/ParsingException.h \
+    sergut/SerializationException.h \
     sergut/SerializerBase.h \
     sergut/Util.h \
     sergut/XmlDeserializer.h \
     sergut/XmlDeserializerTiny.h \
+    sergut/XmlDeserializerTiny2.h \
     sergut/XmlSerializer.h \
+    sergut/XmlValueType.h \
+    sergut/detail/JavaClassGeneratorBuilder.h \
+    sergut/detail/Member.h \
+    sergut/detail/NameSpace.h \
+    sergut/detail/TypeName.h \
+    sergut/detail/XmlDeserializerDomBase.h \
     unicode/ParseResult.h \
     unicode/Utf16Codec.h \
     unicode/Utf32Char.h \
     unicode/Utf8Codec.h \
     xml/ParseTokenType.h \
     xml/PullParser.h \
+    xml/detail/BasicPullParser.h \
     xml/detail/Helper.h \
+    xml/detail/ParseStack.h \
+    xml/detail/PullParserUtf16BE.h \
+    xml/detail/PullParserUtf16LE.h \
+    xml/detail/PullParserUtf8.h \
     xml/detail/ReaderState.h \
     xml/detail/ReaderStateResetter.h \
     xml/detail/TextDecodingHelper.h \
-    xml/detail/ParseStack.h \
-    misc/ConstStringRef.h \
-    xml/detail/BasicPullParser.h \
-    xml/detail/PullParserUtf8.h \
-    xml/detail/PullParserUtf16LE.h \
-    xml/detail/PullParserUtf16BE.h \
-    sergut/XmlValueType.h \
-    sergut/XmlDeserializerTiny2.h \
-    sergut/detail/XmlDeserializerDomBase.h
+    sergut/detail/JavaClassGeneratorBase.h \
 
