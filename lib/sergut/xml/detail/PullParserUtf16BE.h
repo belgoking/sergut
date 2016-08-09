@@ -21,8 +21,18 @@
 
 #pragma once
 
-#include <cstdint>
+#include "sergut/unicode/Utf16Codec.h"
+#include "sergut/xml/detail/BasicPullParser.h"
 
-namespace unicode {
-typedef uint32_t Utf32Char;
+namespace sergut {
+namespace xml {
+namespace detail {
+
+class PullParserUtf16BE: public BasicPullParser<sergut::unicode::Utf16BECodec>
+{
+  using BasicPullParser<sergut::unicode::Utf16BECodec>::BasicPullParser;
+};
+
+}
+}
 }

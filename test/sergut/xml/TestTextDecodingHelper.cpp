@@ -21,11 +21,11 @@
 
 #include <catch.hpp>
 
-#include "xml/detail/TextDecodingHelper.h"
+#include "sergut/xml/detail/TextDecodingHelper.h"
 
 #include <tuple>
 
-typedef xml::detail::TextDecodingHelper<unicode::Utf8Codec> Utf8DecodingHelper;
+typedef sergut::xml::detail::TextDecodingHelper<sergut::unicode::Utf8Codec> Utf8DecodingHelper;
 
 TEST_CASE("XML-Parser UTF-8 (EntityHandling - OK)", "[XML]")
 {

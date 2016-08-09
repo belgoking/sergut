@@ -21,9 +21,9 @@
 
 #include <catch.hpp>
 
-#include "xml/PullParser.h"
-#include "xml/detail/PullParserUtf16LE.h"
-#include "xml/detail/PullParserUtf16BE.h"
+#include "sergut/xml/PullParser.h"
+#include "sergut/xml/detail/PullParserUtf16LE.h"
+#include "sergut/xml/detail/PullParserUtf16BE.h"
 
 enum class TargetEncoding { Utf8, Utf16BE, Utf16LE };
 std::string toString(const TargetEncoding encoding, const bool shortDesc = false)
@@ -75,121 +75,121 @@ TEST_CASE("XML-Parser (Simple Tests)", "[XML]")
     GIVEN("The " + toString(encodingType) + " PullParser") {
       WHEN("Parsing an empty XML Root-Tag") {
         const std::string xml = asciiToEncoding("<root/>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing another empty XML Root-Tag") {
         const std::string xml = asciiToEncoding("<root></root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the same specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an almost empty XML Root-Tag") {
         const std::string xml = asciiToEncoding("<root> </root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the same specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Text);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Text);
           CHECK(parser.getCurrentValue() == std::string(" "));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an empty nested XML Tag") {
         const std::string xml = asciiToEncoding("<root><inner/></root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the same specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an empty nested XML Tag with spaces") {
         const std::string xml = asciiToEncoding("<root> <inner/> </root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the same specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Text);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Text);
           CHECK(parser.getCurrentValue() == std::string(" "));
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Text);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Text);
           CHECK(parser.getCurrentValue() == std::string(" "));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing another empty nested XML Tag") {
         const std::string xml = asciiToEncoding("<root><inner></inner></root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the same specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing another empty nested XML Tag with spaces") {
         const std::string xml = asciiToEncoding("<root> <inner> </inner> </root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the same specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Text);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Text);
           CHECK(parser.getCurrentValue() == std::string(" "));
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Text);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Text);
           CHECK(parser.getCurrentValue() == std::string(" "));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Text);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Text);
           CHECK(parser.getCurrentValue() == std::string(" "));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
     }
@@ -204,13 +204,13 @@ TEST_CASE("XML-Parser (Invalid XML Test)", "[XML]")
     GIVEN("The " + toString(encodingType) + " PullParser") {
       WHEN("Parsing an XML with non-matching tags") {
         const std::string xml = asciiToEncoding("<root></beer>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The no error is detected by the parser") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Error);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Error);
         }
       }
     }
@@ -225,83 +225,83 @@ TEST_CASE("XML-Parser (Check XML-Declaration Test)", "[XML]")
     GIVEN("The " + toString(encodingType) + " PullParser") {
       WHEN("Parsing an XML with an empty XML-Declaration") {
         const std::string xml = asciiToEncoding("<?xml?><root/>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The no error is detected by the parser") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an XML with a version XML-Declaration") {
         const std::string xml = asciiToEncoding("<?xml version=\"1.1\"?><root/>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The no error is detected by the parser") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an XML with an encoding XML-Declaration") {
         const std::string xml = asciiToEncoding("<?xml encoding=\"" + toString(encodingType, true) + "\"?><root/>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The no error is detected by the parser") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an XML with a version and encoding XML-Declaration") {
         const std::string xml = asciiToEncoding("<?xml version=\"1.1\" encoding=\"" + toString(encodingType, true) + "\"?><root/>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The no error is detected by the parser") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an XML with another version and encoding XML-Declaration") {
         const std::string xml = asciiToEncoding("<?xml  version='1.1'  \r\n\t encoding='" + toString(encodingType, true) + "'   \n\r\t ?><root/>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The no error is detected by the parser") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an XML with an unsupported version XML-Declaration") {
         const std::string xml = asciiToEncoding("<?xml version=\"2.0\"?><root/>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The parser returns an error") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::Error);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Error);
         }
       }
       WHEN("Parsing an XML with an unsupported encoding XML-Declaration") {
         const std::string xml = asciiToEncoding("<?xml encoding=\"ISO-8859-15\"?><root/>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The parser returns an error") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::Error);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Error);
         }
       }
     }
@@ -316,170 +316,170 @@ TEST_CASE("XML-Parser (Attribute Tests)", "[XML]")
     GIVEN("The " + toString(encodingType) + " PullParser") {
       WHEN("Parsing an empty XML Root-Tag with Attributes") {
         const std::string xml = asciiToEncoding("<root att1=\"val1\" att2='val2'/>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att1"));
           CHECK(parser.getCurrentValue() == std::string("val1"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att2"));
           CHECK(parser.getCurrentValue() == std::string("val2"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an empty XML Root-Tag with Attributes and extra spaces") {
         const std::string xml = asciiToEncoding("<root   att1 = \"val1\"   att2   =   'val2'   />", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att1"));
           CHECK(parser.getCurrentValue() == std::string("val1"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att2"));
           CHECK(parser.getCurrentValue() == std::string("val2"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing another empty XML Root-Tag with Attributes") {
         const std::string xml = asciiToEncoding("<root att1=\"val1\" att2='val2'></root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the same specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att1"));
           CHECK(parser.getCurrentValue() == std::string("val1"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att2"));
           CHECK(parser.getCurrentValue() == std::string("val2"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing another empty XML Root-Tag with other Attributes") {
         const std::string xml = asciiToEncoding("<root att1=\"val1\" att2='val2'></root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the same specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att1"));
           CHECK(parser.getCurrentValue() == std::string("val1"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att2"));
           CHECK(parser.getCurrentValue() == std::string("val2"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an empty nested XML Tag with Attributes") {
         const std::string xml = asciiToEncoding("<root><inner att1=\"val1\" att2='val2'/></root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the same specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att1"));
           CHECK(parser.getCurrentValue() == std::string("val1"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att2"));
           CHECK(parser.getCurrentValue() == std::string("val2"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an empty nested XML Tag with other Attributes") {
         const std::string xml = asciiToEncoding("<root><inner att1=\"val1\" att2='val2' /></root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the same specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att1"));
           CHECK(parser.getCurrentValue() == std::string("val1"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att2"));
           CHECK(parser.getCurrentValue() == std::string("val2"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing another empty nested XML Tag with Attributes") {
         const std::string xml = asciiToEncoding("<root><inner att1=\"val1\" att2='val2'></inner></root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the same specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att1"));
           CHECK(parser.getCurrentValue() == std::string("val1"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att2"));
           CHECK(parser.getCurrentValue() == std::string("val2"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing another empty nested XML Tag with other Attributes") {
         const std::string xml = asciiToEncoding("<root><inner att1=\"val1\" att2='val2' ></inner></root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the same specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att1"));
           CHECK(parser.getCurrentValue() == std::string("val1"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("att2"));
           CHECK(parser.getCurrentValue() == std::string("val2"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("inner"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
     }
@@ -494,111 +494,111 @@ TEST_CASE("XML-Parser (Entity Test)", "[XML]")
     GIVEN("The " + toString(encodingType) + " PullParser") {
       WHEN("Parsing an Entity in Text") {
         const std::string xml = asciiToEncoding("<root>&amp;</root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Text);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Text);
           CHECK(parser.getCurrentValue() == std::string("&"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an Entity and Apostrophs in Text") {
         const std::string xml = asciiToEncoding("<root>'&apos;'</root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Text);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Text);
           CHECK(parser.getCurrentValue() == std::string("'''"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an Entity and Quotes in Text") {
         const std::string xml = asciiToEncoding("<root>\"&apos;\"</root>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Text);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Text);
           CHECK(parser.getCurrentValue() == std::string("\"'\""));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an Entity in a Quote-Attribute") {
         const std::string xml = asciiToEncoding("<root attr=\"&quot;\"/>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("attr"));
           CHECK(parser.getCurrentValue() == std::string("\""));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an Entity in an Apostroph-Attribute") {
         const std::string xml = asciiToEncoding("<root attr='&apos;'/>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("attr"));
           CHECK(parser.getCurrentValue() == std::string("'"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an Entity with Apostrophs in a Quote-Attribute") {
         const std::string xml = asciiToEncoding("<root attr=\"'&quot;'\"/>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("attr"));
           CHECK(parser.getCurrentValue() == std::string("'\"'"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
       WHEN("Parsing an Entity with Quotes in an Apostroph-Attribute") {
         const std::string xml = asciiToEncoding("<root attr='\"&apos;\"'/>", encodingType);
-        std::unique_ptr<xml::PullParser> parserTmp = xml::PullParser::createParser(misc::ConstStringRef(xml));
-        xml::PullParser& parser = *parserTmp;
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+        sergut::xml::PullParser& parser = *parserTmp;
         THEN("The result is the specified sequence") {
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenDocument);
-          CHECK(parser.parseNext() == xml::ParseTokenType::OpenTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::Attribute);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
           CHECK(parser.getCurrentAttributeName() == std::string("attr"));
           CHECK(parser.getCurrentValue() == std::string("\"'\""));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseTag);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
-          CHECK(parser.parseNext() == xml::ParseTokenType::CloseDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
         }
       }
     }

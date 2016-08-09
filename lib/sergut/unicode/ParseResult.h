@@ -21,28 +21,23 @@
 
 #pragma once
 
-#include <cinttypes>
+#include <cstdint>
 
-namespace xml {
+namespace sergut {
+namespace unicode {
 
-enum class ParseTokenType: uint32_t {
-  InitialState       = static_cast<uint32_t>(-1),
-  OpenDocument       = static_cast<uint32_t>(-2),
-  OpenTag            = static_cast<uint32_t>(-3),
-  Attribute          = static_cast<uint32_t>(-4),
-  Text               = static_cast<uint32_t>(-5),
-  CloseTag           = static_cast<uint32_t>(-6),
-  CloseDocument      = static_cast<uint32_t>(-7),
-  IncompleteDocument = static_cast<uint32_t>(-8),
-  Error              = static_cast<uint32_t>(-9)
-//  ProcessingInstruction,
-//  Comment,
+/**
+ * @brief The result of parsing or encoding a UTF-8 character.
+ *
+ * Normally, the value returned is the octets length of the code
+ * point. Unless an error has happened.
+ */
+enum class ParseResult: int32_t {
+  InvalidCharacter = -1,
+  IncompleteCharacter = -2
 };
 
 inline
-bool isOk(const ParseTokenType tokenType)
-{
-  return tokenType != ParseTokenType::IncompleteDocument && tokenType != ParseTokenType::Error;
+bool isError(const ParseResult r) noexcept { return static_cast<int32_t>(r) <= 0; }
 }
-
 }

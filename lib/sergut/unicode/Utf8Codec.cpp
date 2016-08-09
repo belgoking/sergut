@@ -19,23 +19,7 @@
  * SOFTWARE.
  */
 
-#pragma once
+#include "sergut/unicode/Utf8Codec.h"
 
-#include <cstdint>
+const sergut::misc::ConstStringRef sergut::unicode::Utf8Codec::utf8EncodingName("UTF-8");
 
-namespace unicode {
-
-/**
- * @brief The result of parsing or encoding a UTF-8 character.
- *
- * Normally, the value returned is the octets length of the code
- * point. Unless an error has happened.
- */
-enum class ParseResult: int32_t {
-  InvalidCharacter = -1,
-  IncompleteCharacter = -2
-};
-
-inline
-bool isError(const ParseResult r) noexcept { return static_cast<int32_t>(r) <= 0; }
-}

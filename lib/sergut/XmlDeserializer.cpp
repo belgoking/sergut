@@ -22,7 +22,7 @@
 #include "XmlDeserializer.h"
 
 #include "sergut/ParsingException.h"
-#include "xml/PullParser.h"
+#include "sergut/xml/PullParser.h"
 
 #include <map>
 #include <sstream>
@@ -47,7 +47,7 @@ std::size_t XmlDeserializer::ErrorContext::getColumn() const
 
 struct XmlDeserializer::Impl {
   Impl(const std::string& xml)
-    : xmlDocument(xml::PullParser::createParser(misc::ConstStringRef(xml)))
+    : xmlDocument(xml::PullParser::createParser(sergut::misc::ConstStringRef(xml)))
   { }
   Impl(const Impl&) = delete;
   Impl& operator=(const Impl&) = delete;
@@ -58,19 +58,19 @@ public:
 
 template<typename DT>
 static
-void readInto(const misc::ConstStringRef& str, DT& dest)
+void readInto(const sergut::misc::ConstStringRef& str, DT& dest)
 {
   std::istringstream(std::string(str.begin(), str.end())) >> dest;
 }
 
 static
-void readInto(const misc::ConstStringRef& str, std::string& dest)
+void readInto(const sergut::misc::ConstStringRef& str, std::string& dest)
 {
   dest = str.toString();
 }
 
 static
-void readInto(const misc::ConstStringRef& str, unsigned char& dest)
+void readInto(const sergut::misc::ConstStringRef& str, unsigned char& dest)
 {
   unsigned int i;
   std::istringstream(std::string(str.begin(), str.end())) >> i;
@@ -111,7 +111,7 @@ void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const XmlVa
   }
   case XmlValueType::SingleChild: {
     assert(currentNode.getCurrentTokenType() == xml::ParseTokenType::Text);
-    const misc::ConstStringRef content = currentNode.getCurrentValue();
+    const sergut::misc::ConstStringRef content = currentNode.getCurrentValue();
     if(content.empty() && data.mandatory) {
       throw ParsingException("Text missing for mandatory simple datatype", XmlDeserializer::ErrorContext(currentNode));
     }

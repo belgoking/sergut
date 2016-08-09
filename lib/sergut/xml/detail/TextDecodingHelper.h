@@ -21,13 +21,14 @@
 
 #pragma once
 
-#include "unicode/ParseResult.h"
-#include "unicode/Utf8Codec.h"
-#include "unicode/Utf32Char.h"
-#include "xml/detail/Helper.h"
+#include "sergut/unicode/ParseResult.h"
+#include "sergut/unicode/Utf8Codec.h"
+#include "sergut/unicode/Utf32Char.h"
+#include "sergut/xml/detail/Helper.h"
 
 #include <cassert>
 
+namespace sergut {
 namespace xml {
 namespace detail {
 
@@ -66,19 +67,19 @@ public:
 private:
   bool nextChar();
   bool nextAsciiChar();
-  bool handleEntity(unicode::Utf32Char* decodedCharRef);
-  bool handleHexCharRef(unicode::Utf32Char* decodeCharRef);
-  bool handleDecCharRef(unicode::Utf32Char* decodeCharRef);
-  bool handleEntityRef(unicode::Utf32Char* decodeCharRef);
+  bool handleEntity(sergut::unicode::Utf32Char* decodedCharRef);
+  bool handleHexCharRef(sergut::unicode::Utf32Char* decodeCharRef);
+  bool handleDecCharRef(sergut::unicode::Utf32Char* decodeCharRef);
+  bool handleEntityRef(sergut::unicode::Utf32Char* decodeCharRef);
   void checkForEndChar();
-  bool writeChar(const unicode::Utf32Char chr);
+  bool writeChar(const sergut::unicode::Utf32Char chr);
 
 private:
   const char* const originalReadPointer;
   const char* readPointer;
   const char* const readPointerEnd;
   std::size_t currentCharSize = 0;
-  unicode::Utf32Char currentChar = '\0';
+  sergut::unicode::Utf32Char currentChar = '\0';
   DecodingType currentTokenType = DecodingType::Parsing;
   std::vector<char>& decodedTextBuffer;
   char* writePointer;
@@ -87,10 +88,11 @@ private:
 
 } // namespace detail
 } // namespace xml
+} // namespace sergut
 
 template<typename CharDecoder>
 inline
-bool xml::detail::TextDecodingHelper<CharDecoder>::decodeText()
+bool sergut::xml::detail::TextDecodingHelper<CharDecoder>::decodeText()
 {
   if(readPointer == readPointerEnd) {
     // TextType::Plain is mainly for unit-tests where we want to be able
@@ -111,7 +113,7 @@ bool xml::detail::TextDecodingHelper<CharDecoder>::decodeText()
     case DecodingType::Parsing:
       break;
     }
-    unicode::Utf32Char chr;
+    sergut::unicode::Utf32Char chr;
     if(currentChar == '&') {
       if(!handleEntity(&chr)) {
         return false;
@@ -119,7 +121,7 @@ bool xml::detail::TextDecodingHelper<CharDecoder>::decodeText()
     } else {
       chr = currentChar;
     }
-    if(!Helper::isValidXmlChar(chr)) {
+    if(!sergut::xml::detail::Helper::isValidXmlChar(chr)) {
       currentTokenType = DecodingType::Error;
       return false;
     }
@@ -137,23 +139,23 @@ bool xml::detail::TextDecodingHelper<CharDecoder>::decodeText()
 
 template<typename CharDecoder>
 inline
-bool xml::detail::TextDecodingHelper<CharDecoder>::nextChar()
+bool sergut::xml::detail::TextDecodingHelper<CharDecoder>::nextChar()
 {
   if(readPointer == readPointerEnd) {
     currentTokenType = DecodingType::IncompleteText;
     return false;
   }
-  const unicode::ParseResult parseResult =
+  const sergut::unicode::ParseResult parseResult =
       CharDecoder::parseNext(currentChar, readPointer, readPointerEnd);
-  if(!unicode::isError(parseResult)) {
+  if(!sergut::unicode::isError(parseResult)) {
     readPointer += std::size_t(parseResult);
     return true;
   }
   switch (parseResult) {
-  case unicode::ParseResult::IncompleteCharacter:
+  case sergut::unicode::ParseResult::IncompleteCharacter:
     currentTokenType = DecodingType::IncompleteText;
     return false;
-  case unicode::ParseResult::InvalidCharacter:
+  case sergut::unicode::ParseResult::InvalidCharacter:
     currentTokenType = DecodingType::Error;
     return false;
   }
@@ -162,7 +164,7 @@ bool xml::detail::TextDecodingHelper<CharDecoder>::nextChar()
 
 template<typename CharDecoder>
 inline
-bool xml::detail::TextDecodingHelper<CharDecoder>::nextAsciiChar()
+bool sergut::xml::detail::TextDecodingHelper<CharDecoder>::nextAsciiChar()
 {
   if(!nextChar()) {
     return false;
@@ -175,17 +177,18 @@ bool xml::detail::TextDecodingHelper<CharDecoder>::nextAsciiChar()
 }
 
 // optimization for UTF-8
+namespace sergut {
 namespace xml {
 namespace detail {
 template<>
 inline
-bool TextDecodingHelper<unicode::Utf8Codec>::nextAsciiChar()
+bool TextDecodingHelper<sergut::unicode::Utf8Codec>::nextAsciiChar()
 {
   if(readPointer == readPointerEnd) {
     currentTokenType = DecodingType::IncompleteText;
     return false;
   }
-  if(!unicode::Utf8Codec::isAscii(*readPointer)) {
+  if(!sergut::unicode::Utf8Codec::isAscii(*readPointer)) {
     currentTokenType = DecodingType::Error;
     return false;
   }
@@ -195,14 +198,15 @@ bool TextDecodingHelper<unicode::Utf8Codec>::nextAsciiChar()
 }
 }
 }
+}
 
 template<typename CharDecoder>
 inline
-bool xml::detail::TextDecodingHelper<CharDecoder>::handleEntity(unicode::Utf32Char* decodedCharRef)
+bool sergut::xml::detail::TextDecodingHelper<CharDecoder>::handleEntity(sergut::unicode::Utf32Char* decodedCharRef)
 {
   // assume I am on the '&' currently
   if(!nextAsciiChar()) { return false; }
-  unicode::Utf32Char tmpChar;
+  sergut::unicode::Utf32Char tmpChar;
   if(currentChar == '#') {
     // parse CharRef
     // [66]   	CharRef	   ::=   	'&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'
@@ -230,10 +234,10 @@ bool xml::detail::TextDecodingHelper<CharDecoder>::handleEntity(unicode::Utf32Ch
 
 template<typename CharDecoder>
 inline
-bool xml::detail::TextDecodingHelper<CharDecoder>::handleHexCharRef(unicode::Utf32Char* decodeCharRef)
+bool sergut::xml::detail::TextDecodingHelper<CharDecoder>::handleHexCharRef(sergut::unicode::Utf32Char* decodeCharRef)
 {
   uint cnt = 0;
-  unicode::Utf32Char tmpCodePoint = 0;
+  sergut::unicode::Utf32Char tmpCodePoint = 0;
   char c = currentChar;
   while(true) {
     if(++cnt > 6) {
@@ -272,10 +276,10 @@ bool xml::detail::TextDecodingHelper<CharDecoder>::handleHexCharRef(unicode::Utf
 
 template<typename CharDecoder>
 inline
-bool xml::detail::TextDecodingHelper<CharDecoder>::handleDecCharRef(unicode::Utf32Char* decodeCharRef)
+bool sergut::xml::detail::TextDecodingHelper<CharDecoder>::handleDecCharRef(sergut::unicode::Utf32Char* decodeCharRef)
 {
   uint cnt = 0;
-  unicode::Utf32Char tmpCodePoint = 0;
+  sergut::unicode::Utf32Char tmpCodePoint = 0;
   char c = currentChar;
   while('0' <= c && c <= '9') {
     if(++cnt > 7) {
@@ -300,10 +304,10 @@ bool xml::detail::TextDecodingHelper<CharDecoder>::handleDecCharRef(unicode::Utf
 
 template<typename CharDecoder>
 inline
-bool xml::detail::TextDecodingHelper<CharDecoder>::handleEntityRef(unicode::Utf32Char* decodeCharRef)
+bool sergut::xml::detail::TextDecodingHelper<CharDecoder>::handleEntityRef(sergut::unicode::Utf32Char* decodeCharRef)
 {
   // amp, apos, gt, lt, quot
-  unicode::Utf32Char tmpCodePoint = unicode::Utf32Char(-1);
+  sergut::unicode::Utf32Char tmpCodePoint = sergut::unicode::Utf32Char(-1);
   if(currentChar == 'a') {
     if(!nextAsciiChar()) { return false; }
     if(currentChar == 'm') {
@@ -347,7 +351,7 @@ bool xml::detail::TextDecodingHelper<CharDecoder>::handleEntityRef(unicode::Utf3
       }
     }
   }
-  if(tmpCodePoint == unicode::Utf32Char(-1)) {
+  if(tmpCodePoint == sergut::unicode::Utf32Char(-1)) {
     currentTokenType = DecodingType::Error;
     return false;
   }
@@ -359,7 +363,7 @@ bool xml::detail::TextDecodingHelper<CharDecoder>::handleEntityRef(unicode::Utf3
 
 template<typename CharDecoder>
 inline
-void xml::detail::TextDecodingHelper<CharDecoder>::checkForEndChar()
+void sergut::xml::detail::TextDecodingHelper<CharDecoder>::checkForEndChar()
 {
   switch(textType) {
   case TextType::Plain:
@@ -368,7 +372,7 @@ void xml::detail::TextDecodingHelper<CharDecoder>::checkForEndChar()
   case TextType::AttValueApos:
   case TextType::AttValueQuote:
   {
-    const unicode::Utf32Char attributeChar = textType == TextType::AttValueApos ? '\'' : '"';
+    const sergut::unicode::Utf32Char attributeChar = textType == TextType::AttValueApos ? '\'' : '"';
     if(currentChar == attributeChar) {
       currentTokenType = DecodingType::AtEnd;
     }
@@ -387,7 +391,7 @@ void xml::detail::TextDecodingHelper<CharDecoder>::checkForEndChar()
 
 template<typename CharDecoder>
 inline
-bool xml::detail::TextDecodingHelper<CharDecoder>::writeChar(const unicode::Utf32Char chr)
+bool sergut::xml::detail::TextDecodingHelper<CharDecoder>::writeChar(const sergut::unicode::Utf32Char chr)
 {
   // ensure there is enough spare space in decodedTextBuffer
   if(&*decodedTextBuffer.end() - writePointer < 4) {
@@ -403,13 +407,13 @@ bool xml::detail::TextDecodingHelper<CharDecoder>::writeChar(const unicode::Utf3
   }
 
   // then decode the current character to decodedTextBuffer
-  unicode::ParseResult r = unicode::Utf8Codec::encodeChar(chr, writePointer, &*decodedTextBuffer.end());
-  if(unicode::isError(r)) {
+  sergut::unicode::ParseResult r = sergut::unicode::Utf8Codec::encodeChar(chr, writePointer, &*decodedTextBuffer.end());
+  if(sergut::unicode::isError(r)) {
     switch(r) {
-    case unicode::ParseResult::IncompleteCharacter:
+    case sergut::unicode::ParseResult::IncompleteCharacter:
       currentTokenType = DecodingType::IncompleteText;
       break;
-    case unicode::ParseResult::InvalidCharacter:
+    case sergut::unicode::ParseResult::InvalidCharacter:
       currentTokenType = DecodingType::Error;
       break;
     }

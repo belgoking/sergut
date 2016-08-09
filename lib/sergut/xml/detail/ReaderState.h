@@ -19,7 +19,22 @@
  * SOFTWARE.
  */
 
-#include "Utf8Codec.h"
+#pragma once
 
-const misc::ConstStringRef unicode::Utf8Codec::utf8EncodingName("UTF-8");
+#include "sergut/unicode/Utf32Char.h"
 
+namespace sergut {
+namespace xml {
+namespace detail {
+
+struct ReaderState {
+  ReaderState(const char* pReadPointer)
+    : readPointer(pReadPointer)
+  { }
+  const char* readPointer;
+  sergut::unicode::Utf32Char currentChar = 0;
+};
+
+}
+}
+}

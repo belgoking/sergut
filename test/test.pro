@@ -20,13 +20,13 @@ INCLUDEPATH = ../lib "$${CPP_CATCH_INCLUDE_PATH}" "$${CPP_TINYXML_INCLUDE_PATH}"
 SOURCES += \
     hypercall/hypercall.cpp \
     main.cpp \
-    sergut/TestJavaClassGenerator.cpp \
     sergut/TestSergut.cpp \
     sergut/XmlDeSerializerTiny.cpp \
-    unicode/TestUtf16Codec.cpp \
-    unicode/TestUtf8Codec.cpp \
-    xml/TestPullParser.cpp \
-    xml/TestTextDecodingHelper.cpp \
+    sergut/unicode/TestUtf16Codec.cpp \
+    sergut/unicode/TestUtf8Codec.cpp \
+    sergut/xml/TestPullParser.cpp \
+    sergut/xml/TestTextDecodingHelper.cpp \
+    sergut/TestJavaClassGenerator.cpp \
 
 HEADERS +=
     sergut/TestSupportClasses.h \

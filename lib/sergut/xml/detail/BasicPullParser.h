@@ -21,17 +21,18 @@
 
 #pragma once
 
-#include "unicode/Utf32Char.h"
-#include "xml/PullParser.h"
-#include "xml/detail/ParseStack.h"
-#include "xml/detail/ReaderState.h"
-#include "xml/detail/ReaderStateResetter.h"
-#include "xml/detail/TextDecodingHelper.h"
+#include "sergut/unicode/Utf32Char.h"
+#include "sergut/xml/PullParser.h"
+#include "sergut/xml/detail/ParseStack.h"
+#include "sergut/xml/detail/ReaderState.h"
+#include "sergut/xml/detail/ReaderStateResetter.h"
+#include "sergut/xml/detail/TextDecodingHelper.h"
 
 #include <string>
 #include <vector>
 #include <memory>
 
+namespace sergut {
 namespace xml {
 namespace detail {
 
@@ -40,16 +41,16 @@ struct DecodedNameBuffers;
 
 template<>
 struct DecodedNameBuffers<true> {
-  misc::ConstStringRef   decodedTagName;
-  misc::ConstStringRef   decodedAttrName;
+  sergut::misc::ConstStringRef   decodedTagName;
+  sergut::misc::ConstStringRef   decodedAttrName;
 };
 
 template<>
 struct DecodedNameBuffers<false> {
   std::vector<char> decodedTagNameBuffer;
-  misc::StringRef   decodedTagName;
+  sergut::misc::StringRef   decodedTagName;
   std::vector<char> decodedAttrNameBuffer;
-  misc::StringRef   decodedAttrName;
+  sergut::misc::StringRef   decodedAttrName;
 };
 
 /**
@@ -71,14 +72,14 @@ public:
     Attribute,
   };
 
-  BasicPullParser(const misc::ConstStringRef& data);
+  BasicPullParser(const sergut::misc::ConstStringRef& data);
   BasicPullParser(std::vector<char>&& data);
   std::vector<char>&& extractXmlData() override;
   ParseTokenType parseNext() override;
   ParseTokenType getCurrentTokenType() const override;
-  misc::ConstStringRef getCurrentTagName() const override;
-  misc::ConstStringRef getCurrentAttributeName() const override;
-  misc::ConstStringRef getCurrentValue() const override;
+  sergut::misc::ConstStringRef getCurrentTagName() const override;
+  sergut::misc::ConstStringRef getCurrentAttributeName() const override;
+  sergut::misc::ConstStringRef getCurrentValue() const override;
 
 private:
   /** Check whether there is an XML declaration and if so whether it is correct
@@ -97,12 +98,12 @@ private:
    * ParseTokenType::Error.
    * \return false in case memory allocation failed.
    */
-  bool ensureDecodedNameCapacity(std::vector<char>& nameBuffer, misc::StringRef& name);
+  bool ensureDecodedNameCapacity(std::vector<char>& nameBuffer, sergut::misc::StringRef& name);
   /** writes a char to the buffer pointed to by \c currentWritePointer.
    * In case of an error the currentTokenType is set to ParseTokenType::Error.
    * /return false in case the character could not be written or memory allocation failed.
    */
-  bool writeNameChar(std::vector<char>& nameBuffer, misc::StringRef& name);
+  bool writeNameChar(std::vector<char>& nameBuffer, sergut::misc::StringRef& name);
 
   // The parseXXX() functions return \c true, if their type of text has been handled.
   // In case of an error, they return \c true and set the error.
@@ -113,15 +114,15 @@ private:
   bool parseText();
   bool parseCloseTag();
   bool atEnd() const;
-  unicode::Utf32Char peekChar() const;
+  sergut::unicode::Utf32Char peekChar() const;
 
 private:
-  friend class xml::detail::ReaderStateResetter;
+  friend class sergut::xml::detail::ReaderStateResetter;
   std::vector<char> inputData;
   ReaderState readerState;
-  ParseStack<std::is_same<CharDecoder, unicode::Utf8Codec>::value> parseStack;
+  ParseStack<std::is_same<CharDecoder, sergut::unicode::Utf8Codec>::value> parseStack;
 
-  DecodedNameBuffers<std::is_same<CharDecoder, unicode::Utf8Codec>::value> decodedNameBuffers;
+  DecodedNameBuffers<std::is_same<CharDecoder, sergut::unicode::Utf8Codec>::value> decodedNameBuffers;
   std::vector<char> decodedValueBuffer;
 
   ParseTokenType currentTokenType = ParseTokenType::InitialState;
@@ -129,14 +130,15 @@ private:
 };
 }
 }
+}
 
 template<typename CharDecoder>
-xml::detail::BasicPullParser<CharDecoder>::BasicPullParser(const misc::ConstStringRef& data)
+sergut::xml::detail::BasicPullParser<CharDecoder>::BasicPullParser(const sergut::misc::ConstStringRef& data)
   : BasicPullParser(std::vector<char>(data.begin(), data.end()))
 { }
 
 template<typename CharDecoder>
-xml::detail::BasicPullParser<CharDecoder>::BasicPullParser(std::vector<char>&& data)
+sergut::xml::detail::BasicPullParser<CharDecoder>::BasicPullParser(std::vector<char>&& data)
   : inputData(std::move(data))
   , readerState(&*inputData.begin())
 {
@@ -148,33 +150,33 @@ xml::detail::BasicPullParser<CharDecoder>::BasicPullParser(std::vector<char>&& d
 }
 
 template<typename CharDecoder>
-std::vector<char>&& xml::detail::BasicPullParser<CharDecoder>::extractXmlData()
+std::vector<char>&& sergut::xml::detail::BasicPullParser<CharDecoder>::extractXmlData()
 {
   incompleteDocument = true;
   return std::move(inputData);
 }
 
 template<typename CharDecoder>
-misc::ConstStringRef xml::detail::BasicPullParser<CharDecoder>::getCurrentTagName() const
+sergut::misc::ConstStringRef sergut::xml::detail::BasicPullParser<CharDecoder>::getCurrentTagName() const
 {
   return parseStack.getTopData();
 }
 
 template<typename CharDecoder>
-misc::ConstStringRef xml::detail::BasicPullParser<CharDecoder>::getCurrentAttributeName() const
+sergut::misc::ConstStringRef sergut::xml::detail::BasicPullParser<CharDecoder>::getCurrentAttributeName() const
 {
   return decodedNameBuffers.decodedAttrName;
 }
 
 template<typename CharDecoder>
-misc::ConstStringRef xml::detail::BasicPullParser<CharDecoder>::getCurrentValue() const
+sergut::misc::ConstStringRef sergut::xml::detail::BasicPullParser<CharDecoder>::getCurrentValue() const
 {
-  return misc::ConstStringRef(&*decodedValueBuffer.begin(), &*decodedValueBuffer.end());
+  return sergut::misc::ConstStringRef(&*decodedValueBuffer.begin(), &*decodedValueBuffer.end());
 }
 
 template<typename CharDecoder>
 inline
-bool xml::detail::BasicPullParser<CharDecoder>::skipWhitespaces()
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::skipWhitespaces()
 {
   while(std::isspace(readerState.currentChar) && nextChar()) { }
   return !incompleteDocument && currentTokenType != ParseTokenType::Error;
@@ -182,19 +184,19 @@ bool xml::detail::BasicPullParser<CharDecoder>::skipWhitespaces()
 
 template<typename CharDecoder>
 inline
-bool xml::detail::BasicPullParser<CharDecoder>::nextChar()
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::nextChar()
 {
-  const unicode::ParseResult parseResult =
+  const sergut::unicode::ParseResult parseResult =
       CharDecoderT::parseNext(readerState.currentChar, readerState.readPointer, &*inputData.end());
-  if(!unicode::isError(parseResult)) {
+  if(!sergut::unicode::isError(parseResult)) {
     readerState.readPointer += static_cast<int32_t>(parseResult);
     return true;
   }
   switch (parseResult) {
-  case unicode::ParseResult::IncompleteCharacter:
+  case sergut::unicode::ParseResult::IncompleteCharacter:
     incompleteDocument = true;
     return false;
-  case unicode::ParseResult::InvalidCharacter:
+  case sergut::unicode::ParseResult::InvalidCharacter:
     currentTokenType = ParseTokenType::Error;
     return false;
   }
@@ -203,7 +205,7 @@ bool xml::detail::BasicPullParser<CharDecoder>::nextChar()
 
 template<typename CharDecoder>
 inline
-bool xml::detail::BasicPullParser<CharDecoder>::nextAsciiChar()
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::nextAsciiChar()
 {
   if(!nextChar()) {
     return false;
@@ -216,13 +218,13 @@ bool xml::detail::BasicPullParser<CharDecoder>::nextAsciiChar()
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParser<CharDecoder>::ensureDecodedNameCapacity(std::vector<char>& nameBuffer, misc::StringRef& name)
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::ensureDecodedNameCapacity(std::vector<char>& nameBuffer, sergut::misc::StringRef& name)
 {
   try {
     if(&*nameBuffer.end() - name.end() < 4) {
       const std::size_t offset = name.end() - nameBuffer.data();
       nameBuffer.resize(nameBuffer.size() + 50);
-      name = misc::StringRef(nameBuffer.data(), nameBuffer.data() + offset);
+      name = sergut::misc::StringRef(nameBuffer.data(), nameBuffer.data() + offset);
     }
   } catch(const std::exception&) {
     currentTokenType = ParseTokenType::Error;
@@ -232,20 +234,20 @@ bool xml::detail::BasicPullParser<CharDecoder>::ensureDecodedNameCapacity(std::v
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParser<CharDecoder>::writeNameChar(std::vector<char>& nameBuffer, misc::StringRef& name)
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::writeNameChar(std::vector<char>& nameBuffer, sergut::misc::StringRef& name)
 {
   if(!ensureDecodedNameCapacity(nameBuffer, name)) { return false; }
-  const unicode::ParseResult res = unicode::Utf8Codec::encodeChar(readerState.currentChar, name.end(), &*nameBuffer.end());
-  if(unicode::isError(res)) {
+  const sergut::unicode::ParseResult res = sergut::unicode::Utf8Codec::encodeChar(readerState.currentChar, name.end(), &*nameBuffer.end());
+  if(sergut::unicode::isError(res)) {
     currentTokenType = ParseTokenType::Error;
     return false;
   }
-  name = misc::StringRef(name.begin(), name.end() + static_cast<std::size_t>(res));
+  name = sergut::misc::StringRef(name.begin(), name.end() + static_cast<std::size_t>(res));
   return true;
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParser<CharDecoder>::handleXmlDecl()
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::handleXmlDecl()
 {
 //  [22]   	prolog	   ::=   	XMLDecl? Misc* (doctypedecl Misc*)?
 //  [23]   	XMLDecl	   ::=   	'<?xml' VersionInfo EncodingDecl? SDDecl? S? '?>'
@@ -263,21 +265,21 @@ bool xml::detail::BasicPullParser<CharDecoder>::handleXmlDecl()
     currentTokenType = ParseTokenType::Error;
     return false;
   }
-  if(decodedNameBuffers.decodedTagName != misc::ConstStringRef("xml")) {
+  if(decodedNameBuffers.decodedTagName != sergut::misc::ConstStringRef("xml")) {
     currentTokenType = ParseTokenType::Error;
     return false;
   }
   if(!skipWhitespaces()) { return false; }
 
   while(parseAttribute(false)) {
-    if(decodedNameBuffers.decodedAttrName == misc::ConstStringRef("version")) {
-      const misc::ConstStringRef ver = getCurrentValue();
+    if(decodedNameBuffers.decodedAttrName == sergut::misc::ConstStringRef("version")) {
+      const sergut::misc::ConstStringRef ver = getCurrentValue();
       if(ver.size() < 3 || ver[0] != '1' || ver[1] != '.') {
         // Wrong version
         currentTokenType = ParseTokenType::Error;
         return false;
       }
-    } else if(decodedNameBuffers.decodedAttrName == misc::ConstStringRef("encoding")) {
+    } else if(decodedNameBuffers.decodedAttrName == sergut::misc::ConstStringRef("encoding")) {
       if(!CharDecoder::isSupportedEncoding(getCurrentValue())) {
         currentTokenType= ParseTokenType::Error;
         return false;
@@ -304,7 +306,7 @@ bool xml::detail::BasicPullParser<CharDecoder>::handleXmlDecl()
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParser<CharDecoder>::parseName(const NameType nameType)
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::parseName(const NameType nameType)
 {
   // [4] NameStartChar ::=  ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] |
   //                        [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] |
@@ -313,11 +315,11 @@ bool xml::detail::BasicPullParser<CharDecoder>::parseName(const NameType nameTyp
   if(!Helper::isNameStartChar(readerState.currentChar)) { return false; }
   std::vector<char>& nameBuffer = (nameType == NameType::Tag) ? decodedNameBuffers.decodedTagNameBuffer
                                                               : decodedNameBuffers.decodedAttrNameBuffer;
-  misc::StringRef&   name       = (nameType == NameType::Tag) ? decodedNameBuffers.decodedTagName
+  sergut::misc::StringRef&   name       = (nameType == NameType::Tag) ? decodedNameBuffers.decodedTagName
                                                               : decodedNameBuffers.decodedAttrName;
 
   // clean up
-  name = misc::StringRef(name.begin(), name.begin());
+  name = sergut::misc::StringRef(name.begin(), name.begin());
   if(!writeNameChar(nameBuffer, name)) { return true; }
 
   if(!nextChar()) return true;
@@ -329,7 +331,7 @@ bool xml::detail::BasicPullParser<CharDecoder>::parseName(const NameType nameTyp
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParser<CharDecoder>::parseAfterTag()
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::parseAfterTag()
 {
   if(parseCloseTag()) {
     return true;
@@ -356,7 +358,7 @@ bool xml::detail::BasicPullParser<CharDecoder>::parseAfterTag()
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParser<CharDecoder>::parseOpenTag()
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::parseOpenTag()
 {
 // [40] STag ::= '<' Name (S Attribute)* S? '>'
   if(readerState.currentChar != '<') { return false; }
@@ -371,7 +373,7 @@ bool xml::detail::BasicPullParser<CharDecoder>::parseOpenTag()
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParser<CharDecoder>::parseAttribute(const bool setCurrentTokenTypeToAttribute)
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::parseAttribute(const bool setCurrentTokenTypeToAttribute)
 {
   // [10] AttValue ::= '"' ([^<&"] | Reference)* '"' |
   // [25] Eq        ::= S? '=' S?
@@ -422,7 +424,7 @@ bool xml::detail::BasicPullParser<CharDecoder>::parseAttribute(const bool setCur
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParser<CharDecoder>::parseText()
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::parseText()
 {
   // [43] content ::= CharData? ((element | Reference | CDSect | PI | Comment) CharData?)*
 
@@ -450,7 +452,7 @@ bool xml::detail::BasicPullParser<CharDecoder>::parseText()
 }
 
 template<typename CharDecoder>
-bool xml::detail::BasicPullParser<CharDecoder>::parseCloseTag()
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::parseCloseTag()
 {
   // [42] ETag ::= '</' Name S? '>'
   if(readerState.currentChar != '<') return false;
@@ -489,7 +491,7 @@ bool xml::detail::BasicPullParser<CharDecoder>::parseCloseTag()
   return true;
 }
 
-//bool xml::PullParserUtf8::parseCDText()
+//bool sergut::xml::PullParserUtf8::parseCDText()
 //{
 //  //  [18]   	CDSect	   ::=   	CDStart CData CDEnd
 //  //  [19]   	CDStart	   ::=   	'<![CDATA['
@@ -498,7 +500,7 @@ bool xml::detail::BasicPullParser<CharDecoder>::parseCloseTag()
 //}
 
 template<typename CharDecoder>
-xml::ParseTokenType xml::detail::BasicPullParser<CharDecoder>::parseNext()
+sergut::xml::ParseTokenType sergut::xml::detail::BasicPullParser<CharDecoder>::parseNext()
 {
   if(incompleteDocument) {
     return ParseTokenType::IncompleteDocument;
@@ -596,7 +598,7 @@ xml::ParseTokenType xml::detail::BasicPullParser<CharDecoder>::parseNext()
 }
 
 template<typename CharDecoder>
-xml::ParseTokenType xml::detail::BasicPullParser<CharDecoder>::getCurrentTokenType() const
+sergut::xml::ParseTokenType sergut::xml::detail::BasicPullParser<CharDecoder>::getCurrentTokenType() const
 {
   if(currentTokenType == ParseTokenType::Error || currentTokenType == ParseTokenType::CloseDocument) {
     return currentTokenType;

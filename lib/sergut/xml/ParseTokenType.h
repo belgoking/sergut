@@ -19,26 +19,32 @@
  * SOFTWARE.
  */
 
-#include "xml/PullParser.h"
+#pragma once
 
-#include "unicode/Utf16Codec.h"
-#include "unicode/Utf8Codec.h"
-#include "xml/detail/PullParserUtf16BE.h"
-#include "xml/detail/PullParserUtf16LE.h"
-#include "xml/detail/PullParserUtf8.h"
+#include <cinttypes>
 
-xml::PullParser::~PullParser() { }
+namespace sergut {
+namespace xml {
 
-std::unique_ptr<xml::PullParser> xml::PullParser::createParser(const misc::ConstStringRef& data)
+enum class ParseTokenType: uint32_t {
+  InitialState       = static_cast<uint32_t>(-1),
+  OpenDocument       = static_cast<uint32_t>(-2),
+  OpenTag            = static_cast<uint32_t>(-3),
+  Attribute          = static_cast<uint32_t>(-4),
+  Text               = static_cast<uint32_t>(-5),
+  CloseTag           = static_cast<uint32_t>(-6),
+  CloseDocument      = static_cast<uint32_t>(-7),
+  IncompleteDocument = static_cast<uint32_t>(-8),
+  Error              = static_cast<uint32_t>(-9)
+//  ProcessingInstruction,
+//  Comment,
+};
+
+inline
+bool isOk(const ParseTokenType tokenType)
 {
-  if(unicode::Utf16BECodec::hasBom(data.begin(), data.end())) {
-    return std::unique_ptr<xml::detail::PullParserUtf16BE>(new xml::detail::PullParserUtf16BE(misc::ConstStringRef(data.begin()+2, data.end())));
-  }
-  if(unicode::Utf16LECodec::hasBom(data.begin(), data.end())) {
-    return std::unique_ptr<xml::detail::PullParserUtf16LE>(new xml::detail::PullParserUtf16LE(misc::ConstStringRef(data.begin()+2, data.end())));
-  }
-  if(unicode::Utf8Codec::hasBom(data.begin(), data.end())) {
-    return std::unique_ptr<xml::detail::PullParserUtf8>(new xml::detail::PullParserUtf8(misc::ConstStringRef(data.begin()+3, data.end())));
-  }
-  return std::unique_ptr<xml::detail::PullParserUtf8>(new xml::detail::PullParserUtf8(misc::ConstStringRef(data.begin(), data.end())));
+  return tokenType != ParseTokenType::IncompleteDocument && tokenType != ParseTokenType::Error;
+}
+
+}
 }

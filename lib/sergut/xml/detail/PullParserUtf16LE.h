@@ -21,16 +21,18 @@
 
 #pragma once
 
-#include "unicode/Utf16Codec.h"
-#include "xml/detail/BasicPullParser.h"
+#include "sergut/unicode/Utf16Codec.h"
+#include "sergut/xml/detail/BasicPullParser.h"
 
+namespace sergut {
 namespace xml {
 namespace detail {
 
-class PullParserUtf16BE: public BasicPullParser<unicode::Utf16BECodec>
+class PullParserUtf16LE: public BasicPullParser<sergut::unicode::Utf16LECodec>
 {
-  using BasicPullParser<unicode::Utf16BECodec>::BasicPullParser;
+  using BasicPullParser<sergut::unicode::Utf16LECodec>::BasicPullParser;
 };
 
+}
 }
 }

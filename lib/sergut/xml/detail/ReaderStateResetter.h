@@ -21,18 +21,33 @@
 
 #pragma once
 
-#include "unicode/Utf32Char.h"
+#include "sergut/xml/detail/ReaderState.h"
 
+namespace sergut {
 namespace xml {
 namespace detail {
 
-struct ReaderState {
-  ReaderState(const char* pReadPointer)
-    : readPointer(pReadPointer)
+class ReaderStateResetter {
+public:
+  typedef std::vector<char>::iterator T;
+  ReaderStateResetter(ReaderState& pReaderState)
+    : readerStateToReset(&pReaderState), origReaderState(pReaderState)
   { }
-  const char* readPointer;
-  unicode::Utf32Char currentChar = 0;
+  ReaderStateResetter(const ReaderStateResetter& ref) = delete;
+  ~ReaderStateResetter() {
+    if(readerStateToReset != nullptr) {
+      *readerStateToReset = origReaderState;
+    }
+  }
+  void release() {
+    readerStateToReset = nullptr;
+  }
+
+private:
+  ReaderState* readerStateToReset;
+  const ReaderState origReaderState;
 };
 
+}
 }
 }

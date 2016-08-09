@@ -21,12 +21,13 @@
 
 #pragma once
 
-#include "misc/StringRef.h"
-#include "unicode/ParseResult.h"
-#include "unicode/Utf32Char.h"
+#include "sergut/misc/StringRef.h"
+#include "sergut/unicode/ParseResult.h"
+#include "sergut/unicode/Utf32Char.h"
 
 #include <string>
 
+namespace sergut {
 namespace unicode {
 enum class Utf16ByteOrderType {
   LittleEndian,
@@ -35,55 +36,55 @@ enum class Utf16ByteOrderType {
 
 template<Utf16ByteOrderType byteOrderType>
 struct BasicUtf16Codec {
-static ParseResult parseNext(Utf32Char& chr, const char* data, const char* dataEnd) noexcept;
-static unicode::ParseResult encodeChar(const unicode::Utf32Char chr, char* bufStart = nullptr, const char* bufEnd = nullptr) noexcept;
-static ParseResult appendChar(std::string& out, const Utf32Char chr);
-static bool hasBom(const char* data, const char* dataEnd) noexcept;
-static bool isSupportedEncoding(const misc::ConstStringRef& encodingStringAscii) noexcept;
-
+  static ParseResult parseNext(Utf32Char& chr, const char* data, const char* dataEnd) noexcept;
+  static unicode::ParseResult encodeChar(const Utf32Char chr, char* bufStart = nullptr, const char* bufEnd = nullptr) noexcept;
+  static ParseResult appendChar(std::string& out, const Utf32Char chr);
+  static bool hasBom(const char* data, const char* dataEnd) noexcept;
+  static bool isSupportedEncoding(const sergut::misc::ConstStringRef& encodingStringAscii) noexcept;
 };
 
 }
-
+}
 
 static inline
-unicode::ParseResult computeSurrogateCount(uint8_t firstChar) noexcept
+sergut::unicode::ParseResult computeSurrogateCount(uint8_t firstChar) noexcept
 {
   if((firstChar & 0xFC) == 0xD8) {
-    return unicode::ParseResult(2);
+    return sergut::unicode::ParseResult(2);
   }
   if(0xD8 <= firstChar && firstChar <= 0xDF) {
     // characters from the invalid character range or the second surrogate
-    return unicode::ParseResult::InvalidCharacter;
+    return sergut::unicode::ParseResult::InvalidCharacter;
   }
-  return unicode::ParseResult(1);
+  return sergut::unicode::ParseResult(1);
 }
 
-template<unicode::Utf16ByteOrderType byteOrderType>
+template<sergut::unicode::Utf16ByteOrderType byteOrderType>
 uint8_t getHighByteAt(const std::size_t surrogatePos, const char* data);
 template<> inline
-uint8_t getHighByteAt<unicode::Utf16ByteOrderType::BigEndian>(const std::size_t surrogatePos, const char* data) {
+uint8_t getHighByteAt<sergut::unicode::Utf16ByteOrderType::BigEndian>(const std::size_t surrogatePos, const char* data) {
   return data[2*surrogatePos];
 }
 template<> inline
-uint8_t getHighByteAt<unicode::Utf16ByteOrderType::LittleEndian>(const std::size_t surrogatePos, const char* data) {
+uint8_t getHighByteAt<sergut::unicode::Utf16ByteOrderType::LittleEndian>(const std::size_t surrogatePos, const char* data) {
   return data[2*surrogatePos+1];
 }
 
-template<unicode::Utf16ByteOrderType byteOrderType>
+template<sergut::unicode::Utf16ByteOrderType byteOrderType>
 uint8_t getLowByteAt(const std::size_t surrogatePos, const char* data);
 template<> inline
-uint8_t getLowByteAt<unicode::Utf16ByteOrderType::BigEndian>(const std::size_t surrogatePos, const char* data) {
+uint8_t getLowByteAt<sergut::unicode::Utf16ByteOrderType::BigEndian>(const std::size_t surrogatePos, const char* data) {
   return data[2*surrogatePos+1];
 }
 template<> inline
-uint8_t getLowByteAt<unicode::Utf16ByteOrderType::LittleEndian>(const std::size_t surrogatePos, const char* data) {
+uint8_t getLowByteAt<sergut::unicode::Utf16ByteOrderType::LittleEndian>(const std::size_t surrogatePos, const char* data) {
   return data[2*surrogatePos];
 }
 
 
-template<unicode::Utf16ByteOrderType byteOrderType>
-unicode::ParseResult unicode::BasicUtf16Codec<byteOrderType>::parseNext(Utf32Char& chr, const char* data, const char* dataEnd) noexcept
+template<sergut::unicode::Utf16ByteOrderType byteOrderType>
+sergut::unicode::ParseResult
+sergut::unicode::BasicUtf16Codec<byteOrderType>::parseNext(sergut::unicode::Utf32Char& chr, const char* data, const char* dataEnd) noexcept
 {
   if(data + 1 >= dataEnd) {
     return ParseResult::IncompleteCharacter;
@@ -119,33 +120,30 @@ unicode::ParseResult unicode::BasicUtf16Codec<byteOrderType>::parseNext(Utf32Cha
   return ParseResult(static_cast<int32_t>(surrogateCount) * 2);
 }
 
-template<unicode::Utf16ByteOrderType byteOrderType>
+template<sergut::unicode::Utf16ByteOrderType byteOrderType>
 void setHighByteAt(char* data, const std::size_t surrogatePos, char value);
 template<> inline
-void setHighByteAt<unicode::Utf16ByteOrderType::BigEndian>(char* data, const std::size_t surrogatePos, char value) {
+void setHighByteAt<sergut::unicode::Utf16ByteOrderType::BigEndian>(char* data, const std::size_t surrogatePos, char value) {
   data[2*surrogatePos] = value;
 }
 template<> inline
-void setHighByteAt<unicode::Utf16ByteOrderType::LittleEndian>(char* data, const std::size_t surrogatePos, char value) {
+void setHighByteAt<sergut::unicode::Utf16ByteOrderType::LittleEndian>(char* data, const std::size_t surrogatePos, char value) {
   data[2*surrogatePos+1] = value;
 }
 
-template<unicode::Utf16ByteOrderType byteOrderType>
+template<sergut::unicode::Utf16ByteOrderType byteOrderType>
 void setLowByteAt(char* data, const std::size_t surrogatePos, char value);
 template<> inline
-void setLowByteAt<unicode::Utf16ByteOrderType::BigEndian>(char* data, const std::size_t surrogatePos, char value) {
+void setLowByteAt<sergut::unicode::Utf16ByteOrderType::BigEndian>(char* data, const std::size_t surrogatePos, char value) {
   data[2*surrogatePos+1] = value;
 }
 template<> inline
-void setLowByteAt<unicode::Utf16ByteOrderType::LittleEndian>(char* data, const std::size_t surrogatePos, char value) {
+void setLowByteAt<sergut::unicode::Utf16ByteOrderType::LittleEndian>(char* data, const std::size_t surrogatePos, char value) {
   data[2*surrogatePos] = value;
 }
 
-
-
-
-template<unicode::Utf16ByteOrderType byteOrderType>
-unicode::ParseResult unicode::BasicUtf16Codec<byteOrderType>::encodeChar(const unicode::Utf32Char chr, char* bufStart, const char* bufEnd) noexcept
+template<sergut::unicode::Utf16ByteOrderType byteOrderType>
+sergut::unicode::ParseResult sergut::unicode::BasicUtf16Codec<byteOrderType>::encodeChar(const unicode::Utf32Char chr, char* bufStart, const char* bufEnd) noexcept
 {
   const uint bufSize = bufEnd - bufStart;
   if(0xD800 <= chr && chr <= 0xDFFF) { return ParseResult::InvalidCharacter; }
@@ -169,8 +167,8 @@ unicode::ParseResult unicode::BasicUtf16Codec<byteOrderType>::encodeChar(const u
   return ParseResult(4);
 }
 
-template<unicode::Utf16ByteOrderType byteOrderType>
-unicode::ParseResult unicode::BasicUtf16Codec<byteOrderType>::appendChar(std::string& out, const unicode::Utf32Char chr)
+template<sergut::unicode::Utf16ByteOrderType byteOrderType>
+sergut::unicode::ParseResult sergut::unicode::BasicUtf16Codec<byteOrderType>::appendChar(std::string& out, const unicode::Utf32Char chr)
 {
   char buf[4];
   const ParseResult res = encodeChar(chr, buf, buf+4);
@@ -181,8 +179,8 @@ unicode::ParseResult unicode::BasicUtf16Codec<byteOrderType>::appendChar(std::st
   return res;
 }
 
-template<unicode::Utf16ByteOrderType byteOrderType>
-bool unicode::BasicUtf16Codec<byteOrderType>::hasBom(const char* data, const char* dataEnd) noexcept
+template<sergut::unicode::Utf16ByteOrderType byteOrderType>
+bool sergut::unicode::BasicUtf16Codec<byteOrderType>::hasBom(const char* data, const char* dataEnd) noexcept
 {
   if(data+2 > dataEnd) {
     return false;
@@ -191,13 +189,15 @@ bool unicode::BasicUtf16Codec<byteOrderType>::hasBom(const char* data, const cha
       && getLowByteAt <byteOrderType>(0, data) == 0xFF;
 }
 
-template<unicode::Utf16ByteOrderType byteOrderType>
-bool unicode::BasicUtf16Codec<byteOrderType>::isSupportedEncoding(const misc::ConstStringRef& encodingStringAscii) noexcept
+template<sergut::unicode::Utf16ByteOrderType byteOrderType>
+bool sergut::unicode::BasicUtf16Codec<byteOrderType>::isSupportedEncoding(const sergut::misc::ConstStringRef& encodingStringAscii) noexcept
 {
-  return encodingStringAscii == misc::ConstStringRef("UTF-16");
+  return encodingStringAscii == sergut::misc::ConstStringRef("UTF-16");
 }
 
+namespace sergut {
 namespace unicode {
-struct Utf16LECodec: public BasicUtf16Codec<Utf16ByteOrderType::LittleEndian> { };
-struct Utf16BECodec: public BasicUtf16Codec<Utf16ByteOrderType::BigEndian> { };
+struct Utf16LECodec: public sergut::unicode::BasicUtf16Codec<sergut::unicode::Utf16ByteOrderType::LittleEndian> { };
+struct Utf16BECodec: public sergut::unicode::BasicUtf16Codec<sergut::unicode::Utf16ByteOrderType::BigEndian> { };
+}
 }

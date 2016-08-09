@@ -25,7 +25,7 @@
 #include "sergut/MemberDeserializer.h"
 #include "sergut/ParsingException.h"
 #include "sergut/Util.h"
-#include "xml/PullParser.h"
+#include "sergut/xml/PullParser.h"
 
 #include <string>
 #include <vector>

@@ -21,13 +21,14 @@
 
 #pragma once
 
-#include "misc/StringRef.h"
-#include "xml/ParseTokenType.h"
+#include "sergut/misc/StringRef.h"
+#include "sergut/xml/ParseTokenType.h"
 
 #include <string>
 #include <vector>
 #include <memory>
 
+namespace sergut {
 namespace xml {
 
 /**
@@ -46,15 +47,15 @@ public:
     Incomplete = static_cast<std::size_t>(-2)
   };
 
-  static std::unique_ptr<PullParser> createParser(const misc::ConstStringRef& data);
+  static std::unique_ptr<PullParser> createParser(const sergut::misc::ConstStringRef& data);
 
   virtual ~PullParser();
   virtual std::vector<char>&& extractXmlData() = 0;
   virtual ParseTokenType parseNext() = 0;
   virtual ParseTokenType getCurrentTokenType() const = 0;
-  virtual misc::ConstStringRef getCurrentTagName() const = 0;
-  virtual misc::ConstStringRef getCurrentAttributeName() const = 0;
-  virtual misc::ConstStringRef getCurrentValue() const = 0;
+  virtual sergut::misc::ConstStringRef getCurrentTagName() const = 0;
+  virtual sergut::misc::ConstStringRef getCurrentAttributeName() const = 0;
+  virtual sergut::misc::ConstStringRef getCurrentValue() const = 0;
   bool isOk() const { return xml::isOk(getCurrentTokenType()); }
 
   static bool isError(DecodingResult r) noexcept { return r < DecodingResult::Empty; }
@@ -63,4 +64,5 @@ private:
   std::string currentValueBuffer;
 };
 
+}
 }

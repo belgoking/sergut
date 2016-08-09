@@ -21,17 +21,18 @@
 
 #pragma once
 
-#include "misc/StringRef.h"
-#include "unicode/ParseResult.h"
-#include "unicode/Utf32Char.h"
+#include "sergut/misc/StringRef.h"
+#include "sergut/unicode/ParseResult.h"
+#include "sergut/unicode/Utf32Char.h"
 
 #include <string>
 
+namespace sergut {
 namespace unicode {
 
 struct Utf8Codec {
-  static const misc::ConstStringRef utf8EncodingName;
-  static unicode::ParseResult computeCharSize(unicode::Utf32Char& firstCharValue, char firstChar) noexcept
+  static const sergut::misc::ConstStringRef utf8EncodingName;
+  static ParseResult computeCharSize(Utf32Char& firstCharValue, char firstChar) noexcept
   {
   //  8421 8421
   //  0xxx xxxx
@@ -41,31 +42,31 @@ struct Utf8Codec {
 
     if((firstChar & 0x80) == 0) {
       firstCharValue = firstChar;
-      return unicode::ParseResult(1);
+      return ParseResult(1);
     }
 
     if((firstChar & 0x80) == 0) {
       firstCharValue = firstChar;
-      return unicode::ParseResult(1);
+      return ParseResult(1);
     }
     if((firstChar & 0x40) != 0x40) {
       firstCharValue = 0;
-      return unicode::ParseResult::InvalidCharacter;
+      return ParseResult::InvalidCharacter;
     }
     if((firstChar & 0x20) == 0x00) {
       firstCharValue = firstChar & 0x1F;
-      return unicode::ParseResult(2);
+      return ParseResult(2);
     }
     if((firstChar & 0x10) == 0x00) {
       firstCharValue = firstChar & 0x0F;
-      return unicode::ParseResult(3);
+      return ParseResult(3);
     }
     if((firstChar & 0x08) == 0x00) {
       firstCharValue = firstChar & 0x07;
-      return unicode::ParseResult(4);
+      return ParseResult(4);
     }
     firstCharValue = 0;
-    return unicode::ParseResult::InvalidCharacter;
+    return ParseResult::InvalidCharacter;
   }
 
   static ParseResult parseNext(Utf32Char& chr, const char* data, const char* dataEnd) noexcept
@@ -129,7 +130,7 @@ struct Utf8Codec {
     return (c & 0x80) == 0;
   }
 
-  static unicode::ParseResult encodeChar(const unicode::Utf32Char chr, char* bufStart = nullptr, const char* bufEnd = nullptr) noexcept
+  static ParseResult encodeChar(const Utf32Char chr, char* bufStart = nullptr, const char* bufEnd = nullptr) noexcept
   {
     const uint bufSize = bufEnd - bufStart;
     // 0xxx xxxx
@@ -196,11 +197,12 @@ struct Utf8Codec {
         && data[2] == char(0xBF);
   }
 
-  static bool isSupportedEncoding(const misc::ConstStringRef& encodingString) noexcept
+  static bool isSupportedEncoding(const sergut::misc::ConstStringRef& encodingString) noexcept
   {
     return encodingString == utf8EncodingName;
   }
 
 };
 
+}
 }

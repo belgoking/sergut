@@ -21,30 +21,27 @@
 
 #pragma once
 
-#include "xml/detail/ReaderState.h"
+#include "sergut/misc/ConstStringRef.h"
 
-namespace xml {
-namespace detail {
+namespace sergut {
+namespace misc {
 
-class ReaderStateResetter {
+class StringRef: public ConstStringRef
+{
 public:
-  typedef std::vector<char>::iterator T;
-  ReaderStateResetter(ReaderState& pReaderState)
-    : readerStateToReset(&pReaderState), origReaderState(pReaderState)
+  typedef char* iterator;
+  StringRef() noexcept { }
+  StringRef(char* pBegin, char* pEnd) noexcept
+    : ConstStringRef(pBegin, pEnd)
   { }
-  ReaderStateResetter(const ReaderStateResetter& ref) = delete;
-  ~ReaderStateResetter() {
-    if(readerStateToReset != nullptr) {
-      *readerStateToReset = origReaderState;
-    }
-  }
-  void release() {
-    readerStateToReset = nullptr;
-  }
+  explicit StringRef(std::string& str) noexcept
+    : ConstStringRef(str)
+  { }
 
-private:
-  ReaderState* readerStateToReset;
-  const ReaderState origReaderState;
+  iterator begin() noexcept { return const_cast<iterator>(beginPtr); }
+  iterator end()   noexcept { return const_cast<iterator>(endPtr);   }
+
+  char& operator[](const std::size_t pos) { return  const_cast<char&>(*(beginPtr + pos)); }
 };
 
 }

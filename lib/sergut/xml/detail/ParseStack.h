@@ -21,10 +21,11 @@
 
 #pragma once
 
-#include "misc/StringRef.h"
+#include "sergut/misc/StringRef.h"
 
 #include <vector>
 
+namespace sergut {
 namespace xml {
 namespace detail {
 
@@ -37,7 +38,7 @@ class ParseStack<false>
 public:
   ParseStack() { }
 
-  void pushData(const misc::ConstStringRef& data) {
+  void pushData(const sergut::misc::ConstStringRef& data) {
     const std::size_t tmpEnd = frameEnd.empty() ? 0 : frameEnd.back();
     if(buffer.size() < tmpEnd + data.size()) {
       buffer.resize(tmpEnd + data.size() + 50); // + 50 such that we don't have to do as many allocations
@@ -55,13 +56,13 @@ public:
     return getTopFrameEnd() - getTopFrameStart();
   }
 
-  const misc::ConstStringRef getTopData() const noexcept {
-    return misc::ConstStringRef(getTopFrameStart(), getTopFrameEnd());
+  const sergut::misc::ConstStringRef getTopData() const noexcept {
+    return sergut::misc::ConstStringRef(getTopFrameStart(), getTopFrameEnd());
   }
 
-  misc::StringRef getTopData() noexcept {
-    misc::ConstStringRef tmp = const_cast<const ParseStack&>(*this).getTopData();
-    return misc::StringRef(const_cast<char*>(tmp.begin()), const_cast<char*>(tmp.end()));
+  sergut::misc::StringRef getTopData() noexcept {
+    sergut::misc::ConstStringRef tmp = const_cast<const ParseStack&>(*this).getTopData();
+    return sergut::misc::StringRef(const_cast<char*>(tmp.begin()), const_cast<char*>(tmp.end()));
   }
 
   std::size_t frameCount() const noexcept {
@@ -100,7 +101,7 @@ class ParseStack<true>
 public:
   ParseStack() { }
 
-  void pushData(const misc::ConstStringRef& data) {
+  void pushData(const sergut::misc::ConstStringRef& data) {
     frames.push_back(data);
   }
 
@@ -108,9 +109,9 @@ public:
     frames.pop_back();
   }
 
-  const misc::ConstStringRef getTopData() const noexcept {
+  const sergut::misc::ConstStringRef getTopData() const noexcept {
     if(frames.empty()) {
-      return misc::ConstStringRef();
+      return sergut::misc::ConstStringRef();
     }
     return frames.back();
   }
@@ -120,8 +121,9 @@ public:
   }
 
 private:
-  std::vector<misc::ConstStringRef> frames;
+  std::vector<sergut::misc::ConstStringRef> frames;
 };
 
+}
 }
 }

@@ -24,6 +24,7 @@
 #include <string>
 #include <iosfwd>
 
+namespace sergut {
 namespace misc {
 
 class ConstStringRef
@@ -110,5 +111,6 @@ bool operator!=(const std::string& lhs, const ConstStringRef& rhs) noexcept {
 inline std::ostream& operator<<(std::ostream& out, const ConstStringRef& str) {
   out << std::string(str.begin(), str.end());
   return out;
+}
 }
 }

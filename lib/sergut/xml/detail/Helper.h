@@ -21,13 +21,14 @@
 
 #pragma once
 
-#include "unicode/Utf32Char.h"
+#include "sergut/unicode/Utf32Char.h"
 
+namespace sergut {
 namespace xml {
 namespace detail {
 namespace Helper {
 inline
-bool isNameStartChar(unicode::Utf32Char chr) {
+bool isNameStartChar(sergut::unicode::Utf32Char chr) {
   if('a' <= chr && chr <= 'z') return true;
   if('A' <= chr && chr <= 'Z') return true;
   if(chr == ':' || chr == '_') return true;
@@ -50,7 +51,7 @@ bool isNameStartChar(unicode::Utf32Char chr) {
 }
 
 inline
-bool isNameChar(unicode::Utf32Char chr) {
+bool isNameChar(sergut::unicode::Utf32Char chr) {
   if(isNameStartChar(chr)) return true;
   if('0' <= chr && chr <= '9') return true;
   if(chr == '-' || chr == '.') return true;
@@ -62,7 +63,7 @@ bool isNameChar(unicode::Utf32Char chr) {
 }
 
 inline
-bool isValidXmlChar(unicode::Utf32Char c)
+bool isValidXmlChar(sergut::unicode::Utf32Char c)
 {
   // Characters and decoded entity references must be in range
   //  [2]   	Char	   ::=   	#x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
@@ -80,6 +81,7 @@ bool isValidXmlChar(unicode::Utf32Char c)
   return false;
 }
 
+}
 }
 }
 }

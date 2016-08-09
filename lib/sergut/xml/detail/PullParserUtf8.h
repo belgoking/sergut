@@ -21,27 +21,29 @@
 
 #pragma once
 
-#include "unicode/Utf8Codec.h"
-#include "xml/detail/BasicPullParser.h"
+#include "sergut/unicode/Utf8Codec.h"
+#include "sergut/xml/detail/BasicPullParser.h"
+#include "sergut/xml/ParseTokenType.h"
 
+namespace sergut {
 namespace xml {
 namespace detail {
 
-class PullParserUtf8: public BasicPullParser<unicode::Utf8Codec>
+class PullParserUtf8: public BasicPullParser<sergut::unicode::Utf8Codec>
 {
-  using BasicPullParser<unicode::Utf8Codec>::BasicPullParser;
+  using BasicPullParser<sergut::unicode::Utf8Codec>::BasicPullParser;
 };
 
 template<>
 inline
-bool BasicPullParser<unicode::Utf8Codec>::nextAsciiChar()
+bool BasicPullParser<sergut::unicode::Utf8Codec>::nextAsciiChar()
 {
   if(readerState.readPointer == &*inputData.end()) {
     incompleteDocument = true;
     return false;
   }
-  if(!unicode::Utf8Codec::isAscii(*readerState.readPointer)) {
-    currentTokenType = ParseTokenType::Error;
+  if(!sergut::unicode::Utf8Codec::isAscii(*readerState.readPointer)) {
+    currentTokenType = xml::ParseTokenType::Error;
     return false;
   }
   readerState.currentChar = *readerState.readPointer;
@@ -50,7 +52,7 @@ bool BasicPullParser<unicode::Utf8Codec>::nextAsciiChar()
 }
 
 template<>
-bool BasicPullParser<unicode::Utf8Codec>::parseName(const NameType nameType)
+bool BasicPullParser<sergut::unicode::Utf8Codec>::parseName(const NameType nameType)
 {
   // [4] NameStartChar ::=  ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] |
   //                        [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] |
@@ -64,16 +66,17 @@ bool BasicPullParser<unicode::Utf8Codec>::parseName(const NameType nameType)
   }
   switch(nameType) {
   case NameType::Tag:
-    decodedNameBuffers.decodedTagName = misc::ConstStringRef(startOfName, readerState.readPointer - 1);
+    decodedNameBuffers.decodedTagName = sergut::misc::ConstStringRef(startOfName, readerState.readPointer - 1);
 //    parseStack.pushData(decodedNameBuffers.decodedTagName);
     return true;
   case NameType::Attribute:
-    decodedNameBuffers.decodedAttrName = misc::ConstStringRef(startOfName, readerState.readPointer - 1);
+    decodedNameBuffers.decodedAttrName = sergut::misc::ConstStringRef(startOfName, readerState.readPointer - 1);
     return true;
   }
   assert(false);
   return true;
 }
 
+}
 }
 }
