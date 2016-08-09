@@ -164,7 +164,12 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 /// Store member function pointers using variadic templates
 ////////////////////////////////////////////////////////////////////////////////
-class Interface21 {
+class InterfaceBase {
+public:
+  virtual ~InterfaceBase() { }
+};
+
+class Interface21: public InterfaceBase {
 public:
   virtual ~Interface21() {
     std::cout << __FUNCTION__ << " DESTRUCTION" << std::endl;
@@ -180,8 +185,8 @@ public:
 
   template<typename Server>
   void initialize(Server& server) {
-    server.add("fun1", &Interface21::fun1);
-    server.add("fun2", &Interface21::fun2);
+    server.add("fun1", this, &Interface21::fun1);
+    server.add("fun2", this, &Interface21::fun2);
   }
 };
 
@@ -189,30 +194,139 @@ class Server21 {
 public:
   Server21() { }
 
-  template<typename RetT, typename ...FunArgs, typename ...Params>
-  void add(const std::string& funName, RetT(Interface21::*fun)(FunArgs ...funArgs) const)
+  template<typename Cls, typename RetT, typename ...FunArgs>
+  void add(const std::string& funName, const Cls* cls, RetT(Interface21::*fun)(FunArgs ...funArgs) const)
   {
-    const Interface21* i21 = &*_i;
-    std::function<void(const std::string&)> foo = ([=](const std::string& str){ (i21->*fun)(fromString<FunArgs>(str)...); });
+    std::function<void(const std::string&)> foo = ([=](const std::string& str){ (cls->*fun)(fromString<FunArgs>(str)...); });
     mappings.insert(std::make_pair(funName, foo));
   }
-  void setHandler(std::unique_ptr<Interface21>&& serverFunction) {
+  template<typename Cls>
+  void setHandler(std::unique_ptr<Cls>&& serverFunction) {
+    Cls* cls = &*serverFunction;
     _i = std::move(serverFunction);
-    _i->initialize(*this);
+    cls->initialize(*this);
   }
 
   void call(const std::string& funName, const std::string& str) {
     auto i = mappings.find(funName);
     if(i == mappings.end()) {
-      std::cout << "XXXX mit " << funName << std::endl;
+      std::cout << funName << " gibt es nicht" << std::endl;
       return;
     }
+    std::cout << "rufe " << funName << " mit '" << str << "'" << std::endl;
     i->second(str);
   }
 
 private:
-  std::unique_ptr<Interface21> _i;
+  std::unique_ptr<InterfaceBase> _i;
   std::map<std::string, std::function<void(const std::string&)>> mappings;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+/// HttpServer with Marshalling
+////////////////////////////////////////////////////////////////////////////////
+class InterfaceHttp: public InterfaceBase {
+public:
+  virtual ~InterfaceHttp() {
+    std::cout << __FUNCTION__ << " DESTRUCTION" << std::endl;
+  }
+
+  virtual std::string fun1(int i, float f, char c, std::string str) const {
+    std::cout << __FUNCTION__ << " int: " << i << "\nfloat: " << f << "\nchar: " << c << "\nstring: " << str << "\n";
+    return str;
+  }
+
+  virtual int fun2(std::string str) const {
+    std::cout << __FUNCTION__ << " string: " << str << "\n";
+    return str.size();
+  }
+
+  template<typename Server>
+  void initialize(Server& server) {
+    server.add("fun1", this, &InterfaceHttp::fun1,
+               typename Server::Parameter("int"),
+               typename Server::Parameter("float"),
+               typename Server::Input(),
+               typename Server::Parameter("string"));
+    server.add("fun2", this, &InterfaceHttp::fun2, typename Server::Input());
+  }
+};
+
+class HttpServer {
+public:
+  class HttpRequest {
+  public:
+    HttpRequest() = default;
+    HttpRequest(const std::string& path, const std::map<std::string, std::string>& queryParams, const std::string& body)
+      : _path(path)
+      , _queryParams(queryParams)
+      , _body(body)
+    { }
+    std::string _path;
+    std::map<std::string, std::string> _queryParams;
+    std::string _body;
+  };
+
+  class Parameter {
+  public:
+    Parameter(const std::string& parameterName) : _parameterName(parameterName) { }
+    template<typename T>
+    T convert(const HttpRequest& request) const {
+      auto it = request._queryParams.find(_parameterName);
+      if(it == request._queryParams.end()) {
+        return T();
+      }
+      std::istringstream istr(it->second);
+      T t;
+      istr >> t;
+      return t;
+    }
+    std::string _parameterName;
+  };
+
+  class Input {
+  public:
+    template<typename T>
+    T convert(const HttpRequest& request) const {
+      std::istringstream istr(request._body);
+      T t;
+      istr >> t;
+      return t;
+    }
+  };
+
+  HttpServer() { }
+
+  template<typename Cls, typename RetT, typename ...FunArgs, typename ...Converters>
+  void add(const std::string& funName, const Cls* cls, RetT(Cls::*fun)(FunArgs ...funArgs) const, Converters&& ...converters)
+  {
+    static_assert(sizeof...(FunArgs) == sizeof...(Converters), "One converter is required per function argument");
+    std::function<void(const HttpRequest&)> foo = (
+          [=](const HttpRequest& request){
+             (cls->*fun)((converters.template convert<FunArgs>(request))...);
+    });
+    mappings.insert(std::make_pair(funName, foo));
+  }
+  template<typename Cls>
+  void setHandler(std::unique_ptr<Cls>&& serverFunction) {
+    Cls* cls = &*serverFunction;
+    _i = std::move(serverFunction);
+    cls->initialize(*this);
+  }
+
+  void call(const HttpRequest& request) {
+    auto i = mappings.find(request._path);
+    if(i == mappings.end()) {
+      std::cout << request._path << " gibt es nicht" << std::endl;
+      return;
+    }
+    std::cout << "rufe " << request._path << " auf" << std::endl;
+    i->second(request);
+  }
+
+private:
+  std::unique_ptr<InterfaceBase> _i;
+  std::map<std::string, std::function<void(const HttpRequest&)>> mappings;
 };
 
 TEST_CASE("some test for hypercall", "[unicode]")
@@ -237,11 +351,23 @@ TEST_CASE("some test for hypercall", "[unicode]")
 //  s2.call("fun1", "123.123");
 //  s2.call("fun2", "123.123");
 
-  Server21 s21;
-  s21.setHandler(std::unique_ptr<Interface21>(new Interface21));
-  s21.call("GIBTSNICHT", "123.123");
-  s21.call("fun1", "123.123");
-  s21.call("fun2", "123.123");
+//  Server21 s21;
+//  s21.setHandler(std::unique_ptr<Interface21>(new Interface21));
+//  s21.call("GIBTSNICHT", "123.123");
+//  s21.call("fun1", "123.123");
+//  s21.call("fun2", "123.123");
+
+  HttpServer http;
+  http.setHandler(std::unique_ptr<InterfaceHttp>(new InterfaceHttp));
+  HttpServer::HttpRequest request;
+  request._body = "achar";
+  request._queryParams = std::map<std::string,std::string>{{"int", "99"},{"float", "23.23"},{"string", "this_is a string"}};
+  request._path = "GIBTSNICHT";
+  http.call(request);
+  request._path = "fun1";
+  http.call(request);
+  request._path = "fun2";
+  http.call(request);
 
 
 //  const std::vector<unicode::Utf32Char> invalidCodepoints{
