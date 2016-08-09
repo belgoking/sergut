@@ -22,6 +22,7 @@
 #pragma once
 
 #include "sergut/DeserializerBase.h"
+#include "sergut/misc/ReadHelper.h"
 #include "sergut/ParsingException.h"
 #include "sergut/Util.h"
 #include "sergut/XmlValueType.h"
@@ -66,38 +67,6 @@ void extractAndDeleteSingleChild(const NamedMemberForDeserialization<DT>& data, 
 
 template<typename DT>
 inline
-void doReadInto(const char* str, DT& data,
-                const ParsingException::ErrorContext&)
-{
-  std::istringstream(str) >> data;
-}
-
-inline
-void doReadInto(const char* str, std::string& data,
-                const ParsingException::ErrorContext&)
-{
-  data = std::string(str);
-}
-
-inline
-void doReadInto(const char* str, unsigned char& data,
-                const ParsingException::ErrorContext& errorContext) {
-  unsigned short tmp;
-  std::istringstream(str) >> tmp;
-  if(tmp > 0xFF) {
-    throw ParsingException("unsigned char value is out of range", errorContext);
-  }
-  data = tmp;
-}
-
-inline
-void doReadInto(const char* str, char& data,
-                const ParsingException::ErrorContext&) {
-  data = str[0];
-}
-
-template<typename DT>
-inline
 void readInto(const char* str, const NamedMemberForDeserialization<DT>& data,
               const ParsingException::ErrorContext& errorContext)
 {
@@ -107,7 +76,7 @@ void readInto(const char* str, const NamedMemberForDeserialization<DT>& data,
     }
     return;
   }
-  doReadInto(str, data.data, errorContext);
+  sergut::misc::ReadHelper::readInto(sergut::misc::ConstStringRef(str, str + std::strlen(str)), data.data);
 }
 
 template<typename XmlDomParser>

@@ -32,6 +32,7 @@ SOURCES += \
     sergut/detail/Member.cpp \
     sergut/detail/NameSpace.cpp \
     sergut/detail/TypeName.cpp \
+    sergut/misc/ReadHelper.cpp \
     sergut/unicode/Utf8Codec.cpp \
     sergut/xml/PullParser.cpp \
 
@@ -60,6 +61,7 @@ HEADERS += \
     sergut/marshaller/Interface.h \
     sergut/marshaller/ServerBase.h \
     sergut/misc/ConstStringRef.h \
+    sergut/misc/ReadHelper.h \
     sergut/misc/StringRef.h \
     sergut/unicode/ParseResult.h \
     sergut/unicode/Utf16Codec.h \

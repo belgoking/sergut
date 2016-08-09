@@ -23,6 +23,7 @@
 
 #include "sergut/ParsingException.h"
 #include "sergut/xml/PullParser.h"
+#include "sergut/misc/ReadHelper.h"
 
 #include <map>
 #include <sstream>
@@ -57,27 +58,6 @@ public:
 };
 
 template<typename DT>
-static
-void readInto(const sergut::misc::ConstStringRef& str, DT& dest)
-{
-  std::istringstream(std::string(str.begin(), str.end())) >> dest;
-}
-
-static
-void readInto(const sergut::misc::ConstStringRef& str, std::string& dest)
-{
-  dest = str.toString();
-}
-
-static
-void readInto(const sergut::misc::ConstStringRef& str, unsigned char& dest)
-{
-  unsigned int i;
-  std::istringstream(std::string(str.begin(), str.end())) >> i;
-  dest = i;
-}
-
-template<typename DT>
 void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const XmlValueType valueType, xml::PullParser& currentNode)
 {
   switch(valueType) {
@@ -86,7 +66,7 @@ void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const XmlVa
       throw ParsingException("Expecting Attribute but got something else", XmlDeserializer::ErrorContext(currentNode));
     }
     assert(currentNode.getCurrentAttributeName() == data.name);
-    readInto(currentNode.getCurrentValue(), data.data);
+    sergut::misc::ReadHelper::readInto(currentNode.getCurrentValue(), data.data);
     currentNode.parseNext();
     return;
   }
@@ -101,7 +81,7 @@ void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const XmlVa
       currentNode.parseNext();
       return;
     }
-    readInto(currentNode.getCurrentValue(), data.data);
+    sergut::misc::ReadHelper::readInto(currentNode.getCurrentValue(), data.data);
     if(currentNode.parseNext() != xml::ParseTokenType::CloseTag) {
       throw ParsingException("Expecting closing tag", XmlDeserializer::ErrorContext(currentNode));
     }
@@ -115,7 +95,7 @@ void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const XmlVa
     if(content.empty() && data.mandatory) {
       throw ParsingException("Text missing for mandatory simple datatype", XmlDeserializer::ErrorContext(currentNode));
     }
-    readInto(content, data.data);
+    sergut::misc::ReadHelper::readInto(content, data.data);
     if(currentNode.parseNext() != xml::ParseTokenType::CloseTag) {
       throw ParsingException("Expecting closing Tag but got something else", XmlDeserializer::ErrorContext(currentNode));
     }
