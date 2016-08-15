@@ -43,6 +43,14 @@ struct TypeName {
   TypeName toCollectionType() const;
   TypeName toElementType() const;
 
+  bool operator==(const TypeName& rhs) const {
+    return collectionType == rhs.collectionType
+        && nameSpace      == rhs.nameSpace
+        && typeName       == rhs.typeName;
+  }
+  bool operator!=(const TypeName& rhs) const {
+    return !operator==(rhs);
+  }
   CollectionType collectionType = CollectionType::None;
   NameSpace nameSpace;
   std::string typeName;
