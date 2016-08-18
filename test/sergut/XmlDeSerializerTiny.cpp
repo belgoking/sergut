@@ -56,17 +56,17 @@ TEST_CASE("Deserialize valid XML (tiny)", "[sergut]")
 {
   SECTION("OK-Test") {
     sergut::XmlDeserializerTiny deser("<rootTag><mandatoryMember>10</mandatoryMember><optionalMember>23</optionalMember></rootTag>");
-    const SomeTestData td = deser.deserializeData<SomeTestData>("rootTag", sergut::XmlValueType::Attribute);
+    const SomeTestData td = deser.deserializeData<SomeTestData>("rootTag");
     CHECK(td == (SomeTestData{10, 23}));
   }
   SECTION("OK-Test with missing optional") {
     sergut::XmlDeserializerTiny deser("<rootTag><mandatoryMember>10</mandatoryMember></rootTag>");
-    const SomeTestData td = deser.deserializeData<SomeTestData>("rootTag", sergut::XmlValueType::Attribute);
+    const SomeTestData td = deser.deserializeData<SomeTestData>("rootTag");
     CHECK(td == (SomeTestData{10, 0}));
   }
   SECTION("OK-Test") {
     sergut::XmlDeserializerTiny deser("<rootTag><mandatoryMember>10</mandatoryMember><optionalMember>23</optionalMember></rootTag>");
-    const SomeTestData td = deser.deserializeData<SomeTestData>(nullptr, sergut::XmlValueType::Attribute);
+    const SomeTestData td = deser.deserializeData<SomeTestData>(nullptr);
     CHECK(td == (SomeTestData{10, 23}));
   }
 }
@@ -78,10 +78,10 @@ TEST_CASE("Deserialize invalid XML (tiny)", "[sergut]")
   }
   SECTION("Wrong root tag") {
     sergut::XmlDeserializerTiny deser("<wrongTag1><mandatoryMember>10</mandatoryMember></wrongTag1>");
-    CHECK_THROWS_AS(deser.deserializeData<SomeTestData>("otherRootTag", sergut::XmlValueType::Attribute), sergut::ParsingException);
+    CHECK_THROWS_AS(deser.deserializeData<SomeTestData>("otherRootTag"), sergut::ParsingException);
   }
   SECTION("Mandatory member missing") {
     sergut::XmlDeserializerTiny deser("<rootTag><someWrongMember>10</someWrongMember></rootTag>");
-    CHECK_THROWS_AS(deser.deserializeData<SomeTestData>("rootTag", sergut::XmlValueType::Attribute), sergut::ParsingException);
+    CHECK_THROWS_AS(deser.deserializeData<SomeTestData>("rootTag"), sergut::ParsingException);
   }
 }

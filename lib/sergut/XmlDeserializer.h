@@ -70,16 +70,16 @@ public:
   /// Initial call to the serializer
   /// \param name The name of the outer tag
   template<typename DT>
-  DT deserializeData(const char* name, const XmlValueType valueType) {
+  DT deserializeData(const char* name) {
     DT data;
-    doDeserializeData(MyMemberDeserializer::toNamedMember(name, data, true), valueType);
+    doDeserializeData(MyMemberDeserializer::toNamedMember(name, data, true), XmlValueType::Attribute);
     return data;
   }
 
   template<typename DT>
-  DT deserializeNestedData(const char* outerName, const char* innerName, const XmlValueType valueType) {
+  DT deserializeNestedData(const char* outerName, const char* innerName) {
     DT data;
-    doDeserializeData(MyMemberDeserializer::toNamedMember(outerName, MyMemberDeserializer::toNamedMember(innerName, data, true), true), valueType);
+    doDeserializeData(MyMemberDeserializer::toNamedMember(outerName, MyMemberDeserializer::toNamedMember(innerName, data, true), true), XmlValueType::Child);
     return data;
   }
 

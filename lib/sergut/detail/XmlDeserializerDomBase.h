@@ -201,12 +201,12 @@ public:
   /// Initial call to the serializer
   /// \param name The name of the outer tag
   template<typename DT>
-  DT deserializeData(const char* name, const sergut::XmlValueType pValueType) {
+  DT deserializeData(const char* name) {
     if(name != nullptr && std::strcmp(currentElement->Value(), name) != 0) {
       throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
     }
     DT data;
-    valueType = pValueType;
+    valueType = XmlValueType::Attribute;
     *this & toNamedMember(name, data, true);
     return data;
   }
@@ -214,12 +214,12 @@ public:
   /// Initial call to the serializer
   /// \param name The name of the outer tag
   template<typename DT>
-  DT deserializeNestedData(const char* outerName, const char* innerName, const sergut::XmlValueType pValueType) {
+  DT deserializeNestedData(const char* outerName, const char* innerName) {
     if(outerName != nullptr && std::strcmp(currentElement->Value(), outerName) != 0) {
       throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
     }
     DT data;
-    valueType = pValueType;
+    valueType = XmlValueType::Child;
     *this & toNamedMember(outerName, toNamedMember(innerName, data, true), true);
     return data;
   }

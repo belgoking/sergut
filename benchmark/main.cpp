@@ -198,21 +198,21 @@ int main()
     {
       Timer t("XmlDeserializer");
       sergut::XmlDeserializer deser(data);
-      deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0", sergut::XmlValueType::Attribute);
+      deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0");
     }
   }
   for(int i = 0; i < 20; ++i) {
     {
       Timer t("XmlDeserializerTiny");
       sergut::XmlDeserializerTiny deser(data);
-      deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0", sergut::XmlValueType::Attribute);
+      deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0");
     }
   }
   for(int i = 0; i < 20; ++i) {
     {
       Timer t("XmlDeserializerTiny2");
       sergut::XmlDeserializerTiny2 deser(data);
-      deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0", sergut::XmlValueType::Attribute);
+      deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0");
     }
   }
 
