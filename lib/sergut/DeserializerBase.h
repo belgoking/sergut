@@ -41,7 +41,7 @@ struct NamedMemberForDeserialization {
 // This function is used for framed datastructures.
 // E.g. An XML-List that is surrounded by an additional Tag.
 template<typename DT, typename Archive, typename InnerType>
-void serialize(Archive& ar, DT& data, const volatile NamedMemberForDeserialization<InnerType>*)
+void serialize(Archive& ar, DT& data, const NamedMemberForDeserialization<InnerType>*)
 {
   ar & sergut::children & data;
 }
