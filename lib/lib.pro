@@ -58,8 +58,10 @@ HEADERS += \
     sergut/detail/NameSpace.h \
     sergut/detail/TypeName.h \
     sergut/detail/XmlDeserializerDomBase.h \
-    sergut/marshaller/Interface.h \
-    sergut/marshaller/ServerBase.h \
+    sergut/marshaller/MarshallingException.h \
+    sergut/marshaller/RequestServer.h \
+    sergut/marshaller/UnknownFunctionException.h \
+    sergut/marshaller/UnsupportedFormatException.h \
     sergut/misc/ConstStringRef.h \
     sergut/misc/ReadHelper.h \
     sergut/misc/StringRef.h \

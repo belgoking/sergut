@@ -22,6 +22,7 @@ SOURCES += \
     main.cpp \
     sergut/TestSergut.cpp \
     sergut/XmlDeSerializerTiny.cpp \
+    sergut/marshaller/TestRequestServer.cpp \
     sergut/unicode/TestUtf16Codec.cpp \
     sergut/unicode/TestUtf8Codec.cpp \
     sergut/xml/TestPullParser.cpp \
