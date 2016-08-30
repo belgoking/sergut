@@ -185,6 +185,222 @@ DEFINE_SIMPLE_DATATYPE_AS_CHILD_TEST(escapedString, "<b>\"STRING&amp; STRONG\"</
 }
 
 
+#define DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(type, datatypeValue, expectedResult) \
+struct SerAsPlainChild_ ## type { \
+  type value; \
+  bool operator==(const SerAsPlainChild_ ## type& rhs) const { return value == rhs.value; } \
+}; \
+SERGUT_FUNCTION(SerAsPlainChild_ ## type, data, ar) \
+{ \
+  ar & sergut::plainChild & SERGUT_MMEMBER(data, value); \
+} \
+TEST_CASE("DeSerialize datatype " #type " as plain child in XML", "[sergut]") \
+{ \
+  SECTION("Serialize") { \
+    SerAsPlainChild_ ## type data{ datatypeValue }; \
+    sergut::XmlSerializer ser; \
+    ser.serializeData(#type, data); \
+    CHECK(ser.str() == expectedResult); \
+  } \
+  SECTION("Deserialize XmlDeserializer") { \
+    sergut::XmlDeserializer deser(expectedResult); \
+    const SerAsPlainChild_ ## type tpDeser1 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
+    CHECK(tpDeser1 == SerAsPlainChild_ ## type{ datatypeValue }); \
+  } \
+} \
+
+#if 0
+// TODO extend TinyDeserializers to support SingleChild plain members
+SECTION("Deserialize XmlDeserializerTiny") { \
+sergut::XmlDeserializerTiny deser(expectedResult); \
+const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
+CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
+} \
+SECTION("Deserialize XmlDeserializerTiny2") { \
+sergut::XmlDeserializerTiny2 deser(expectedResult); \
+const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
+CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
+} \
+
+#endif
+
+DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(char,        'a', "<char>a</char>")
+DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(uint8_t,      19, "<uint8_t>19</uint8_t>")
+DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(int16_t,  -32767, "<int16_t>-32767</int16_t>")
+DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(uint16_t,  65535, "<uint16_t>65535</uint16_t>")
+DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(int32_t,  -32768, "<int32_t>-32768</int32_t>")
+DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(uint32_t,  65536, "<uint32_t>65536</uint32_t>")
+DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(int64_t,  -32768, "<int64_t>-32768</int64_t>")
+DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(uint64_t,  65536, "<uint64_t>65536</uint64_t>")
+DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(float,      2.25, "<float>2.25</float>")
+DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(double,     2.25, "<double>2.25</double>")
+DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(Time,     (Time{14, 34, 15}), "<Time>14:34:15</Time>")
+namespace {
+typedef std::string string;
+DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(string, "hallo Du", "<string>hallo Du</string>")
+}
+namespace {
+typedef std::string escapedString;
+DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(escapedString, "<b>\"STRING&amp; STRONG\"</b>", "<escapedString>&lt;b&gt;&quot;STRING&amp;amp; STRONG&quot;&lt;/b&gt;</escapedString>")
+}
+
+
+#define DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(type, datatypeValue, expectedResult) \
+TEST_CASE("DeSerialize basic datatype " #type " as attribute in XML", "[sergut]") \
+{ \
+  SECTION("Serialize") { \
+    type data{ datatypeValue }; \
+    sergut::XmlSerializer ser; \
+    ser.serializeNestedData(#type, "value", sergut::XmlValueType::Attribute, data); \
+    CHECK(ser.str() == expectedResult); \
+  } \
+  SECTION("Deserialize XmlDeserializer") { \
+    sergut::XmlDeserializer deser(expectedResult); \
+    const type tpDeser1 = deser.deserializeNestedData<type>(#type, "value", sergut::XmlValueType::Attribute); \
+    CHECK(tpDeser1 == datatypeValue); \
+  } \
+} \
+
+#if 0
+// TODO extend TinyDeserializers to support SingleChild plain members
+SECTION("Deserialize XmlDeserializerTiny") { \
+sergut::XmlDeserializerTiny deser(expectedResult); \
+const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
+CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
+} \
+SECTION("Deserialize XmlDeserializerTiny2") { \
+sergut::XmlDeserializerTiny2 deser(expectedResult); \
+const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
+CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
+} \
+
+#endif
+
+DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(char,        'a', "<char value=\"a\"/>")
+DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(uint8_t,      19, "<uint8_t value=\"19\"/>")
+DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(int16_t,  -32767, "<int16_t value=\"-32767\"/>")
+DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(uint16_t,  65535, "<uint16_t value=\"65535\"/>")
+DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(int32_t,  -32768, "<int32_t value=\"-32768\"/>")
+DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(uint32_t,  65536, "<uint32_t value=\"65536\"/>")
+DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(int64_t,  -32768, "<int64_t value=\"-32768\"/>")
+DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(uint64_t,  65536, "<uint64_t value=\"65536\"/>")
+DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(float,      2.25, "<float value=\"2.25\"/>")
+DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(double,     2.25, "<double value=\"2.25\"/>")
+DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(Time,     (Time{14, 34, 15}), "<Time value=\"14:34:15\"/>")
+namespace {
+typedef std::string string;
+DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(string, "hallo Du", "<string value=\"hallo Du\"/>")
+}
+namespace {
+typedef std::string escapedString;
+DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(escapedString, "<b>\"STRING&amp; STRONG\"</b>", "<escapedString value=\"&lt;b&gt;&quot;STRING&amp;amp; STRONG&quot;&lt;/b&gt;\"/>")
+}
+
+
+#define DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(type, datatypeValue, expectedResult) \
+TEST_CASE("DeSerialize basic datatype " #type " as child in XML", "[sergut]") \
+{ \
+  SECTION("Serialize") { \
+    type data{ datatypeValue }; \
+    sergut::XmlSerializer ser; \
+    ser.serializeNestedData(#type, "value", sergut::XmlValueType::Child, data); \
+    CHECK(ser.str() == expectedResult); \
+  } \
+  SECTION("Deserialize XmlDeserializer") { \
+    sergut::XmlDeserializer deser(expectedResult); \
+    const type tpDeser1 = deser.deserializeNestedData<type>(#type, "value", sergut::XmlValueType::Child); \
+    CHECK(tpDeser1 == datatypeValue); \
+  } \
+} \
+
+#if 0
+// TODO extend TinyDeserializers to support SingleChild plain members
+SECTION("Deserialize XmlDeserializerTiny") { \
+sergut::XmlDeserializerTiny deser(expectedResult); \
+const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
+CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
+} \
+SECTION("Deserialize XmlDeserializerTiny2") { \
+sergut::XmlDeserializerTiny2 deser(expectedResult); \
+const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
+CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
+} \
+
+#endif
+
+DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(char,        'a', "<char><value>a</value></char>")
+DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(uint8_t,      19, "<uint8_t><value>19</value></uint8_t>")
+DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(int16_t,  -32767, "<int16_t><value>-32767</value></int16_t>")
+DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(uint16_t,  65535, "<uint16_t><value>65535</value></uint16_t>")
+DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(int32_t,  -32768, "<int32_t><value>-32768</value></int32_t>")
+DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(uint32_t,  65536, "<uint32_t><value>65536</value></uint32_t>")
+DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(int64_t,  -32768, "<int64_t><value>-32768</value></int64_t>")
+DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(uint64_t,  65536, "<uint64_t><value>65536</value></uint64_t>")
+DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(float,      2.25, "<float><value>2.25</value></float>")
+DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(double,     2.25, "<double><value>2.25</value></double>")
+DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(Time,     (Time{14, 34, 15}), "<Time><value>14:34:15</value></Time>")
+namespace {
+typedef std::string string;
+DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(string, "hallo Du", "<string><value>hallo Du</value></string>")
+}
+namespace {
+typedef std::string escapedString;
+DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(escapedString, "<b>\"STRING&amp; STRONG\"</b>", "<escapedString><value>&lt;b&gt;&quot;STRING&amp;amp; STRONG&quot;&lt;/b&gt;</value></escapedString>")
+}
+
+
+#define DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(type, datatypeValue, expectedResult) \
+TEST_CASE("DeSerialize basic datatype " #type " as plain child in XML", "[sergut]") \
+{ \
+  SECTION("Serialize") { \
+    type data{ datatypeValue }; \
+    sergut::XmlSerializer ser; \
+    ser.serializeData(#type, data); \
+    CHECK(ser.str() == expectedResult); \
+  } \
+  SECTION("Deserialize XmlDeserializer") { \
+    sergut::XmlDeserializer deser(expectedResult); \
+    const type tpDeser1 = deser.deserializeData<type>(#type); \
+    CHECK(tpDeser1 == datatypeValue); \
+  } \
+} \
+
+#if 0
+// TODO extend TinyDeserializers to support SingleChild plain members
+SECTION("Deserialize XmlDeserializerTiny") { \
+sergut::XmlDeserializerTiny deser(expectedResult); \
+const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
+CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
+} \
+SECTION("Deserialize XmlDeserializerTiny2") { \
+sergut::XmlDeserializerTiny2 deser(expectedResult); \
+const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
+CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
+} \
+
+#endif
+
+DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(char,        'a', "<char>a</char>")
+DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(uint8_t,      19, "<uint8_t>19</uint8_t>")
+DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(int16_t,  -32767, "<int16_t>-32767</int16_t>")
+DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(uint16_t,  65535, "<uint16_t>65535</uint16_t>")
+DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(int32_t,  -32768, "<int32_t>-32768</int32_t>")
+DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(uint32_t,  65536, "<uint32_t>65536</uint32_t>")
+DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(int64_t,  -32768, "<int64_t>-32768</int64_t>")
+DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(uint64_t,  65536, "<uint64_t>65536</uint64_t>")
+DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(float,      2.25, "<float>2.25</float>")
+DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(double,     2.25, "<double>2.25</double>")
+DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(Time,     (Time{14, 34, 15}), "<Time>14:34:15</Time>")
+namespace {
+typedef std::string string;
+DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(string, "hallo Du", "<string>hallo Du</string>")
+}
+namespace {
+typedef std::string escapedString;
+DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(escapedString, "<b>\"STRING&amp; STRONG\"</b>", "<escapedString>&lt;b&gt;&quot;STRING&amp;amp; STRONG&quot;&lt;/b&gt;</escapedString>")
+}
+
+
 #define DEFINE_VECTOR_TEST(type, datatypeValue, expectedResult) \
 struct Ser_VectorOf ## type { \
   std::vector<type> value; \
@@ -749,7 +965,8 @@ TEST_CASE("Serialize complex class", "[sergut]")
       THEN("The two serializations are equal using XmlDeserializer") {
         sergut::XmlSerializer ser;
         ser.serializeData("Dummy", tp);
-        sergut::XmlDeserializer deser(ser.str());
+        const std::string xmlResult = ser.str();
+        sergut::XmlDeserializer deser{sergut::misc::ConstStringRef(xmlResult)};
         const TestParent tpDeser = deser.deserializeData<TestParent>("Dummy");
         sergut::XmlSerializer ser2;
         ser2.serializeData("Dummy", tp);
@@ -818,7 +1035,7 @@ TEST_CASE("Serialize simple class", "[sergut]")
                               "<time6><nestedTime6>12:34:55</nestedTime6></time6></Dummy>");
     const Simple origVal{ 12345, 2.345, Time{3, 23, 99}, 'X', 21, Time{12, 34, 55}};
     WHEN("The XML-string is serialized into the simple class (XmlDeserializer)") {
-      sergut::XmlDeserializer deser(origXml);
+      sergut::XmlDeserializer deser{sergut::misc::ConstStringRef(origXml)};
       const Simple res = deser.deserializeData<Simple>("Dummy");
       CHECK(res == origVal);
     }
@@ -856,7 +1073,7 @@ int main_disabled(int /*argc*/, char */*argv*/[])
       return ser.str();
     }();
     std::cout << "res: " << res << std::endl;
-    sergut::XmlDeserializer deser(res);
+    sergut::XmlDeserializer deser{sergut::misc::ConstStringRef(res)};
     const TestParent tpDeser = deser.deserializeData<TestParent>("Dummy");
     const std::string res2 = [&]() {
       sergut::XmlSerializer ser;
@@ -868,7 +1085,7 @@ int main_disabled(int /*argc*/, char */*argv*/[])
 
   {
     const std::string origXml("<Dummy double2=\"2.345\" int1=\"12345\" time3=\"3:23:99\"><uchar5>21</uchar5><char4><nestedChar4>X</nestedChar4></char4><time6><nestedTime6>12:34:55</nestedTime6></time6></Dummy>");
-    sergut::XmlDeserializer deser(origXml);
+    sergut::XmlDeserializer deser{sergut::misc::ConstStringRef(origXml)};
     const Simple res = deser.deserializeData<Simple>("Dummy");
     sergut::XmlSerializer ser;
     ser.serializeData("Dummy", res);

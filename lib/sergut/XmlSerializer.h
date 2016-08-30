@@ -187,6 +187,43 @@ public:
     *this & toNamedMember(name, data, true);
   }
 
+  /// Initial call to the serializer
+  /// \param name The name of the outer tag
+  template<typename DT>
+  void serializeNestedData(const char* outerName,
+                           const char* innerName,
+                           const XmlValueType xmlValueType,
+                           const DT& data)
+  {
+    // Render opening tag
+    out() << "<" << outerName;
+
+    XmlSerializer ser(*this);
+    switch(xmlValueType) {
+    case XmlValueType::Attribute:
+      break;
+    case XmlValueType::Child:
+      ser & sergut::children;
+      break;
+    case XmlValueType::SingleChild:
+      ser & sergut::plainChild;
+      break;
+    }
+
+    ser & toNamedMember(innerName, data, true);
+
+    // Render closing tag
+    switch(getValueType()) {
+    case XmlValueType::Attribute:
+      out() << "/>";
+      break;
+    case XmlValueType::Child:
+    case XmlValueType::SingleChild:
+      out() << "</" << outerName << ">";
+      break;
+    }
+  }
+
   std::string str() const;
 
 private:

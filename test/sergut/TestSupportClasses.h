@@ -47,6 +47,8 @@ SERGUT_FUNCTION(SomeTestData, data, ar) {
 class Time {
 public:
   Time(const std::uint8_t hour = 0, const std::uint8_t minute = 0, const std::uint8_t seconds = 0) : val(hour*10000+minute*100+seconds) { }
+
+  uint32_t getInternalValue() const { return val; }
   bool operator==(const Time& rhs) const { return val == rhs.val; }
 private:
   SERGUT_SERIALIZE_TO_STRING_FRIEND_DECL(Time, time);
@@ -78,7 +80,28 @@ SERGUT_DESERIALIZE_FROM_STRING(Time, time, str)
 
 class SomeMoreComplexTestData {
 public:
-//  SomeMoreComplexTestData() = default;
+  SomeMoreComplexTestData() = default;
+  SomeMoreComplexTestData(const Time& aTime, const char aSomeLetter,
+                          const std::uint16_t aSomeUnsignedShortInt,
+                          const Time& aMoreTime)
+    : time(aTime)
+    , someLetter(aSomeLetter)
+    , someUnsignedShortInt(aSomeUnsignedShortInt)
+    , moreTime(aMoreTime)
+  { }
+
+  Time getTime() const;
+  void setTime(const Time& value);
+
+  char getSomeLetter() const;
+  void setSomeLetter(char value);
+
+  std::uint16_t getSomeUnsignedShortInt() const;
+  void setSomeUnsignedShortInt(const std::uint16_t& value);
+
+  Time getMoreTime() const;
+  void setMoreTime(const Time& value);
+
 private:
   SERGUT_FUNCTION_FRIEND_DECL(SomeMoreComplexTestData, data, ar);
   Time time;
@@ -95,3 +118,50 @@ SERGUT_FUNCTION(SomeMoreComplexTestData, data, ar) {
       & SERGUT_MMEMBER(data, moreTime);
 }
 
+inline
+Time SomeMoreComplexTestData::getTime() const
+{
+  return time;
+}
+
+inline
+void SomeMoreComplexTestData::setTime(const Time& value)
+{
+  time = value;
+}
+
+inline
+char SomeMoreComplexTestData::getSomeLetter() const
+{
+  return someLetter;
+}
+
+inline
+void SomeMoreComplexTestData::setSomeLetter(char value)
+{
+  someLetter = value;
+}
+
+inline
+std::uint16_t SomeMoreComplexTestData::getSomeUnsignedShortInt() const
+{
+  return someUnsignedShortInt;
+}
+
+inline
+void SomeMoreComplexTestData::setSomeUnsignedShortInt(const std::uint16_t& value)
+{
+  someUnsignedShortInt = value;
+}
+
+inline
+Time SomeMoreComplexTestData::getMoreTime() const
+{
+  return moreTime;
+}
+
+inline
+void SomeMoreComplexTestData::setMoreTime(const Time& value)
+{
+  moreTime = value;
+}

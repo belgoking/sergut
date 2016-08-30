@@ -197,7 +197,7 @@ int main()
   for(int i = 0; i < 20; ++i) {
     {
       Timer t("XmlDeserializer");
-      sergut::XmlDeserializer deser(data);
+      sergut::XmlDeserializer deser{sergut::misc::ConstStringRef(data)};
       deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0");
     }
   }

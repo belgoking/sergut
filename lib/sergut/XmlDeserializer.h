@@ -47,6 +47,35 @@
  */
 namespace sergut {
 
+struct XmlDeserializerHelper {
+  template<typename DT>
+  static constexpr bool canDeserializeIntoAttribute() { return doCanDeserializeIntoAttribute(static_cast<DT*>(nullptr), 0L); }
+
+private:
+  template<typename DT>
+  static constexpr DT& getHolder();
+
+  template<typename DT>
+  static constexpr auto doCanDeserializeIntoAttribute(const DT*, const char) -> bool { return true; }
+
+  template<typename DT>
+  static constexpr auto doCanDeserializeIntoAttribute(const DT*, const long)
+  -> decltype(serialize(DummySerializer::dummyInstance(), getHolder<DT>(), static_cast<typename std::decay<DT>::type*>(nullptr)),bool())
+  { return false; }
+
+  template<typename DT>
+  static constexpr auto doCanDeserializeIntoAttribute(const std::list<DT>*, const long) -> bool
+  { return false; }
+
+  template<typename DT>
+  static constexpr auto doCanDeserializeIntoAttribute(const std::vector<DT>*, const long) -> bool
+  { return false; }
+
+  template<typename DT>
+  static constexpr auto doCanDeserializeIntoAttribute(const std::set<DT>*, const long) -> bool
+  { return false; }
+};
+
 class XmlDeserializer
 {
   template<typename T, typename S> friend class MemberDeserializer;
@@ -64,28 +93,65 @@ public:
   };
 
 public:
-  XmlDeserializer(const std::string& xml);
+  XmlDeserializer(const char* xml) : XmlDeserializer(sergut::misc::ConstStringRef(xml)) { }
+  XmlDeserializer(const misc::ConstStringRef& xml);
   ~XmlDeserializer();
+
+//  /// Initial call to the serializer
+//  /// \param name The name of the outer tag
+//  /// \deprecated Do not use this function, use the one without an xmlValueType instead.
+//  template<typename DT>
+//  DT deserializeData(const char* name, const sergut::XmlValueType xmlValueType) {
+//    static_assert(!XmlDeserializerHelper::canDeserializeIntoAttribute<DT>(),
+//                  "Deserializing using this function only makes sense for non CDATA types, as CDATA types are always serialized as PlainChild");
+//    // xmlValueType can be something other than XmlValueType::Attribute only if DT is string serializable or a basic data type
+//    assert(xmlValueType == XmlValueType::Attribute);
+//    DT data;
+//    doDeserializeData(MyMemberDeserializer::toNamedMember(name, data, true), xmlValueType);
+//    return data;
+//  }
 
   /// Initial call to the serializer
   /// \param name The name of the outer tag
   template<typename DT>
   DT deserializeData(const char* name) {
     DT data;
-    doDeserializeData(MyMemberDeserializer::toNamedMember(name, data, true), XmlValueType::Attribute);
+    if(XmlDeserializerHelper::canDeserializeIntoAttribute<DT>()) {
+      doDeserializeData(MyMemberDeserializer::toNamedMember(
+                          name,
+                          MyMemberDeserializer::toNamedMember("DUMMY", data, true, XmlValueType::SingleChild),
+                          true,
+                          XmlValueType::Attribute));
+    } else {
+      doDeserializeData(MyMemberDeserializer::toNamedMember(name, data, true));
+    }
+    return data;
+  }
+
+  template<typename DT>
+  DT deserializeNestedData(const char* outerName, const char* innerName, const sergut::XmlValueType xmlValueType) {
+    DT data;
+    doDeserializeData(MyMemberDeserializer::toNamedMember(outerName,
+                                                          MyMemberDeserializer::toNamedMember(innerName, data, true,
+                                                                                              xmlValueType),
+                                                          true,
+                                                          XmlValueType::Child));
     return data;
   }
 
   template<typename DT>
   DT deserializeNestedData(const char* outerName, const char* innerName) {
     DT data;
-    doDeserializeData(MyMemberDeserializer::toNamedMember(outerName, MyMemberDeserializer::toNamedMember(innerName, data, true), true), XmlValueType::Child);
+    doDeserializeData(MyMemberDeserializer::toNamedMember(outerName, MyMemberDeserializer::toNamedMember(innerName, data, true,
+                                                                                                         XmlValueType::Child),
+                                                          true,
+                                                          XmlValueType::Attribute));
     return data;
   }
 
 private:
   template<typename DT>
-  void doDeserializeData(const NamedMemberForDeserialization<DT>& data, const XmlValueType valueType)
+  void doDeserializeData(const NamedMemberForDeserialization<DT>& data)
   {
     xml::PullParser& pullParser = getPullParser();
     if(pullParser.parseNext() != xml::ParseTokenType::OpenDocument) {
@@ -97,7 +163,7 @@ private:
     if(data.name != nullptr && pullParser.getCurrentTagName() != data.name) {
       throw ParsingException("Wrong opening Tag in XML-Document", ErrorContext(pullParser));
     }
-    handleChild(data, valueType, pullParser);
+    handleChild(data, XmlValueType::Child, pullParser);
   }
 
 private:
@@ -128,10 +194,34 @@ private:
 
   // Containers as members
   template<typename DT>
+  static void handleChild(const NamedMemberForDeserialization<std::list<DT>>& data, const XmlValueType valueType, xml::PullParser& state) {
+    while(checkNextContainerElement(data.name, valueType, state)) {
+      DT element;
+      handleChild(NamedMemberForDeserialization<DT>(data.name, element, true, XmlValueType::Child), valueType, state);
+      data.data.push_back(element);
+      if(state.getCurrentTokenType() == xml::ParseTokenType::Text) {
+        state.parseNext();
+      }
+    }
+  }
+
+  template<typename DT>
+  static void handleChild(const NamedMemberForDeserialization<std::set<DT>>& data, const XmlValueType valueType, xml::PullParser& state) {
+    while(checkNextContainerElement(data.name, valueType, state)) {
+      DT element;
+      handleChild(NamedMemberForDeserialization<DT>(data.name, element, true, XmlValueType::Child), valueType, state);
+      data.data.push_back(element);
+      if(state.getCurrentTokenType() == xml::ParseTokenType::Text) {
+        state.parseNext();
+      }
+    }
+  }
+
+  template<typename DT>
   static void handleChild(const NamedMemberForDeserialization<std::vector<DT>>& data, const XmlValueType valueType, xml::PullParser& state) {
     while(checkNextContainerElement(data.name, valueType, state)) {
       DT element;
-      handleChild(NamedMemberForDeserialization<DT>(data.name, element, true), valueType, state);
+      handleChild(NamedMemberForDeserialization<DT>(data.name, element, true, XmlValueType::Child), valueType, state);
       data.data.push_back(element);
       if(state.getCurrentTokenType() == xml::ParseTokenType::Text) {
         state.parseNext();
@@ -144,7 +234,13 @@ private:
   static auto handleChild(const NamedMemberForDeserialization<DT>& data, const XmlValueType valueType, xml::PullParser& state)
   -> decltype(serialize(DummySerializer::dummyInstance(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)),void())
   {
-    (void)valueType;
+    assert(state.getCurrentTokenType() == xml::ParseTokenType::OpenTag);
+    if(valueType != XmlValueType::Child) {
+      throw new ParsingException("Expected XmlValueType::Child when deserializing members", ErrorContext(state));
+    }
+    // first descend to members
+    state.parseNext();
+
     MyMemberDeserializer memberDeserializer(true);
     serialize(memberDeserializer, data.data, static_cast<typename std::decay<DT>::type*>(nullptr));
     feedMembers(memberDeserializer, state);

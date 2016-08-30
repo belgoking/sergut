@@ -47,8 +47,8 @@ std::size_t XmlDeserializer::ErrorContext::getColumn() const
 }
 
 struct XmlDeserializer::Impl {
-  Impl(const std::string& xml)
-    : xmlDocument(xml::PullParser::createParser(sergut::misc::ConstStringRef(xml)))
+  Impl(const misc::ConstStringRef& xml)
+    : xmlDocument(xml::PullParser::createParser(xml))
   { }
   Impl(const Impl&) = delete;
   Impl& operator=(const Impl&) = delete;
@@ -105,7 +105,7 @@ void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const XmlVa
   }
 }
 
-XmlDeserializer::XmlDeserializer(const std::string& xml)
+XmlDeserializer::XmlDeserializer(const misc::ConstStringRef& xml)
   : impl(new Impl(xml))
 { }
 
@@ -204,10 +204,7 @@ static void skipSubTree(xml::PullParser& parser)
 
 void XmlDeserializer::feedMembers(MyMemberDeserializer &retriever, xml::PullParser& state)
 {
-  assert(state.getCurrentTokenType() == xml::ParseTokenType::OpenTag);
-  // first descend to members
-  state.parseNext();
-  // then try to get Attributes
+  // try to get Attributes
   while(state.getCurrentTokenType() == xml::ParseTokenType::Attribute) {
     std::shared_ptr<MyMemberDeserializer::HolderBase> memberHolder = retriever.popMember(state.getCurrentAttributeName().toString());
     if(!memberHolder) {
@@ -236,32 +233,35 @@ void XmlDeserializer::feedMembers(MyMemberDeserializer &retriever, xml::PullPars
       state.parseNext();
     }
   }
-  // here the token type is either OpenTag or CloseTag
-  assert(state.getCurrentTokenType() == xml::ParseTokenType::CloseTag ||
-         state.getCurrentTokenType() == xml::ParseTokenType::OpenTag);
+
+  if(state.getCurrentTokenType() != xml::ParseTokenType::CloseTag &&
+         state.getCurrentTokenType() != xml::ParseTokenType::OpenTag) {
+    throw ParsingException("Expecting opening or closing tag", XmlDeserializer::ErrorContext(state));
+  }
 
   // if there was no single child get child members
-//    skipText(state);
   while(state.getCurrentTokenType() == xml::ParseTokenType::OpenTag) {
     std::shared_ptr<MyMemberDeserializer::HolderBase> memberHolder = retriever.popMember(state.getCurrentTagName().toString());
     if(memberHolder) {
       memberHolder->execute(state);
     } else {
-//      std::cerr << "Member handler for '" << state.getCurrentTagName() << "' does not exist" << std::endl;
       skipSubTree(state);
     }
     skipText(state);
-    assert(state.getCurrentTokenType() == xml::ParseTokenType::CloseTag ||
-           state.getCurrentTokenType() == xml::ParseTokenType::OpenTag);
+    if(state.getCurrentTokenType() != xml::ParseTokenType::CloseTag &&
+           state.getCurrentTokenType() != xml::ParseTokenType::OpenTag) {
+      throw ParsingException("Expecting opening or closing tag", XmlDeserializer::ErrorContext(state));
+    }
   }
   // here the token type has to be a CloseTag
-  assert(state.getCurrentTokenType() == xml::ParseTokenType::CloseTag);
+  if(state.getCurrentTokenType() != xml::ParseTokenType::CloseTag) {
+    throw ParsingException("Expecting closing tag", XmlDeserializer::ErrorContext(state));
+  }
   state.parseNext();
 
   // finally check whether mandatory members are missing
   for(const std::pair<const std::string, std::shared_ptr<MyMemberDeserializer::HolderBase>>& e: retriever.getMembers()) {
     if(e.second->isMandatory() && !e.second->isContainer()) {
-      std::cerr << "Mandatory Member '" << e.first << "' is missing" << std::endl;
       throw ParsingException("Mandatory child '" + e.first + "' is missing", XmlDeserializer::ErrorContext(state));
     }
   }

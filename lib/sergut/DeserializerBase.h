@@ -22,20 +22,24 @@
 #pragma once
 
 #include "sergut/Util.h"
+#include "sergut/XmlValueType.h"
 
 namespace sergut {
 
 template<typename DT>
 struct NamedMemberForDeserialization {
   typedef DT value_type;
-  NamedMemberForDeserialization(const char* pName, DT& pData, bool pMandatory)
+  NamedMemberForDeserialization(const char* pName, DT& pData, const bool pMandatory,
+                                const XmlValueType pXmlValueType)
     : name(pName)
     , data(pData)
     , mandatory(pMandatory)
+    , xmlValueType(pXmlValueType)
   { }
   const char* name;
   DT& data;
   const bool mandatory;
+  const XmlValueType xmlValueType;
 };
 
 // This function is used for framed datastructures.
@@ -43,33 +47,52 @@ struct NamedMemberForDeserialization {
 template<typename DT, typename Archive, typename InnerType>
 void serialize(Archive& ar, DT& data, const NamedMemberForDeserialization<InnerType>*)
 {
-  ar & sergut::children & data;
+  switch(data.xmlValueType) {
+  case XmlValueType::Attribute:
+    break;
+  case XmlValueType::Child:
+    ar & sergut::children;
+    break;
+  case XmlValueType::SingleChild:
+    ar & sergut::plainChild;
+    break;
+  }
+
+  ar & data;
 }
 
 
 template<typename DT>
 struct NamedMemberForDeserialization<NamedMemberForDeserialization<DT>> {
   typedef DT value_type;
-  NamedMemberForDeserialization(const char* pName, const NamedMemberForDeserialization<DT>& pData, bool pMandatory)
+  NamedMemberForDeserialization(const char* pName, const NamedMemberForDeserialization<DT>& pData, bool pMandatory,
+                                const XmlValueType pXmlValueType)
     : name(pName)
     , data(pData)
     , mandatory(pMandatory)
+    , xmlValueType(pXmlValueType)
   { }
   const char* name;
   NamedMemberForDeserialization<DT> data;
   const bool mandatory;
+  const XmlValueType xmlValueType;
 };
 
 
 class DeserializerBase {
 public:
   template<typename DT>
-  static NamedMemberForDeserialization<DT> toNamedMember(const char* name, DT& data, const bool mandatory) {
-    return NamedMemberForDeserialization<DT>(name, data, mandatory);
+  static NamedMemberForDeserialization<DT> toNamedMember(const char* name, DT& data, const bool mandatory,
+                                                         const XmlValueType pXmlValueType = XmlValueType::Child)
+  {
+    return NamedMemberForDeserialization<DT>(name, data, mandatory, pXmlValueType);
   }
   template<typename DT>
-  static NamedMemberForDeserialization<NamedMemberForDeserialization<DT>> toNamedMember(const char* name, const NamedMemberForDeserialization<DT>& data, bool mandatory) {
-    return NamedMemberForDeserialization<NamedMemberForDeserialization<DT>>(name, data, mandatory);
+  static NamedMemberForDeserialization<NamedMemberForDeserialization<DT>>
+  toNamedMember(const char* name, const NamedMemberForDeserialization<DT>& data, bool mandatory,
+                const XmlValueType pXmlValueType = XmlValueType::Child)
+  {
+    return NamedMemberForDeserialization<NamedMemberForDeserialization<DT>>(name, data, mandatory, pXmlValueType);
   }
 };
 
