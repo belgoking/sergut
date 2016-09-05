@@ -22,10 +22,12 @@
 #pragma once
 
 #include "sergut/DeserializerBase.h"
-#include "sergut/misc/ReadHelper.h"
 #include "sergut/ParsingException.h"
 #include "sergut/Util.h"
 #include "sergut/XmlValueType.h"
+#include "sergut/detail/DummySerializer.h"
+#include "sergut/detail/XmlDeserializerHelper.h"
+#include "sergut/misc/ReadHelper.h"
 
 #include <cassert>
 #include <cstring>
@@ -113,7 +115,7 @@ public:
     assert(valueType == XmlValueType::Child);
     while(currentElement->FirstChildElement(data.name) != nullptr) {
       CDT tmp;
-      operator&(NamedMemberForDeserialization<CDT>(data.name, tmp, true, XmlValueType::Child));
+      operator&(NamedMemberForDeserialization<CDT>(data.name, tmp, true));
       data.data.push_back(tmp);
     }
     return *this;
@@ -207,20 +209,26 @@ public:
     }
     DT data;
     valueType = XmlValueType::Attribute;
-    *this & toNamedMember(name, data, true);
+    if(detail::XmlDeserializerHelper::canDeserializeIntoAttribute<DT>()) {
+      *this & toNamedMember(name, toNestedMember("DUMMY", data, true, XmlValueType::SingleChild), true);
+    } else {
+      *this & toNamedMember(name, data, true);
+    }
     return data;
   }
 
   /// Initial call to the serializer
   /// \param name The name of the outer tag
   template<typename DT>
-  DT deserializeNestedData(const char* outerName, const char* innerName) {
+  DT deserializeNestedData(const char* outerName, const char* innerName,
+                           const XmlValueType xmlValueType = XmlValueType::Child)
+  {
     if(outerName != nullptr && std::strcmp(currentElement->Value(), outerName) != 0) {
       throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
     }
     DT data;
     valueType = XmlValueType::Child;
-    *this & toNamedMember(outerName, toNamedMember(innerName, data, true), true);
+    *this & toNamedMember(outerName, toNestedMember(innerName, data, true, xmlValueType), true);
     return data;
   }
 

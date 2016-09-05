@@ -28,10 +28,10 @@
   Archive::toNamedMember(#mem, cls.mem, false)
 
 #define SERGUT_NESTED_MMEMBER(cls, mem, innerName) \
-  Archive::toNamedMember(#mem, Archive::toNamedMember(#innerName, cls.mem, true), true)
+  Archive::toNamedMember(#mem, Archive::toNestedMember(#innerName, cls.mem, true), true)
 
 #define SERGUT_NESTED_OMEMBER(cls, mem, innerName) \
-  Archive::toNamedMember(#mem, Archive::toNamedMember(#innerName, cls.mem, false), false)
+  Archive::toNamedMember(#mem, Archive::toNestedMember(#innerName, cls.mem, false), false)
 
 #define SERGUT_FUNCTION(DataType, dataName, archiveName) \
   inline const char* getTypeName(const DataType*) { return #DataType; } \

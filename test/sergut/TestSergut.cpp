@@ -207,22 +207,17 @@ TEST_CASE("DeSerialize datatype " #type " as plain child in XML", "[sergut]") \
     const SerAsPlainChild_ ## type tpDeser1 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
     CHECK(tpDeser1 == SerAsPlainChild_ ## type{ datatypeValue }); \
   } \
+  SECTION("Deserialize XmlDeserializerTiny") { \
+    sergut::XmlDeserializerTiny deser(expectedResult); \
+    const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
+    CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
+  } \
+  SECTION("Deserialize XmlDeserializerTiny2") { \
+    sergut::XmlDeserializerTiny2 deser(expectedResult); \
+    const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
+    CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
+  } \
 } \
-
-#if 0
-// TODO extend TinyDeserializers to support SingleChild plain members
-SECTION("Deserialize XmlDeserializerTiny") { \
-sergut::XmlDeserializerTiny deser(expectedResult); \
-const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
-CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
-} \
-SECTION("Deserialize XmlDeserializerTiny2") { \
-sergut::XmlDeserializerTiny2 deser(expectedResult); \
-const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
-CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
-} \
-
-#endif
 
 DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(char,        'a', "<char>a</char>")
 DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(uint8_t,      19, "<uint8_t>19</uint8_t>")
@@ -259,22 +254,17 @@ TEST_CASE("DeSerialize basic datatype " #type " as attribute in XML", "[sergut]"
     const type tpDeser1 = deser.deserializeNestedData<type>(#type, "value", sergut::XmlValueType::Attribute); \
     CHECK(tpDeser1 == datatypeValue); \
   } \
+  SECTION("Deserialize XmlDeserializerTiny") { \
+    sergut::XmlDeserializerTiny deser(expectedResult); \
+    const type tpDeser2 = deser.deserializeNestedData<type>(#type, "value", sergut::XmlValueType::Attribute); \
+    CHECK(tpDeser2 == datatypeValue); \
+  } \
+  SECTION("Deserialize XmlDeserializerTiny2") { \
+    sergut::XmlDeserializerTiny2 deser(expectedResult); \
+    const type tpDeser2 = deser.deserializeNestedData<type>(#type, "value", sergut::XmlValueType::Attribute); \
+    CHECK(tpDeser2 == datatypeValue); \
+  } \
 } \
-
-#if 0
-// TODO extend TinyDeserializers to support SingleChild plain members
-SECTION("Deserialize XmlDeserializerTiny") { \
-sergut::XmlDeserializerTiny deser(expectedResult); \
-const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
-CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
-} \
-SECTION("Deserialize XmlDeserializerTiny2") { \
-sergut::XmlDeserializerTiny2 deser(expectedResult); \
-const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
-CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
-} \
-
-#endif
 
 DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(char,        'a', "<char value=\"a\"/>")
 DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(uint8_t,      19, "<uint8_t value=\"19\"/>")
@@ -311,22 +301,17 @@ TEST_CASE("DeSerialize basic datatype " #type " as child in XML", "[sergut]") \
     const type tpDeser1 = deser.deserializeNestedData<type>(#type, "value", sergut::XmlValueType::Child); \
     CHECK(tpDeser1 == datatypeValue); \
   } \
+  SECTION("Deserialize XmlDeserializerTiny") { \
+    sergut::XmlDeserializerTiny deser(expectedResult); \
+    const type tpDeser2 = deser.deserializeNestedData<type>(#type, "value", sergut::XmlValueType::Child); \
+    CHECK(tpDeser2 == datatypeValue); \
+  } \
+  SECTION("Deserialize XmlDeserializerTiny2") { \
+    sergut::XmlDeserializerTiny2 deser(expectedResult); \
+    const type tpDeser2 = deser.deserializeNestedData<type>(#type, "value", sergut::XmlValueType::Child); \
+    CHECK(tpDeser2 == datatypeValue); \
+  } \
 } \
-
-#if 0
-// TODO extend TinyDeserializers to support SingleChild plain members
-SECTION("Deserialize XmlDeserializerTiny") { \
-sergut::XmlDeserializerTiny deser(expectedResult); \
-const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
-CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
-} \
-SECTION("Deserialize XmlDeserializerTiny2") { \
-sergut::XmlDeserializerTiny2 deser(expectedResult); \
-const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
-CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
-} \
-
-#endif
 
 DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(char,        'a', "<char><value>a</value></char>")
 DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(uint8_t,      19, "<uint8_t><value>19</value></uint8_t>")
@@ -363,22 +348,17 @@ TEST_CASE("DeSerialize basic datatype " #type " as plain child in XML", "[sergut
     const type tpDeser1 = deser.deserializeData<type>(#type); \
     CHECK(tpDeser1 == datatypeValue); \
   } \
+  SECTION("Deserialize XmlDeserializerTiny") { \
+    sergut::XmlDeserializerTiny deser(expectedResult); \
+    const type tpDeser2 = deser.deserializeData<type>(#type); \
+    CHECK(tpDeser2 == datatypeValue); \
+  } \
+  SECTION("Deserialize XmlDeserializerTiny2") { \
+    sergut::XmlDeserializerTiny2 deser(expectedResult); \
+    const type tpDeser2 = deser.deserializeData<type>(#type); \
+    CHECK(tpDeser2 == datatypeValue); \
+  } \
 } \
-
-#if 0
-// TODO extend TinyDeserializers to support SingleChild plain members
-SECTION("Deserialize XmlDeserializerTiny") { \
-sergut::XmlDeserializerTiny deser(expectedResult); \
-const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
-CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
-} \
-SECTION("Deserialize XmlDeserializerTiny2") { \
-sergut::XmlDeserializerTiny2 deser(expectedResult); \
-const SerAsPlainChild_ ## type tpDeser2 = deser.deserializeData<SerAsPlainChild_ ## type>(#type); \
-CHECK(tpDeser2 == SerAsPlainChild_ ## type{ datatypeValue }); \
-} \
-
-#endif
 
 DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(char,        'a', "<char>a</char>")
 DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(uint8_t,      19, "<uint8_t>19</uint8_t>")
@@ -424,14 +404,14 @@ TEST_CASE("DeSerialize vector of " #type " as XML", "[sergut]") \
     CHECK(tpDeser1 == Ser_VectorOf ## type{ datatypeValue }); \
   } \
   SECTION("Deserialize XmlDeserializerTiny") { \
-  sergut::XmlDeserializerTiny deser(expectedResult); \
-  const Ser_VectorOf ## type tpDeser2 = deser.deserializeData<Ser_VectorOf ## type>("VectorOf" #type); \
-  CHECK(tpDeser2 == Ser_VectorOf ## type{ datatypeValue }); \
+    sergut::XmlDeserializerTiny deser(expectedResult); \
+    const Ser_VectorOf ## type tpDeser2 = deser.deserializeData<Ser_VectorOf ## type>("VectorOf" #type); \
+    CHECK(tpDeser2 == Ser_VectorOf ## type{ datatypeValue }); \
   } \
   SECTION("Deserialize XmlDeserializerTiny2") { \
-  sergut::XmlDeserializerTiny2 deser(expectedResult); \
-  const Ser_VectorOf ## type tpDeser2 = deser.deserializeData<Ser_VectorOf ## type>("VectorOf" #type); \
-  CHECK(tpDeser2 == Ser_VectorOf ## type{ datatypeValue }); \
+    sergut::XmlDeserializerTiny2 deser(expectedResult); \
+    const Ser_VectorOf ## type tpDeser2 = deser.deserializeData<Ser_VectorOf ## type>("VectorOf" #type); \
+    CHECK(tpDeser2 == Ser_VectorOf ## type{ datatypeValue }); \
   } \
 } \
 
@@ -623,7 +603,7 @@ struct Ser_DoubleNested ## type { \
 }; \
 SERGUT_FUNCTION(Ser_DoubleNested ## type, data, ar) \
 { \
-  ar & sergut::children & Archive::toNamedMember("outerNested", Archive::toNamedMember("innerNested", Archive::toNamedMember("value", data.value, true), true), true); \
+  ar & sergut::children & Archive::toNamedMember("outerNested", Archive::toNestedMember("innerNested", Archive::toNestedMember("value", data.value, true), true), true); \
 } \
 TEST_CASE("DeSerialize nested member of " #type " as XML", "[sergut]") \
 { \

@@ -52,12 +52,15 @@ HEADERS += \
     sergut/XmlDeserializerTiny2.h \
     sergut/XmlSerializer.h \
     sergut/XmlValueType.h \
+    sergut/detail/DummySerializer.h \
     sergut/detail/JavaClassGeneratorBase.h \
     sergut/detail/JavaClassGeneratorBuilder.h \
     sergut/detail/Member.h \
     sergut/detail/NameSpace.h \
+    sergut/detail/Nesting.h \
     sergut/detail/TypeName.h \
     sergut/detail/XmlDeserializerDomBase.h \
+    sergut/detail/XmlDeserializerHelper.h \
     sergut/marshaller/MarshallingException.h \
     sergut/marshaller/RequestServer.h \
     sergut/marshaller/UnknownFunctionException.h \

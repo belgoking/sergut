@@ -24,6 +24,7 @@
 #include "sergut/SerializerBase.h"
 #include "sergut/Util.h"
 #include "sergut/XmlValueType.h"
+#include "sergut/detail/DummySerializer.h"
 
 #include <cassert>
 #include <list>
@@ -146,7 +147,7 @@ public:
 
   template<typename DT>
   auto operator&(const NamedMemberForSerialization<DT>& data)
-  -> decltype(serialize(DummySerializer::dummyInstance(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)),*this)
+  -> decltype(serialize(detail::DummySerializer::dummyInstance(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)),*this)
   {
     assert(getValueType()==XmlValueType::Child);
 

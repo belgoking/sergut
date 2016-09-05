@@ -21,37 +21,16 @@
 
 #pragma once
 
-#include "sergut/Util.h"
-#include "sergut/detail/Nesting.h"
+#include "sergut/SerializerBase.h"
 
 namespace sergut {
+namespace detail {
 
-template<typename DT>
-struct NamedMemberForSerialization {
-  NamedMemberForSerialization(const char* pName, const DT& pData, bool pMandatory)
-    : name(pName)
-    , data(pData)
-    , mandatory(pMandatory)
-  { }
-  const char* name;
-  const DT& data;
-  const bool mandatory;
+struct DummySerializer : public SerializerBase {
+  template<typename T>
+  const DummySerializer& operator&(T) const { return *this; }
+  static DummySerializer& dummyInstance(); ///< This is not implemented
 };
 
-class SerializerBase {
-public:
-  template<typename DT>
-  static NamedMemberForSerialization<DT> toNamedMember(const char* name, const DT& data, const bool mandatory)
-  {
-    return NamedMemberForSerialization<DT>(name, data, mandatory);
-  }
-
-  template<typename DT>
-  static detail::Nesting<const DT> toNestedMember(const char* name, const DT& data, const bool mandatory,
-                                                        const XmlValueType pXmlValueType = XmlValueType::Child)
-  {
-    return detail::Nesting<const DT>(name, data, mandatory, pXmlValueType);
-  }
-};
-
-}
+} // namespace detail
+} // namespace sergut

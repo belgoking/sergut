@@ -21,37 +21,54 @@
 
 #pragma once
 
-#include "sergut/Util.h"
-#include "sergut/detail/Nesting.h"
+#include "sergut/XmlValueType.h"
 
 namespace sergut {
+namespace detail {
+// Helper type to hold reference to lValues and copies to rValue types
+// (specifically NamedMemberForDeserialization and Nested)
+template<typename DT>
+struct DataHolder {
+  DT& data;
+};
 
 template<typename DT>
-struct NamedMemberForSerialization {
-  NamedMemberForSerialization(const char* pName, const DT& pData, bool pMandatory)
-    : name(pName)
-    , data(pData)
+struct Nesting : DataHolder<DT> {
+  typedef DT value_type;
+  Nesting(const char* pName, DT& pData, const bool pMandatory,
+          const XmlValueType pXmlValueType)
+    : DataHolder<DT>{pData}
+    , name(pName)
     , mandatory(pMandatory)
+    , xmlValueType(pXmlValueType)
   { }
   const char* name;
-  const DT& data;
   const bool mandatory;
+  const XmlValueType xmlValueType;
 };
 
-class SerializerBase {
-public:
-  template<typename DT>
-  static NamedMemberForSerialization<DT> toNamedMember(const char* name, const DT& data, const bool mandatory)
-  {
-    return NamedMemberForSerialization<DT>(name, data, mandatory);
-  }
-
-  template<typename DT>
-  static detail::Nesting<const DT> toNestedMember(const char* name, const DT& data, const bool mandatory,
-                                                        const XmlValueType pXmlValueType = XmlValueType::Child)
-  {
-    return detail::Nesting<const DT>(name, data, mandatory, pXmlValueType);
-  }
+template<typename DT>
+struct DataHolder<Nesting<DT>> {
+  Nesting<DT> data;
 };
 
+// This function is used for nested datastructures.
+// E.g. An XML-List that is surrounded by an additional Tag.
+template<typename DT, typename Archive, typename InnerType>
+void serialize(Archive& ar, DT& data, const Nesting<InnerType>*)
+{
+  switch(data.xmlValueType) {
+  case XmlValueType::Attribute:
+    break;
+  case XmlValueType::Child:
+    ar & sergut::children;
+    break;
+  case XmlValueType::SingleChild:
+    ar & sergut::plainChild;
+    break;
+  }
+  ar & Archive::toNamedMember(data.name, data.data, data.mandatory);
 }
+
+} // namespace detail
+} // namespace sergut
