@@ -167,7 +167,7 @@ private:
   static void handleChild(const NamedMemberForDeserialization<std::list<DT>>& data, const XmlValueType valueType, xml::PullParser& state) {
     while(checkNextContainerElement(data.name, valueType, state)) {
       DT element;
-      handleChild(NamedMemberForDeserialization<DT>(data.name, element, true, XmlValueType::Child), valueType, state);
+      handleChild(NamedMemberForDeserialization<DT>(data.name, element, true), valueType, state);
       data.data.push_back(element);
       if(state.getCurrentTokenType() == xml::ParseTokenType::Text) {
         state.parseNext();
@@ -179,8 +179,8 @@ private:
   static void handleChild(const NamedMemberForDeserialization<std::set<DT>>& data, const XmlValueType valueType, xml::PullParser& state) {
     while(checkNextContainerElement(data.name, valueType, state)) {
       DT element;
-      handleChild(NamedMemberForDeserialization<DT>(data.name, element, true, XmlValueType::Child), valueType, state);
-      data.data.push_back(element);
+      handleChild(NamedMemberForDeserialization<DT>(data.name, element, true), valueType, state);
+      data.data.insert(element);
       if(state.getCurrentTokenType() == xml::ParseTokenType::Text) {
         state.parseNext();
       }

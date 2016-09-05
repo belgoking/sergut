@@ -50,6 +50,7 @@ public:
 
   uint32_t getInternalValue() const { return val; }
   bool operator==(const Time& rhs) const { return val == rhs.val; }
+  bool operator<(const Time& rhs) const { return val < rhs.val; }
 private:
   SERGUT_SERIALIZE_TO_STRING_FRIEND_DECL(Time, time);
   SERGUT_DESERIALIZE_FROM_STRING_FRIEND_DECL(Time, time, str);

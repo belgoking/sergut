@@ -126,7 +126,7 @@ public:
     assert(valueType == XmlValueType::Child);
     while(currentElement->FirstChildElement(data.name) != nullptr) {
       CDT tmp;
-      operator&(NamedMemberForDeserialization<CDT>(data.name, tmp, true, XmlValueType::Child));
+      operator&(NamedMemberForDeserialization<CDT>(data.name, tmp, true));
       data.data.push_back(tmp);
     }
     return *this;
@@ -137,7 +137,7 @@ public:
     assert(valueType == XmlValueType::Child);
     while(currentElement->FirstChildElement(data.name) != nullptr) {
       CDT tmp;
-      operator&(NamedMemberForDeserialization<CDT>(data.name, tmp, true, XmlValueType::Child));
+      operator&(NamedMemberForDeserialization<CDT>(data.name, tmp, true));
       data.data.insert(tmp);
     }
     return *this;

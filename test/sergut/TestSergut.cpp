@@ -381,58 +381,68 @@ DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(escapedString, "<b>\"STRING&amp; STRO
 }
 
 
-#define DEFINE_VECTOR_TEST(type, datatypeValue, expectedResult) \
-struct Ser_VectorOf ## type { \
-  std::vector<type> value; \
-  bool operator==(const Ser_VectorOf ## type& rhs) const { return value == rhs.value; } \
+#define DEFINE_COLLECTION_TEST_TYPE(type, collectionType, datatypeValue, expectedResult) \
+struct Ser_ ## collectionType ## Of ## type { \
+  std::collectionType<type> value; \
+  bool operator==(const Ser_ ## collectionType ## Of ## type& rhs) const { return value == rhs.value; } \
 }; \
-SERGUT_FUNCTION(Ser_VectorOf ## type, data, ar) \
+SERGUT_FUNCTION(Ser_ ## collectionType ## Of ## type, data, ar) \
 { \
   ar & sergut::children & SERGUT_MMEMBER(data, value); \
 } \
-TEST_CASE("DeSerialize vector of " #type " as XML", "[sergut]") \
-{ \
-  SECTION("Serialize") { \
-    Ser_VectorOf ## type data{ datatypeValue }; \
+
+#define DEFINE_COLLECTION_TEST_CONTENT(type, collectionType, datatypeValue, expectedResult) \
+  SECTION("Serialize " #collectionType) { \
+    Ser_ ## collectionType ## Of ## type data{ std::collectionType<type>datatypeValue }; \
     sergut::XmlSerializer ser; \
     ser.serializeData("VectorOf" #type, data); \
     CHECK(ser.str() == expectedResult); \
   } \
-  SECTION("Deserialize XmlDeserializer") { \
+  SECTION("Deserialize " #collectionType " with XmlDeserializer") { \
     sergut::XmlDeserializer deser(expectedResult); \
-    const Ser_VectorOf ## type tpDeser1 = deser.deserializeData<Ser_VectorOf ## type>("VectorOf" #type); \
-    CHECK(tpDeser1 == Ser_VectorOf ## type{ datatypeValue }); \
+    const Ser_ ## collectionType ## Of ## type tpDeser1 = deser.deserializeData<Ser_ ## collectionType ## Of ## type>("VectorOf" #type); \
+    CHECK(tpDeser1 == Ser_ ## collectionType ## Of ## type{ std::collectionType<type>datatypeValue }); \
   } \
-  SECTION("Deserialize XmlDeserializerTiny") { \
+  SECTION("Deserialize " #collectionType " with XmlDeserializerTiny") { \
     sergut::XmlDeserializerTiny deser(expectedResult); \
-    const Ser_VectorOf ## type tpDeser2 = deser.deserializeData<Ser_VectorOf ## type>("VectorOf" #type); \
-    CHECK(tpDeser2 == Ser_VectorOf ## type{ datatypeValue }); \
+    const Ser_ ## collectionType ## Of ## type tpDeser2 = deser.deserializeData<Ser_ ## collectionType ## Of ## type>("VectorOf" #type); \
+    CHECK(tpDeser2 == Ser_ ## collectionType ## Of ## type{ std::collectionType<type>datatypeValue }); \
   } \
-  SECTION("Deserialize XmlDeserializerTiny2") { \
+  SECTION("Deserialize " #collectionType " with XmlDeserializerTiny2") { \
     sergut::XmlDeserializerTiny2 deser(expectedResult); \
-    const Ser_VectorOf ## type tpDeser2 = deser.deserializeData<Ser_VectorOf ## type>("VectorOf" #type); \
-    CHECK(tpDeser2 == Ser_VectorOf ## type{ datatypeValue }); \
+    const Ser_ ## collectionType ## Of ## type tpDeser2 = deser.deserializeData<Ser_ ## collectionType ## Of ## type>("VectorOf" #type); \
+    CHECK(tpDeser2 == Ser_ ## collectionType ## Of ## type{ std::collectionType<type>datatypeValue }); \
   } \
+
+#define DEFINE_COLLECTION_TEST(type, datatypeValue, expectedResult) \
+  DEFINE_COLLECTION_TEST_TYPE(type, list, datatypeValue, expectedResult) \
+  DEFINE_COLLECTION_TEST_TYPE(type, set, datatypeValue, expectedResult) \
+  DEFINE_COLLECTION_TEST_TYPE(type, vector, datatypeValue, expectedResult) \
+TEST_CASE("DeSerialize collection of " #type " as XML", "[sergut]") \
+{ \
+  DEFINE_COLLECTION_TEST_CONTENT(type, list, datatypeValue, expectedResult) \
+  DEFINE_COLLECTION_TEST_CONTENT(type, set, datatypeValue, expectedResult) \
+  DEFINE_COLLECTION_TEST_CONTENT(type, vector, datatypeValue, expectedResult) \
 } \
 
-DEFINE_VECTOR_TEST(char,     (std::vector<char>{'a', 'b', 'c'}), "<VectorOfchar><value>a</value><value>b</value><value>c</value></VectorOfchar>")
-DEFINE_VECTOR_TEST(uint8_t,  (std::vector<uint8_t>{0, 17, 255}), "<VectorOfuint8_t><value>0</value><value>17</value><value>255</value></VectorOfuint8_t>")
-DEFINE_VECTOR_TEST(int16_t,  (std::vector<int16_t>{-32768, 17, 32767}), "<VectorOfint16_t><value>-32768</value><value>17</value><value>32767</value></VectorOfint16_t>")
-DEFINE_VECTOR_TEST(uint16_t, (std::vector<uint16_t>{0, 17, 65535}), "<VectorOfuint16_t><value>0</value><value>17</value><value>65535</value></VectorOfuint16_t>")
-DEFINE_VECTOR_TEST(int32_t,  (std::vector<int32_t>{-2147483648, 17, 2147483647}), "<VectorOfint32_t><value>-2147483648</value><value>17</value><value>2147483647</value></VectorOfint32_t>")
-DEFINE_VECTOR_TEST(uint32_t, (std::vector<uint32_t>{0, 17, 4294967295}), "<VectorOfuint32_t><value>0</value><value>17</value><value>4294967295</value></VectorOfuint32_t>")
-DEFINE_VECTOR_TEST(int64_t,  (std::vector<int64_t>{-9223372036854775807LL, 17, 9223372036854775807LL}), "<VectorOfint64_t><value>-9223372036854775807</value><value>17</value><value>9223372036854775807</value></VectorOfint64_t>")
-DEFINE_VECTOR_TEST(uint64_t, (std::vector<uint64_t>{0, 17, 9223372036854775808ULL}), "<VectorOfuint64_t><value>0</value><value>17</value><value>9223372036854775808</value></VectorOfuint64_t>")
-DEFINE_VECTOR_TEST(float,    (std::vector<float>{0.0, -17.25, 0.0000025}), "<VectorOffloat><value>0</value><value>-17.25</value><value>2.5e-06</value></VectorOffloat>")
-DEFINE_VECTOR_TEST(double,   (std::vector<double>{0.0, -17.25, 0.0000025}), "<VectorOfdouble><value>0</value><value>-17.25</value><value>2.5e-06</value></VectorOfdouble>")
-DEFINE_VECTOR_TEST(Time,     (std::vector<Time>{{14,34,15}, {15,55,55}, {0,0,0}}), "<VectorOfTime><value>14:34:15</value><value>15:55:55</value><value>0:00:00</value></VectorOfTime>")
+DEFINE_COLLECTION_TEST(char,     ({'a', 'b', 'c'}), "<VectorOfchar><value>a</value><value>b</value><value>c</value></VectorOfchar>")
+DEFINE_COLLECTION_TEST(uint8_t,  ({0, 17, 255}), "<VectorOfuint8_t><value>0</value><value>17</value><value>255</value></VectorOfuint8_t>")
+DEFINE_COLLECTION_TEST(int16_t,  ({-32768, 17, 32767}), "<VectorOfint16_t><value>-32768</value><value>17</value><value>32767</value></VectorOfint16_t>")
+DEFINE_COLLECTION_TEST(uint16_t, ({0, 17, 65535}), "<VectorOfuint16_t><value>0</value><value>17</value><value>65535</value></VectorOfuint16_t>")
+DEFINE_COLLECTION_TEST(int32_t,  ({-2147483648, 17, 2147483647}), "<VectorOfint32_t><value>-2147483648</value><value>17</value><value>2147483647</value></VectorOfint32_t>")
+DEFINE_COLLECTION_TEST(uint32_t, ({0, 17, 4294967295}), "<VectorOfuint32_t><value>0</value><value>17</value><value>4294967295</value></VectorOfuint32_t>")
+DEFINE_COLLECTION_TEST(int64_t,  ({-9223372036854775807LL, 17, 9223372036854775807LL}), "<VectorOfint64_t><value>-9223372036854775807</value><value>17</value><value>9223372036854775807</value></VectorOfint64_t>")
+DEFINE_COLLECTION_TEST(uint64_t, ({0, 17, 9223372036854775808ULL}), "<VectorOfuint64_t><value>0</value><value>17</value><value>9223372036854775808</value></VectorOfuint64_t>")
+DEFINE_COLLECTION_TEST(float,    ({-17.25, 0.0, 0.0000025}), "<VectorOffloat><value>-17.25</value><value>0</value><value>2.5e-06</value></VectorOffloat>")
+DEFINE_COLLECTION_TEST(double,   ({-17.25, 0.0, 0.0000025}), "<VectorOfdouble><value>-17.25</value><value>0</value><value>2.5e-06</value></VectorOfdouble>")
+DEFINE_COLLECTION_TEST(Time,     ({{0,0,0}, {14,34,15}, {15,55,55}}), "<VectorOfTime><value>0:00:00</value><value>14:34:15</value><value>15:55:55</value></VectorOfTime>")
 namespace {
 typedef std::string string;
-DEFINE_VECTOR_TEST(string, (std::vector<string>{"hallo", "liebe", "Welt"}), "<VectorOfstring><value>hallo</value><value>liebe</value><value>Welt</value></VectorOfstring>")
+DEFINE_COLLECTION_TEST(string, ({"Hallo", "Liebe", "Welt"}), "<VectorOfstring><value>Hallo</value><value>Liebe</value><value>Welt</value></VectorOfstring>")
 }
 namespace {
 typedef std::string escapedString;
-DEFINE_VECTOR_TEST(escapedString, (std::vector<escapedString>{"<b>\"STRING&amp;\"</b>", "<b>\"STRING&uuml;\"</b>"}),
+DEFINE_COLLECTION_TEST(escapedString, ({"<b>\"STRING&amp;\"</b>", "<b>\"STRING&uuml;\"</b>"}),
                    "<VectorOfescapedString><value>&lt;b&gt;&quot;STRING&amp;amp;&quot;&lt;/b&gt;</value><value>&lt;b&gt;&quot;STRING&amp;uuml;&quot;&lt;/b&gt;</value></VectorOfescapedString>")
 }
 
