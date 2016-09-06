@@ -86,6 +86,9 @@ public:
   XmlSerializer& operator&(const NamedMemberForSerialization<unsigned char>& data) {
     return writeSimpleType(toNamedMember(data.name, static_cast<unsigned long long>(data.data), data.mandatory));
   }
+  XmlSerializer& operator&(const NamedMemberForSerialization<bool>& data) {
+    return writeSimpleType(data);
+  }
 
   XmlSerializer& operator&(const NamedMemberForSerialization<double>& data) {
     return writeSimpleType(data);
@@ -259,6 +262,14 @@ private:
   template<typename DT>
   void writeEscaped(const DT& data) {
     out() << data;
+  }
+
+  void writeEscaped(const bool& data) {
+    if(data) {
+      out() << "true";
+    } else {
+      out() << "false";
+    }
   }
 
   void writeEscaped(const std::string& str);

@@ -67,6 +67,7 @@ public:
 
 public:
   XmlDeserializer(const char* xml) : XmlDeserializer(sergut::misc::ConstStringRef(xml)) { }
+  XmlDeserializer(const std::string& xml) : XmlDeserializer(sergut::misc::ConstStringRef(xml)) { }
   XmlDeserializer(const misc::ConstStringRef& xml);
   ~XmlDeserializer();
 
@@ -151,6 +152,8 @@ private:
   static void handleChild(const NamedMemberForDeserialization<unsigned int>& data, const XmlValueType valueType, xml::PullParser& state);
   static void handleChild(const NamedMemberForDeserialization<unsigned short>& data, const XmlValueType valueType, xml::PullParser& state);
   static void handleChild(const NamedMemberForDeserialization<unsigned char>& data, const XmlValueType valueType, xml::PullParser& state);
+
+  static void handleChild(const NamedMemberForDeserialization<bool>& data, const XmlValueType valueType, xml::PullParser& state);
 
   static void handleChild(const NamedMemberForDeserialization<double>& data, const XmlValueType valueType, xml::PullParser& state);
   static void handleChild(const NamedMemberForDeserialization<float>& data, const XmlValueType valueType, xml::PullParser& state);

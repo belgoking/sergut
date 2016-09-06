@@ -50,6 +50,16 @@ void readInto(const sergut::misc::ConstStringRef& str, char& dest)
   }
 }
 
+inline
+void readInto(const sergut::misc::ConstStringRef& str, bool& dest)
+{
+  if(str.empty() || str[0] == '\0' || str[0] == '0' || str[0] == 'f' || str[0] == 'F' ) {
+    dest = false;
+  } else {
+    dest = true;
+  }
+}
+
 void readInto(const sergut::misc::ConstStringRef& str, unsigned char& dest);
 
 }

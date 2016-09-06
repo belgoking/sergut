@@ -72,6 +72,43 @@ TEST_CASE("Deserialize invalid XML", "[sergut]")
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// check bool
+////////////////////////////////////////////////////////////////////////////////
+TEST_CASE("Deserialize bool", "[sergut]")
+{
+  const std::vector<std::pair<std::string, bool>> data{
+    {"true", true}, {"1", true}, {"t", true}, {"T", true}, {"True", true}, {"TRUE", true}, {"2", true},
+    {"false", false}, {"0", false}, {"f", false}, {"F", false}, {"False", false}, {"FALSE", false}
+  };
+  for(const std::pair<std::string, bool> d: data) {
+    const std::string xml = "<bool>" + d.first + "</bool>";
+    GIVEN(("The string '" + xml + "'").c_str()) {
+      WHEN("The string is decoded with XmlDeserializer") {
+        sergut::XmlDeserializer deser(xml);
+        const bool b = deser.deserializeData<bool>("bool");
+        THEN("The result is the specified sequence") {
+          CHECK(b == d.second);
+        }
+      }
+      WHEN("The string is decoded with XmlDeserializerTiny") {
+        sergut::XmlDeserializerTiny deser(xml);
+        const bool b = deser.deserializeData<bool>("bool");
+        THEN("The result is the specified sequence") {
+          CHECK(b == d.second);
+        }
+      }
+      WHEN("The string is decoded with XmlDeserializerTiny2") {
+        sergut::XmlDeserializerTiny2 deser(xml);
+        const bool b = deser.deserializeData<bool>("bool");
+        THEN("The result is the specified sequence") {
+          CHECK(b == d.second);
+        }
+      }
+    }
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Test serialization/desirialization of Data
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -109,6 +146,7 @@ TEST_CASE("DeSerialize datatype " #type " as XML", "[sergut]") \
   } \
 } \
 
+DEFINE_SIMPLE_DATATYPE_TEST(bool,       true, "<bool value=\"true\"/>")
 DEFINE_SIMPLE_DATATYPE_TEST(char,        'a', "<char value=\"a\"/>")
 DEFINE_SIMPLE_DATATYPE_TEST(uint8_t,      19, "<uint8_t value=\"19\"/>")
 DEFINE_SIMPLE_DATATYPE_TEST(int16_t,  -32767, "<int16_t value=\"-32767\"/>")
@@ -164,6 +202,7 @@ TEST_CASE("DeSerialize datatype " #type " as child in XML", "[sergut]") \
   } \
 } \
 
+DEFINE_SIMPLE_DATATYPE_AS_CHILD_TEST(bool,      false, "<bool><value>false</value></bool>")
 DEFINE_SIMPLE_DATATYPE_AS_CHILD_TEST(char,        'a', "<char><value>a</value></char>")
 DEFINE_SIMPLE_DATATYPE_AS_CHILD_TEST(uint8_t,      19, "<uint8_t><value>19</value></uint8_t>")
 DEFINE_SIMPLE_DATATYPE_AS_CHILD_TEST(int16_t,  -32767, "<int16_t><value>-32767</value></int16_t>")
@@ -219,6 +258,7 @@ TEST_CASE("DeSerialize datatype " #type " as plain child in XML", "[sergut]") \
   } \
 } \
 
+DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(bool,       true, "<bool>true</bool>")
 DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(char,        'a', "<char>a</char>")
 DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(uint8_t,      19, "<uint8_t>19</uint8_t>")
 DEFINE_SIMPLE_DATATYPE_AS_SINGLE_CHILD_TEST(int16_t,  -32767, "<int16_t>-32767</int16_t>")
@@ -266,6 +306,7 @@ TEST_CASE("DeSerialize basic datatype " #type " as attribute in XML", "[sergut]"
   } \
 } \
 
+DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(bool,      false, "<bool value=\"false\"/>")
 DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(char,        'a', "<char value=\"a\"/>")
 DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(uint8_t,      19, "<uint8_t value=\"19\"/>")
 DEFINE_BASIC_DATATYPE_AS_ATTRIBUTE_TEST(int16_t,  -32767, "<int16_t value=\"-32767\"/>")
@@ -313,6 +354,7 @@ TEST_CASE("DeSerialize basic datatype " #type " as child in XML", "[sergut]") \
   } \
 } \
 
+DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(bool,       true, "<bool><value>true</value></bool>")
 DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(char,        'a', "<char><value>a</value></char>")
 DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(uint8_t,      19, "<uint8_t><value>19</value></uint8_t>")
 DEFINE_BASIC_DATATYPE_AS_CHILD_TEST(int16_t,  -32767, "<int16_t><value>-32767</value></int16_t>")
@@ -360,7 +402,7 @@ TEST_CASE("DeSerialize basic datatype " #type " as plain child in XML", "[sergut
   } \
 } \
 
-DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(char,        'a', "<char>a</char>")
+DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(bool,       true, "<bool>true</bool>")
 DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(uint8_t,      19, "<uint8_t>19</uint8_t>")
 DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(int16_t,  -32767, "<int16_t>-32767</int16_t>")
 DEFINE_BASIC_DATATYPE_AS_SINGLE_CHILD_TEST(uint16_t,  65535, "<uint16_t>65535</uint16_t>")
@@ -425,6 +467,7 @@ TEST_CASE("DeSerialize collection of " #type " as XML", "[sergut]") \
   DEFINE_COLLECTION_TEST_CONTENT(type, vector, datatypeValue, expectedResult) \
 } \
 
+DEFINE_COLLECTION_TEST(bool,     ({false, true}), "<VectorOfbool><value>false</value><value>true</value></VectorOfbool>")
 DEFINE_COLLECTION_TEST(char,     ({'a', 'b', 'c'}), "<VectorOfchar><value>a</value><value>b</value><value>c</value></VectorOfchar>")
 DEFINE_COLLECTION_TEST(uint8_t,  ({0, 17, 255}), "<VectorOfuint8_t><value>0</value><value>17</value><value>255</value></VectorOfuint8_t>")
 DEFINE_COLLECTION_TEST(int16_t,  ({-32768, 17, 32767}), "<VectorOfint16_t><value>-32768</value><value>17</value><value>32767</value></VectorOfint16_t>")
@@ -481,6 +524,7 @@ TEST_CASE("DeSerialize empty vector of " #type " as XML", "[sergut]") \
   } \
 } \
 
+DEFINE_EMPTY_VECTOR_TEST(bool)
 DEFINE_EMPTY_VECTOR_TEST(char)
 DEFINE_EMPTY_VECTOR_TEST(uint8_t)
 DEFINE_EMPTY_VECTOR_TEST(int16_t)
@@ -528,6 +572,7 @@ TEST_CASE("DeSerialize nested vector of " #type " as XML", "[sergut]") \
   } \
 } \
 
+DEFINE_NESTED_VECTOR_TEST(bool,     (std::vector<bool>{false, true}), "<NestedVectorOfbool><values><value>false</value><value>true</value></values></NestedVectorOfbool>")
 DEFINE_NESTED_VECTOR_TEST(char,     (std::vector<char>{'a', 'b', 'c'}), "<NestedVectorOfchar><values><value>a</value><value>b</value><value>c</value></values></NestedVectorOfchar>")
 DEFINE_NESTED_VECTOR_TEST(uint8_t,  (std::vector<uint8_t>{0, 17, 255}), "<NestedVectorOfuint8_t><values><value>0</value><value>17</value><value>255</value></values></NestedVectorOfuint8_t>")
 DEFINE_NESTED_VECTOR_TEST(int16_t,  (std::vector<int16_t>{-32768, 17, 32767}), "<NestedVectorOfint16_t><values><value>-32768</value><value>17</value><value>32767</value></values></NestedVectorOfint16_t>")
@@ -584,6 +629,7 @@ TEST_CASE("DeSerialize nested " #type " as XML", "[sergut]") \
   } \
 } \
 
+DEFINE_NESTED_SIMPLE_TEST(bool,     true, "<Nestedbool><value><nested>true</nested></value></Nestedbool>")
 DEFINE_NESTED_SIMPLE_TEST(char,      'a', "<Nestedchar><value><nested>a</nested></value></Nestedchar>")
 DEFINE_NESTED_SIMPLE_TEST(uint8_t,  17, "<Nesteduint8_t><value><nested>17</nested></value></Nesteduint8_t>")
 DEFINE_NESTED_SIMPLE_TEST(int16_t,  -32768, "<Nestedint16_t><value><nested>-32768</nested></value></Nestedint16_t>")
@@ -640,6 +686,7 @@ TEST_CASE("DeSerialize nested member of " #type " as XML", "[sergut]") \
   } \
 } \
 
+DEFINE_DOUBLE_NESTED_TEST(bool,     false, "<DoubleNestedbool><outerNested><innerNested><value>false</value></innerNested></outerNested></DoubleNestedbool>")
 DEFINE_DOUBLE_NESTED_TEST(char,      'a', "<DoubleNestedchar><outerNested><innerNested><value>a</value></innerNested></outerNested></DoubleNestedchar>")
 DEFINE_DOUBLE_NESTED_TEST(uint8_t,  17, "<DoubleNesteduint8_t><outerNested><innerNested><value>17</value></innerNested></outerNested></DoubleNesteduint8_t>")
 DEFINE_DOUBLE_NESTED_TEST(int16_t,  -32768, "<DoubleNestedint16_t><outerNested><innerNested><value>-32768</value></innerNested></outerNested></DoubleNestedint16_t>")
@@ -818,8 +865,7 @@ private:
 
 SERGUT_FUNCTION(TestChild2, data, ar)
 {
-  ar
-      & SERGUT_MMEMBER(data, grandChildValue);
+  ar & SERGUT_MMEMBER(data, grandChildValue);
 }
 
 struct TestChild

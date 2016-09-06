@@ -149,6 +149,10 @@ void XmlDeserializer::handleChild(const NamedMemberForDeserialization<unsigned c
   handleSimpleType(data, valueType, state);
 }
 
+void XmlDeserializer::handleChild(const NamedMemberForDeserialization<bool>& data, const XmlValueType valueType, xml::PullParser& state) {
+  handleSimpleType(data, valueType, state);
+}
+
 void XmlDeserializer::handleChild(const NamedMemberForDeserialization<double>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
 }
