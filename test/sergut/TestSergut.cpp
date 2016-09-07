@@ -460,12 +460,12 @@ SERGUT_FUNCTION(Ser_ ## collectionType ## Of ## type, data, ar) \
   DEFINE_COLLECTION_TEST_TYPE(type, list, datatypeValue, expectedResult) \
   DEFINE_COLLECTION_TEST_TYPE(type, set, datatypeValue, expectedResult) \
   DEFINE_COLLECTION_TEST_TYPE(type, vector, datatypeValue, expectedResult) \
-TEST_CASE("DeSerialize collection of " #type " as XML", "[sergut]") \
-{ \
-  DEFINE_COLLECTION_TEST_CONTENT(type, list, datatypeValue, expectedResult) \
-  DEFINE_COLLECTION_TEST_CONTENT(type, set, datatypeValue, expectedResult) \
-  DEFINE_COLLECTION_TEST_CONTENT(type, vector, datatypeValue, expectedResult) \
-} \
+  TEST_CASE("DeSerialize collection of " #type " as XML", "[sergut]") \
+  { \
+    DEFINE_COLLECTION_TEST_CONTENT(type, list, datatypeValue, expectedResult) \
+    DEFINE_COLLECTION_TEST_CONTENT(type, set, datatypeValue, expectedResult) \
+    DEFINE_COLLECTION_TEST_CONTENT(type, vector, datatypeValue, expectedResult) \
+  } \
 
 DEFINE_COLLECTION_TEST(bool,     ({false, true}), "<VectorOfbool><value>false</value><value>true</value></VectorOfbool>")
 DEFINE_COLLECTION_TEST(char,     ({'a', 'b', 'c'}), "<VectorOfchar><value>a</value><value>b</value><value>c</value></VectorOfchar>")
@@ -487,6 +487,74 @@ namespace {
 typedef std::string escapedString;
 DEFINE_COLLECTION_TEST(escapedString, ({"<b>\"STRING&amp;\"</b>", "<b>\"STRING&uuml;\"</b>"}),
                    "<VectorOfescapedString><value>&lt;b&gt;&quot;STRING&amp;amp;&quot;&lt;/b&gt;</value><value>&lt;b&gt;&quot;STRING&amp;uuml;&quot;&lt;/b&gt;</value></VectorOfescapedString>")
+}
+
+
+#define DEFINE_COLLECTION_SIBLINGS_TEST_TYPE(type, collectionType, expectedResult) \
+struct Ser_ ## collectionType ## SiblingsOf ## type { \
+  std::collectionType<type> valueA; \
+  std::collectionType<type> valueB; \
+  bool operator==(const Ser_ ## collectionType ## SiblingsOf ## type& rhs) const { return valueA == rhs.valueA && valueB == rhs.valueB; } \
+}; \
+SERGUT_FUNCTION(Ser_ ## collectionType ## SiblingsOf ## type, data, ar) \
+{ \
+  ar & sergut::children & SERGUT_MMEMBER(data, valueA) & SERGUT_MMEMBER(data, valueB); \
+} \
+
+#define DEFINE_COLLECTION_SIBLINGS_TEST_CONTENT(type, collectionType, datatypeValueA, datatypeValueB, expectedResult) \
+  SECTION("Serialize sibling " #collectionType) { \
+    Ser_ ## collectionType ## SiblingsOf ## type data{ std::collectionType<type>datatypeValueA, std::collectionType<type>datatypeValueB }; \
+    sergut::XmlSerializer ser; \
+    ser.serializeData("VectorsOf" #type, data); \
+    CHECK(ser.str() == expectedResult); \
+  } \
+  SECTION("Deserialize sibling " #collectionType " with XmlDeserializer") { \
+    sergut::XmlDeserializer deser(expectedResult); \
+    const Ser_ ## collectionType ## SiblingsOf ## type tpDeser1 = deser.deserializeData<Ser_ ## collectionType ## SiblingsOf ## type>("VectorsOf" #type); \
+    CHECK(tpDeser1 == (Ser_ ## collectionType ## SiblingsOf ## type{ std::collectionType<type>datatypeValueA, std::collectionType<type>datatypeValueB })); \
+  } \
+  SECTION("Deserialize sibling " #collectionType " with XmlDeserializerTiny") { \
+    sergut::XmlDeserializerTiny deser(expectedResult); \
+    const Ser_ ## collectionType ## SiblingsOf ## type tpDeser2 = deser.deserializeData<Ser_ ## collectionType ## SiblingsOf ## type>("VectorsOf" #type); \
+    CHECK(tpDeser2 == (Ser_ ## collectionType ## SiblingsOf ## type{ std::collectionType<type>datatypeValueA, std::collectionType<type>datatypeValueB })); \
+  } \
+  SECTION("Deserialize sibling " #collectionType " with XmlDeserializerTiny2") { \
+    sergut::XmlDeserializerTiny2 deser(expectedResult); \
+    const Ser_ ## collectionType ## SiblingsOf ## type tpDeser2 = deser.deserializeData<Ser_ ## collectionType ## SiblingsOf ## type>("VectorsOf" #type); \
+    CHECK(tpDeser2 == (Ser_ ## collectionType ## SiblingsOf ## type{ std::collectionType<type>datatypeValueA, std::collectionType<type>datatypeValueB })); \
+  } \
+
+#define DEFINE_COLLECTION_SIBLINGS_TEST(type, datatypeValueA, datatypeValueB, expectedResult) \
+  DEFINE_COLLECTION_SIBLINGS_TEST_TYPE(type, list, expectedResult) \
+  DEFINE_COLLECTION_SIBLINGS_TEST_TYPE(type, set, expectedResult) \
+  DEFINE_COLLECTION_SIBLINGS_TEST_TYPE(type, vector, expectedResult) \
+  TEST_CASE("DeSerialize sibling collections of " #type " as XML", "[sergut]") \
+  { \
+    DEFINE_COLLECTION_SIBLINGS_TEST_CONTENT(type, list, datatypeValueA, datatypeValueB, expectedResult) \
+    DEFINE_COLLECTION_SIBLINGS_TEST_CONTENT(type, set, datatypeValueA, datatypeValueB, expectedResult) \
+    DEFINE_COLLECTION_SIBLINGS_TEST_CONTENT(type, vector, datatypeValueA, datatypeValueB, expectedResult) \
+  } \
+
+DEFINE_COLLECTION_SIBLINGS_TEST(bool,     ({false, true}), ({false, true}), "<VectorsOfbool><valueA>false</valueA><valueA>true</valueA><valueB>false</valueB><valueB>true</valueB></VectorsOfbool>")
+DEFINE_COLLECTION_SIBLINGS_TEST(char,     ({'a', 'b'}), ({'a', 'c'}), "<VectorsOfchar><valueA>a</valueA><valueA>b</valueA><valueB>a</valueB><valueB>c</valueB></VectorsOfchar>")
+DEFINE_COLLECTION_SIBLINGS_TEST(uint8_t,  ({0, 17}), ({1, 255}), "<VectorsOfuint8_t><valueA>0</valueA><valueA>17</valueA><valueB>1</valueB><valueB>255</valueB></VectorsOfuint8_t>")
+DEFINE_COLLECTION_SIBLINGS_TEST(int16_t,  ({-32768, 17}),({-2000, 32767}), "<VectorsOfint16_t><valueA>-32768</valueA><valueA>17</valueA><valueB>-2000</valueB><valueB>32767</valueB></VectorsOfint16_t>")
+DEFINE_COLLECTION_SIBLINGS_TEST(uint16_t, ({0, 17}),({20, 65535}), "<VectorsOfuint16_t><valueA>0</valueA><valueA>17</valueA><valueB>20</valueB><valueB>65535</valueB></VectorsOfuint16_t>")
+DEFINE_COLLECTION_SIBLINGS_TEST(int32_t,  ({-2147483648, 17}), ({-2147483648, 2147483647}), "<VectorsOfint32_t><valueA>-2147483648</valueA><valueA>17</valueA><valueB>-2147483648</valueB><valueB>2147483647</valueB></VectorsOfint32_t>")
+DEFINE_COLLECTION_SIBLINGS_TEST(uint32_t, ({0, 17}),({0, 4294967295}), "<VectorsOfuint32_t><valueA>0</valueA><valueA>17</valueA><valueB>0</valueB><valueB>4294967295</valueB></VectorsOfuint32_t>")
+DEFINE_COLLECTION_SIBLINGS_TEST(int64_t,  ({-9223372036854775807LL, 17}),({17, 9223372036854775807LL}), "<VectorsOfint64_t><valueA>-9223372036854775807</valueA><valueA>17</valueA><valueB>17</valueB><valueB>9223372036854775807</valueB></VectorsOfint64_t>")
+DEFINE_COLLECTION_SIBLINGS_TEST(uint64_t, ({0, 17}), ({17, 9223372036854775808ULL}), "<VectorsOfuint64_t><valueA>0</valueA><valueA>17</valueA><valueB>17</valueB><valueB>9223372036854775808</valueB></VectorsOfuint64_t>")
+DEFINE_COLLECTION_SIBLINGS_TEST(float,    ({-17.25, 0.0}), ({-18.125, 0.0000025}), "<VectorsOffloat><valueA>-17.25</valueA><valueA>0</valueA><valueB>-18.125</valueB><valueB>2.5e-06</valueB></VectorsOffloat>")
+DEFINE_COLLECTION_SIBLINGS_TEST(double,   ({-17.25, 0.0}), ({0.0, 0.0000025}), "<VectorsOfdouble><valueA>-17.25</valueA><valueA>0</valueA><valueB>0</valueB><valueB>2.5e-06</valueB></VectorsOfdouble>")
+DEFINE_COLLECTION_SIBLINGS_TEST(Time,     ({{0,0,0}, {14,34,15}}), ({{15,55,54}, {15,55,55}}), "<VectorsOfTime><valueA>0:00:00</valueA><valueA>14:34:15</valueA><valueB>15:55:54</valueB><valueB>15:55:55</valueB></VectorsOfTime>")
+namespace {
+typedef std::string string;
+DEFINE_COLLECTION_SIBLINGS_TEST(string, ({"Hallo", "Liebe"}), ({"Hallo", "Welt"}), "<VectorsOfstring><valueA>Hallo</valueA><valueA>Liebe</valueA><valueB>Hallo</valueB><valueB>Welt</valueB></VectorsOfstring>")
+}
+namespace {
+typedef std::string escapedString;
+DEFINE_COLLECTION_SIBLINGS_TEST(escapedString, ({"<b>\"STRING&amp;\"</b>"}), ({"<b>\"STRING&uuml;\"</b>"}),
+                   "<VectorsOfescapedString><valueA>&lt;b&gt;&quot;STRING&amp;amp;&quot;&lt;/b&gt;</valueA><valueB>&lt;b&gt;&quot;STRING&amp;uuml;&quot;&lt;/b&gt;</valueB></VectorsOfescapedString>")
 }
 
 
