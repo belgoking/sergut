@@ -18,6 +18,7 @@ QMAKE_CXXFLAGS += -ggdb3
 INCLUDEPATH = ../lib "$${CPP_CATCH_INCLUDE_PATH}" "$${CPP_TINYXML_INCLUDE_PATH}"
 
 SOURCES += \
+    TestVersionTracker.cpp \
     hypercall/hypercall.cpp \
     main.cpp \
     sergut/TestJavaClassGenerator.cpp \

@@ -21,6 +21,7 @@ INCLUDEPATH += "$${CPP_TINYXML_INCLUDE_PATH}"
 QMAKE_CXXFLAGS += -ggdb3
 
 SOURCES += \
+    VersionTracker.cpp \
     sergut/JsonSerializer.cpp \
     sergut/MemberDeserializer.cpp \
     sergut/ParsingException.cpp \
@@ -37,6 +38,7 @@ SOURCES += \
     sergut/xml/PullParser.cpp \
 
 HEADERS += \
+    VersionTracker.h \
     sergut/DeserializerBase.h \
     sergut/Exception.h \
     sergut/JavaClassGenerator.h \
