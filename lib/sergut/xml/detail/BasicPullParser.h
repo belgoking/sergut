@@ -63,11 +63,7 @@ public:
 };
 
 /**
- * @brief The PullParserNV class implements a very simple XML-Pull-Parser
- *
- * It does no validating. It does not even check that closing tags match their
- * opening tags. In case you want to verify this, the using application has
- * to do so.
+ * @brief The BasicPullParser class implements a very simple XML-Pull-Parser
  *
  * The parser operates on a constant buffer that it receives from outside.
  */
