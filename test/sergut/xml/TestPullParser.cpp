@@ -38,22 +38,25 @@ std::string toString(const TargetEncoding encoding, const bool shortDesc = false
 
 static const std::vector<TargetEncoding> encodings{ TargetEncoding::Utf8, TargetEncoding::Utf16BE, TargetEncoding::Utf16LE };
 
-std::string asciiToEncoding(const std::string& in, const TargetEncoding encoding) {
-  std::string out(encoding==TargetEncoding::Utf8 ? in.size() : in.size()*2+2, '\0');
+std::string asciiToEncoding(const std::string& in, const TargetEncoding encoding, const bool addBOM = true) {
+  const std::size_t outSize = encoding==TargetEncoding::Utf8 ? in.size() : in.size()*2+(addBOM?2:0);
+  std::string out(outSize, '\0');
   // add the BOM
   std::string::iterator outIt = out.begin();
-  switch (encoding) {
-  case TargetEncoding::Utf16BE:
-    *(outIt++) = 0xFE;
-    *(outIt++) = 0xFF;
-    break;
-  case TargetEncoding::Utf16LE:
-    *(outIt++) = 0xFF;
-    *(outIt++) = 0xFE;
-    break;
-  case TargetEncoding::Utf8:
-    // no BOM
-    break;
+  if(addBOM) {
+    switch (encoding) {
+    case TargetEncoding::Utf16BE:
+      *(outIt++) = 0xFE;
+      *(outIt++) = 0xFF;
+      break;
+    case TargetEncoding::Utf16LE:
+      *(outIt++) = 0xFF;
+      *(outIt++) = 0xFE;
+      break;
+    case TargetEncoding::Utf8:
+      // no BOM
+      break;
+    }
   }
   std::string::const_iterator inIt = in.begin();
   while(inIt != in.end()) {
@@ -599,6 +602,55 @@ TEST_CASE("XML-Parser (Entity Test)", "[XML]")
           CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
           CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseDocument);
+        }
+      }
+    }
+  }
+}
+
+
+TEST_CASE("XML-Parser (append data Test)", "[XML]")
+{
+  for(const TargetEncoding encodingType: encodings)
+  {
+    constexpr int REPETITION_COUNT=10;
+    GIVEN("The " + toString(encodingType) + " PullParser") {
+      WHEN("Starting to parse an incomplete XML and then completing the document after starting") {
+        const std::string unencodedNested = "<nested attr=\"ad1\">content</nested>";
+        const std::string initialXml = asciiToEncoding("<root>" + unencodedNested.substr(0, 10), encodingType);
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(initialXml));
+        sergut::xml::PullParser& parser = *parserTmp;
+        CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+        CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+        CHECK(parser.getCurrentTagName() == std::string("root"));
+        CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+        CHECK(parser.getCurrentTagName() == std::string("nested"));
+        const std::string remainingFragment = asciiToEncoding(unencodedNested.substr(10), encodingType, false);
+        parser.appendData(remainingFragment.c_str(), remainingFragment.size());
+        const std::string nested = asciiToEncoding(unencodedNested, encodingType, false);
+        for(int i = 0; i < REPETITION_COUNT; ++i) {
+          parser.appendData(nested.c_str(), nested.size());
+        }
+        const std::string closingTag = asciiToEncoding("</root>", encodingType, false);
+        parser.appendData(closingTag.c_str(), closingTag.size());
+
+        THEN("The no error is detected by the parser") {
+          int i = 0;
+          for(; i < REPETITION_COUNT + 1 && parser.isOk(); ++i) {
+            CHECK(parser.getCurrentTokenType() == sergut::xml::ParseTokenType::OpenTag);
+            CHECK(parser.getCurrentTagName() == std::string("nested"));
+            CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
+            CHECK(parser.getCurrentAttributeName() == std::string("attr"));
+            CHECK(parser.getCurrentValue() == std::string("ad1"));
+            CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Text);
+            CHECK(parser.getCurrentValue() == std::string("content"));
+            CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
+            CHECK(parser.getCurrentTagName() == std::string("nested"));
+            parser.parseNext();
+          }
+          CHECK(i == REPETITION_COUNT + 1);
+          CHECK(parser.getCurrentTokenType() == sergut::xml::ParseTokenType::CloseTag);
+          CHECK(parser.getCurrentTagName() == std::string("root"));
         }
       }
     }

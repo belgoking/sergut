@@ -60,6 +60,8 @@ public:
 
   static bool isError(DecodingResult r) noexcept { return r < DecodingResult::Empty; }
 
+  virtual void appendData(const char* data, const std::size_t size) = 0;
+
 private:
   std::string currentValueBuffer;
 };

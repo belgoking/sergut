@@ -69,6 +69,8 @@ public:
     return frameEnd.size();
   }
 
+  void addOffset(const std::ptrdiff_t offset) { (void)offset; }
+
 private:
   const char* getTopFrameStart() const noexcept {
     if(frameEnd.size() < 2) {
@@ -118,6 +120,12 @@ public:
 
   std::size_t frameCount() const noexcept {
     return frames.size();
+  }
+
+  void addOffset(const std::ptrdiff_t offset) {
+    for(sergut::misc::ConstStringRef& frame: frames) {
+      frame.addOffset(offset);
+    }
   }
 
 private:

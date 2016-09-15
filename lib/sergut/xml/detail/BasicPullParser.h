@@ -41,12 +41,21 @@ struct DecodedNameBuffers;
 
 template<>
 struct DecodedNameBuffers<true> {
+public:
+  void addOffset(const std::ptrdiff_t offset) {
+    decodedTagName.addOffset(offset);
+    decodedAttrName.addOffset(offset);
+  }
+public:
   sergut::misc::ConstStringRef   decodedTagName;
   sergut::misc::ConstStringRef   decodedAttrName;
 };
 
 template<>
 struct DecodedNameBuffers<false> {
+public:
+  void addOffset(const std::ptrdiff_t offset) { (void)offset; }
+public:
   std::vector<char> decodedTagNameBuffer;
   sergut::misc::StringRef   decodedTagName;
   std::vector<char> decodedAttrNameBuffer;
@@ -80,8 +89,10 @@ public:
   sergut::misc::ConstStringRef getCurrentTagName() const override;
   sergut::misc::ConstStringRef getCurrentAttributeName() const override;
   sergut::misc::ConstStringRef getCurrentValue() const override;
+  void appendData(const char* data, const std::size_t size) override;
 
 private:
+  void recomputePointersToInput(const char* oldStartOfInput);
   /** Check whether there is an XML declaration and if so whether it is correct
    * @return true if there is no XML declaration or there is one that is OK (right version and encoding)
    */
@@ -172,6 +183,26 @@ template<typename CharDecoder>
 sergut::misc::ConstStringRef sergut::xml::detail::BasicPullParser<CharDecoder>::getCurrentValue() const
 {
   return sergut::misc::ConstStringRef(&*decodedValueBuffer.begin(), &*decodedValueBuffer.end());
+}
+
+template<typename CharDecoder>
+void sergut::xml::detail::BasicPullParser<CharDecoder>::appendData(const char* data, const std::size_t size)
+{
+  const char* oldStartPos = inputData.data();
+  inputData.insert(inputData.end(), data, data + size);
+  recomputePointersToInput(oldStartPos);
+}
+
+template<typename CharDecoder>
+void sergut::xml::detail::BasicPullParser<CharDecoder>::recomputePointersToInput(const char* oldStartOfInput)
+{
+  if(oldStartOfInput == inputData.data()) {
+    return;
+  }
+  const std::ptrdiff_t diff = inputData.data() - oldStartOfInput;
+  readerState.readPointer += diff;
+  parseStack.addOffset(diff);
+  decodedNameBuffers.addOffset(diff);
 }
 
 template<typename CharDecoder>

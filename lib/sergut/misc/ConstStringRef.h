@@ -60,6 +60,11 @@ public:
     return true;
   }
 
+  void addOffset(const std::ptrdiff_t offset) {
+    beginPtr += offset;
+    endPtr   += offset;
+  }
+
 private:
   friend bool operator==(const ConstStringRef& lhs, const ConstStringRef& rhs) noexcept;
 
