@@ -36,18 +36,25 @@
 #include <cassert>
 #include <iostream>
 
-/*
- * <foo>
- *   <bar baz="1">val</bar>
- *   <bam>val</bam>
- *   <bo><tox>tom</tox></bo>
- *   <mer><fo1>1</fo1><fo1>2</fo1></mer>
- *   <collection><member>1</member><member>2</member></collection>
- * <!-- ^-from 'foo' ^-from? -->
- *   <huk foo="fufu"/>
- * </foo>
+/**
+ * This data driven XmlDeserializer pulls XML events out of a PullParser and tries
+ * to match them to the data type that it is requested to deserialize into.
+ *
+ * For structured data types (classes or structs) with exception of those that are
+ * deserialized individually from string, the XmlDeserializer works in two
+ * steps for each node:
+ * \ol In the first step it retrieves all the members of the data type and keeps
+ *     a deserializer for this member in a map keyed by the attribute or tag name.
+ *     The member handlers are constructed using the \c MemberDeserializer, which
+ *     creates a virtual function that calls the appropriat
+ *     \c XmlDeserializer::handleChild function. Those virtual functions are then
+ *     stored in a \c map for latter use.
+ * \ol In the second step the elements of the current nesting level are pulled out
+ *     of the \c PullParser. In case there is a matching handler for that XML-Node,
+ *     the handler is executed with the PullParser as parameter.
  */
 namespace sergut {
+
 
 class XmlDeserializer
 {
@@ -202,6 +209,10 @@ private:
     }
   }
 
+  /**
+   * SFINAE trick to ensure that this template function is called only if SERGUT_FUNCTION(DT, data, ar) exists for datatype DT.
+   * \see handleChild that is responsible for SERGUT_DESERIALIZE_FROM_STRING(DT, variableName, stringVariableName)
+   */
   // structured data
   template<typename DT>
   static auto handleChild(const NamedMemberForDeserialization<DT>& data, const XmlValueType valueType, xml::PullParser& state)
@@ -219,6 +230,11 @@ private:
     feedMembers(memberDeserializer, state);
   }
 
+  /**
+   * SFINAE trick to ensure that this template function is called only if SERGUT_DESERIALIZE_FROM_STRING(DT, variableName, stringVariableName)
+   * exists for datatype DT.
+   * \see handleChild that is responsible for SERGUT_FUNCTION(DT, data, ar)
+   */
   template<typename DT>
   static auto handleChild(const NamedMemberForDeserialization<DT>& data, const XmlValueType valueType, xml::PullParser& state)
   -> decltype(deserializeFromString(data.data, std::string()),void())

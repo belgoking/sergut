@@ -25,7 +25,9 @@
 
 namespace sergut {
 namespace detail {
-// Helper type to hold reference to lValues and copies to rValue types
+
+
+// Helper type to hold reference to members of the serialized object and copies to temporary types
 // (specifically NamedMemberForDeserialization and Nested)
 template<typename DT>
 struct DataHolder {
@@ -47,9 +49,9 @@ struct Nesting : DataHolder<DT> {
   const XmlValueType xmlValueType;
 };
 
-template<typename DT>
-struct DataHolder<Nesting<DT>> {
-  Nesting<DT> data;
+template<typename InnerDT>
+struct DataHolder<Nesting<InnerDT>> {
+  Nesting<InnerDT> data;
 };
 
 // This function is used for nested datastructures.
