@@ -777,6 +777,177 @@ DEFINE_DOUBLE_NESTED_TEST(escapedString, "<b>\"STRING&amp;\"</b>",
 }
 
 
+TEST_CASE("Deserialize XML snippets of simple type", "[sergut]")
+{
+  constexpr int REPETITION_COUNT=10;
+  GIVEN("XML with a list") {
+    std::string xml = "<root>";
+    for(int i = 0; i < REPETITION_COUNT; ++i) {
+      xml += "<data>" + std::to_string(i) + "</data>";
+    }
+    xml += "</root>";
+    WHEN("Starting to read out the XML snippets") {
+      std::unique_ptr<sergut::xml::PullParser> pullParserHolder = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+      sergut::xml::PullParser& pullParser = *pullParserHolder;
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+      CHECK(pullParser.getCurrentTagName() == std::string("root"));
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+      CHECK(pullParser.getCurrentTagName() == std::string("data"));
+      THEN("The elements are correctly deserialized") {
+        for(int i = 0; i < REPETITION_COUNT; ++i) {
+          CHECK(sergut::XmlDeserializer::deserializeFromSnippet<int>("data", pullParser) == i);
+        }
+        CHECK(pullParser.getCurrentTokenType() == sergut::xml::ParseTokenType::CloseTag);
+        CHECK(pullParser.getCurrentTagName() == std::string("root"));
+      }
+    }
+  }
+}
+
+
+TEST_CASE("Deserialize XML snippets of simple nested type as attribute", "[sergut]")
+{
+  constexpr int REPETITION_COUNT=10;
+  GIVEN("XML with a list") {
+    std::string xml = "<root>";
+    for(int i = 0; i < REPETITION_COUNT; ++i) {
+      xml += "<data value=\"" + std::to_string(i) + "\"/>";
+    }
+    xml += "</root>";
+    WHEN("Starting to read out the XML snippets") {
+      std::unique_ptr<sergut::xml::PullParser> pullParserHolder = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+      sergut::xml::PullParser& pullParser = *pullParserHolder;
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+      CHECK(pullParser.getCurrentTagName() == std::string("root"));
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+      CHECK(pullParser.getCurrentTagName() == std::string("data"));
+      THEN("The elements are correctly deserialized") {
+        for(int i = 0; i < REPETITION_COUNT; ++i) {
+          CHECK((sergut::XmlDeserializer::deserializeNestedFromSnippet<int, sergut::XmlValueType::Attribute>(
+                   "data", "value", pullParser)) == i);
+        }
+        CHECK(pullParser.getCurrentTokenType() == sergut::xml::ParseTokenType::CloseTag);
+        CHECK(pullParser.getCurrentTagName() == std::string("root"));
+      }
+    }
+  }
+}
+
+
+TEST_CASE("Deserialize XML snippets of simple nested type as children", "[sergut]")
+{
+  constexpr int REPETITION_COUNT=10;
+  GIVEN("XML with a list") {
+    std::string xml = "<root>";
+    for(int i = 0; i < REPETITION_COUNT; ++i) {
+      xml += "<data><value>" + std::to_string(i) + "</value></data>";
+    }
+    xml += "</root>";
+    WHEN("Starting to read out the XML snippets") {
+      std::unique_ptr<sergut::xml::PullParser> pullParserHolder = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+      sergut::xml::PullParser& pullParser = *pullParserHolder;
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+      CHECK(pullParser.getCurrentTagName() == std::string("root"));
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+      CHECK(pullParser.getCurrentTagName() == std::string("data"));
+      THEN("The elements are correctly deserialized with the explicit function") {
+        for(int i = 0; i < REPETITION_COUNT; ++i) {
+          CHECK((sergut::XmlDeserializer::deserializeNestedFromSnippet<int, sergut::XmlValueType::Child>(
+                  "data", "value", pullParser)) == i);
+        }
+        CHECK(pullParser.getCurrentTokenType() == sergut::xml::ParseTokenType::CloseTag);
+        CHECK(pullParser.getCurrentTagName() == std::string("root"));
+      }
+      THEN("The elements are correctly deserialized with the implicit function") {
+        for(int i = 0; i < REPETITION_COUNT; ++i) {
+          CHECK(sergut::XmlDeserializer::deserializeNestedFromSnippet<int>("data",
+                                                                           "value",
+                                                                           pullParser) == i);
+        }
+        CHECK(pullParser.getCurrentTokenType() == sergut::xml::ParseTokenType::CloseTag);
+        CHECK(pullParser.getCurrentTagName() == std::string("root"));
+      }
+    }
+  }
+}
+
+
+struct XmlSnippetData {
+  int v1;
+  int v2;
+  bool operator==(const XmlSnippetData& rhs) const { return v1 == rhs.v1 && v2 == rhs.v2; }
+};
+SERGUT_FUNCTION(XmlSnippetData, data, ar)
+{
+  ar
+      & SERGUT_MMEMBER(data, v1)
+      & SERGUT_MMEMBER(data, v2);
+}
+
+TEST_CASE("Deserialize XML snippets of datastructure as attributes", "[sergut]")
+{
+  constexpr int REPETITION_COUNT=10;
+  GIVEN("XML with a list") {
+    std::string xml = "<root>";
+    for(int i = 0; i < REPETITION_COUNT; ++i) {
+      xml += "<data v1=\"" + std::to_string(i) + "\" v2=\"" + std::to_string(i+1) + "\"></data>";
+    }
+    xml += "</root>";
+    WHEN("Starting to read out the XML snippets") {
+      std::unique_ptr<sergut::xml::PullParser> pullParserHolder = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+      sergut::xml::PullParser& pullParser = *pullParserHolder;
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+      CHECK(pullParser.getCurrentTagName() == std::string("root"));
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+      CHECK(pullParser.getCurrentTagName() == std::string("data"));
+      THEN("The elements are correctly deserialized with the explicit function") {
+        for(int i = 0; i < REPETITION_COUNT; ++i) {
+          CHECK(sergut::XmlDeserializer::deserializeFromSnippet<XmlSnippetData>("data",
+                                                                                pullParser)
+                == (XmlSnippetData{i, i+1}));
+        }
+        CHECK(pullParser.getCurrentTokenType() == sergut::xml::ParseTokenType::CloseTag);
+        CHECK(pullParser.getCurrentTagName() == std::string("root"));
+      }
+    }
+  }
+}
+
+
+TEST_CASE("Deserialize XML snippets of nested datastructure as attributes", "[sergut]")
+{
+  constexpr int REPETITION_COUNT=10;
+  GIVEN("XML with a list") {
+    std::string xml = "<root>";
+    for(int i = 0; i < REPETITION_COUNT; ++i) {
+      xml += "<data><value v1=\"" + std::to_string(i) + "\" v2=\"" + std::to_string(i+1) + "\"/></data>";
+    }
+    xml += "</root>";
+    WHEN("Starting to read out the XML snippets") {
+      std::unique_ptr<sergut::xml::PullParser> pullParserHolder = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(xml));
+      sergut::xml::PullParser& pullParser = *pullParserHolder;
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+      CHECK(pullParser.getCurrentTagName() == std::string("root"));
+      CHECK(pullParser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+      CHECK(pullParser.getCurrentTagName() == std::string("data"));
+      THEN("The elements are correctly deserialized with the explicit function") {
+        for(int i = 0; i < REPETITION_COUNT; ++i) {
+          CHECK(sergut::XmlDeserializer::deserializeNestedFromSnippet<XmlSnippetData>("data", "value", pullParser)
+                == (XmlSnippetData{i, i+1}));
+        }
+        CHECK(pullParser.getCurrentTokenType() == sergut::xml::ParseTokenType::CloseTag);
+        CHECK(pullParser.getCurrentTagName() == std::string("root"));
+      }
+    }
+  }
+}
+
+
 /*
  *  TODO:
  * * UTF-16 handling

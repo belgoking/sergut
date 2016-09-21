@@ -46,16 +46,6 @@ std::size_t XmlDeserializer::ErrorContext::getColumn() const
   return std::size_t(-1);
 }
 
-struct XmlDeserializer::Impl {
-  Impl(const misc::ConstStringRef& xml)
-    : xmlDocument(xml::PullParser::createParser(xml))
-  { }
-  Impl(const Impl&) = delete;
-  Impl& operator=(const Impl&) = delete;
-
-public:
-  std::unique_ptr<xml::PullParser> xmlDocument;
-};
 
 template<typename DT>
 void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const XmlValueType valueType, xml::PullParser& currentNode)
@@ -106,12 +96,13 @@ void handleSimpleType(const NamedMemberForDeserialization<DT>& data, const XmlVa
 }
 
 XmlDeserializer::XmlDeserializer(const misc::ConstStringRef& xml)
-  : impl(new Impl(xml))
+    : ownXmlDocument(xml::PullParser::createParser(xml))
+    , xmlDocument(&*ownXmlDocument)
 { }
 
-XmlDeserializer::~XmlDeserializer() {
-  delete impl;
-}
+XmlDeserializer::XmlDeserializer(xml::PullParser& currentXmlNode)
+    : xmlDocument(&currentXmlNode)
+{ }
 
 void XmlDeserializer::handleChild(const NamedMemberForDeserialization<long long>& data, const XmlValueType valueType, xml::PullParser& state) {
   handleSimpleType(data, valueType, state);
@@ -324,11 +315,6 @@ bool XmlDeserializer::checkNextContainerElement(const char* name, const XmlValue
     break;
   }
   return false;
-}
-
-xml::PullParser& XmlDeserializer::getPullParser()
-{
-  return *impl->xmlDocument;
 }
 
 } // namespace sergut
