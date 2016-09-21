@@ -21,11 +21,11 @@
 
 #pragma once
 
-#include "sergut/MemberDeserializer.h"
 #include "sergut/ParsingException.h"
 #include "sergut/SerializerBase.h"
 #include "sergut/Util.h"
 #include "sergut/detail/DummySerializer.h"
+#include "sergut/detail/MemberDeserializer.h"
 #include "sergut/detail/XmlDeserializerHelper.h"
 #include "sergut/xml/PullParser.h"
 
@@ -58,8 +58,8 @@ namespace sergut {
 
 class XmlDeserializer
 {
-  template<typename T, typename S> friend class MemberDeserializer;
-  typedef MemberDeserializer<XmlDeserializer, xml::PullParser&> MyMemberDeserializer;
+  template<typename T, typename S> friend class detail::MemberDeserializer;
+  typedef detail::MemberDeserializer<XmlDeserializer, xml::PullParser&> MyMemberDeserializer;
   struct Impl;
 public:
   class ErrorContext: public ParsingException::ErrorContext {

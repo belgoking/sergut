@@ -32,6 +32,7 @@
 #include <vector>
 
 namespace sergut {
+namespace detail {
 
 class MemberDeserializerBase: public DeserializerBase {
 public:
@@ -136,4 +137,5 @@ private:
 };
 
 
+} // namespace detail
 } // namespace sergut

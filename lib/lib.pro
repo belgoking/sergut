@@ -23,7 +23,6 @@ QMAKE_CXXFLAGS += -ggdb3
 SOURCES += \
     VersionTracker.cpp \
     sergut/JsonSerializer.cpp \
-    sergut/MemberDeserializer.cpp \
     sergut/ParsingException.cpp \
     sergut/XmlDeserializer.cpp \
     sergut/XmlDeserializerTiny.cpp \
@@ -31,6 +30,7 @@ SOURCES += \
     sergut/XmlSerializer.cpp \
     sergut/detail/JavaClassGeneratorBase.cpp \
     sergut/detail/Member.cpp \
+    sergut/detail/MemberDeserializer.cpp \
     sergut/detail/NameSpace.cpp \
     sergut/detail/TypeName.cpp \
     sergut/misc/ReadHelper.cpp \
@@ -43,7 +43,6 @@ HEADERS += \
     sergut/Exception.h \
     sergut/JavaClassGenerator.h \
     sergut/JsonSerializer.h \
-    sergut/MemberDeserializer.h \
     sergut/Misc.h \
     sergut/ParsingException.h \
     sergut/SerializationException.h \
@@ -58,6 +57,7 @@ HEADERS += \
     sergut/detail/JavaClassGeneratorBase.h \
     sergut/detail/JavaClassGeneratorBuilder.h \
     sergut/detail/Member.h \
+    sergut/detail/MemberDeserializer.h \
     sergut/detail/NameSpace.h \
     sergut/detail/Nesting.h \
     sergut/detail/TypeName.h \

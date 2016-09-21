@@ -19,10 +19,12 @@
  * SOFTWARE.
  */
 
-#include "sergut/MemberDeserializer.h"
+#include "sergut/detail/MemberDeserializer.h"
 
 namespace sergut {
+namespace detail {
 
 const std::string MemberDeserializerBase::SINGLE_CHILD("SINGLE CHILD");
 
+}
 }

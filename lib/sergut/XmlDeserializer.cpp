@@ -223,7 +223,7 @@ void XmlDeserializer::feedMembers(MyMemberDeserializer &retriever, xml::PullPars
   // try to handle single child
   if(state.getCurrentTokenType() == xml::ParseTokenType::Text) {
     // SingleChild can either be a simpleType or StringSerializable
-    std::shared_ptr<MyMemberDeserializer::HolderBase> memberHolder = retriever.popMember(MemberDeserializerBase::SINGLE_CHILD);
+    std::shared_ptr<MyMemberDeserializer::HolderBase> memberHolder = retriever.popMember(detail::MemberDeserializerBase::SINGLE_CHILD);
     if(memberHolder) {
       const std::string tagName = state.getCurrentTagName().toString();
       memberHolder->execute(state);
