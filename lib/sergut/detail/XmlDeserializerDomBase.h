@@ -219,10 +219,13 @@ public:
 
   /// Initial call to the serializer
   /// \param name The name of the outer tag
-  template<typename DT>
-  DT deserializeNestedData(const char* outerName, const char* innerName,
-                           const XmlValueType xmlValueType = XmlValueType::Child)
+  template<typename DT, XmlValueType xmlValueType = XmlValueType::Child>
+  DT deserializeNestedData(const char* outerName, const char* innerName)
   {
+    static_assert(detail::XmlDeserializerHelper::canDeserializeIntoAttribute<DT>()
+                  || xmlValueType == XmlValueType::Child,
+                  "Datatypes that cannot be serialized as an Attribute (i.e. those for which serialize() is called), "
+                  "must be deserialized with xmlValueType == sergut::XmlValueType::Child.");
     if(outerName != nullptr && std::strcmp(currentElement->Value(), outerName) != 0) {
       throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
     }

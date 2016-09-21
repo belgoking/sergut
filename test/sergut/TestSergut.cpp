@@ -291,17 +291,17 @@ TEST_CASE("DeSerialize basic datatype " #type " as attribute in XML", "[sergut]"
   } \
   SECTION("Deserialize XmlDeserializer") { \
     sergut::XmlDeserializer deser(expectedResult); \
-    const type tpDeser1 = deser.deserializeNestedData<type>(#type, "value", sergut::XmlValueType::Attribute); \
+    const type tpDeser1 = deser.deserializeNestedData<type, sergut::XmlValueType::Attribute>(#type, "value"); \
     CHECK(tpDeser1 == datatypeValue); \
   } \
   SECTION("Deserialize XmlDeserializerTiny") { \
     sergut::XmlDeserializerTiny deser(expectedResult); \
-    const type tpDeser2 = deser.deserializeNestedData<type>(#type, "value", sergut::XmlValueType::Attribute); \
+    const type tpDeser2 = deser.deserializeNestedData<type, sergut::XmlValueType::Attribute>(#type, "value"); \
     CHECK(tpDeser2 == datatypeValue); \
   } \
   SECTION("Deserialize XmlDeserializerTiny2") { \
     sergut::XmlDeserializerTiny2 deser(expectedResult); \
-    const type tpDeser2 = deser.deserializeNestedData<type>(#type, "value", sergut::XmlValueType::Attribute); \
+    const type tpDeser2 = deser.deserializeNestedData<type, sergut::XmlValueType::Attribute>(#type, "value"); \
     CHECK(tpDeser2 == datatypeValue); \
   } \
 } \
@@ -339,17 +339,17 @@ TEST_CASE("DeSerialize basic datatype " #type " as child in XML", "[sergut]") \
   } \
   SECTION("Deserialize XmlDeserializer") { \
     sergut::XmlDeserializer deser(expectedResult); \
-    const type tpDeser1 = deser.deserializeNestedData<type>(#type, "value", sergut::XmlValueType::Child); \
+    const type tpDeser1 = deser.deserializeNestedData<type, sergut::XmlValueType::Child>(#type, "value"); \
     CHECK(tpDeser1 == datatypeValue); \
   } \
   SECTION("Deserialize XmlDeserializerTiny") { \
     sergut::XmlDeserializerTiny deser(expectedResult); \
-    const type tpDeser2 = deser.deserializeNestedData<type>(#type, "value", sergut::XmlValueType::Child); \
+    const type tpDeser2 = deser.deserializeNestedData<type, sergut::XmlValueType::Child>(#type, "value"); \
     CHECK(tpDeser2 == datatypeValue); \
   } \
   SECTION("Deserialize XmlDeserializerTiny2") { \
     sergut::XmlDeserializerTiny2 deser(expectedResult); \
-    const type tpDeser2 = deser.deserializeNestedData<type>(#type, "value", sergut::XmlValueType::Child); \
+    const type tpDeser2 = deser.deserializeNestedData<type, sergut::XmlValueType::Child>(#type, "value"); \
     CHECK(tpDeser2 == datatypeValue); \
   } \
 } \

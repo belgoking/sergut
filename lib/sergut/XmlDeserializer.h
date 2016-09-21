@@ -112,8 +112,12 @@ public:
     return data;
   }
 
-  template<typename DT>
-  DT deserializeNestedData(const char* outerName, const char* innerName, const sergut::XmlValueType xmlValueType) {
+  template<typename DT, XmlValueType xmlValueType = XmlValueType::Child>
+  DT deserializeNestedData(const char* outerName, const char* innerName) {
+    static_assert(detail::XmlDeserializerHelper::canDeserializeIntoAttribute<DT>()
+                  || xmlValueType == XmlValueType::Child,
+                  "Datatypes that cannot be serialized as an Attribute (i.e. those for which serialize() is called), "
+                  "must be deserialized with xmlValueType == sergut::XmlValueType::Child.");
     DT data;
     doDeserializeData(MyMemberDeserializer::toNamedMember(outerName,
                                                           MyMemberDeserializer::toNestedMember(innerName, data, true,
