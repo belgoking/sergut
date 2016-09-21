@@ -126,14 +126,6 @@ public:
     return data;
   }
 
-  template<typename DT>
-  DT deserializeNestedData(const char* outerName, const char* innerName) {
-    DT data;
-    doDeserializeData(MyMemberDeserializer::toNamedMember(outerName, MyMemberDeserializer::toNestedMember(innerName, data, true,
-                                                                                                         XmlValueType::Child),
-                                                          true));
-    return data;
-  }
 
 private:
   template<typename DT>
