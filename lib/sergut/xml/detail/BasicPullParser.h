@@ -47,8 +47,8 @@ public:
     decodedAttrName.addOffset(offset);
   }
 public:
-  sergut::misc::ConstStringRef   decodedTagName;
-  sergut::misc::ConstStringRef   decodedAttrName;
+  sergut::misc::ConstStringRef decodedTagName;
+  sergut::misc::ConstStringRef decodedAttrName;
 };
 
 template<>
@@ -56,10 +56,10 @@ struct DecodedNameBuffers<false> {
 public:
   void addOffset(const std::ptrdiff_t offset) { (void)offset; }
 public:
-  std::vector<char> decodedTagNameBuffer;
-  sergut::misc::StringRef   decodedTagName;
-  std::vector<char> decodedAttrNameBuffer;
-  sergut::misc::StringRef   decodedAttrName;
+  std::vector<char>       decodedTagNameBuffer;
+  sergut::misc::StringRef decodedTagName;
+  std::vector<char>       decodedAttrNameBuffer;
+  sergut::misc::StringRef decodedAttrName;
 };
 
 /**
