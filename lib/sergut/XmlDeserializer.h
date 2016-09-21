@@ -98,11 +98,15 @@ public:
   DT deserializeData(const char* name) {
     DT data;
     if(detail::XmlDeserializerHelper::canDeserializeIntoAttribute<DT>()) {
+      // In this case we don't call any serialize()-function. Thus this has
+      // to be serialized to something like '<name>value</name>'.
       doDeserializeData(MyMemberDeserializer::toNamedMember(
                           name,
                           MyMemberDeserializer::toNestedMember("DUMMY", data, true, XmlValueType::SingleChild),
                           true));
     } else {
+      // In this case the serialize()-function is called and we don't have to
+      // do any special handling.
       doDeserializeData(MyMemberDeserializer::toNamedMember(name, data, true));
     }
     return data;
