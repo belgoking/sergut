@@ -31,7 +31,7 @@ struct ReaderState {
   ReaderState(const char* pReadPointer)
     : readPointer(pReadPointer)
   { }
-  const char* readPointer;
+  const char* readPointer = nullptr;
   sergut::unicode::Utf32Char currentChar = 0;
 };
 
