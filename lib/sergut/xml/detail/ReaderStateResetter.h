@@ -43,6 +43,10 @@ public:
     readerStateToReset = nullptr;
   }
 
+  const char* getOriginalReadPointer() const {
+    return origReaderState.readPointer;
+  }
+
 private:
   ReaderState* readerStateToReset;
   const ReaderState origReaderState;

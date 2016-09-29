@@ -656,3 +656,115 @@ TEST_CASE("XML-Parser (append data Test)", "[XML]")
     }
   }
 }
+
+
+static std::string getTextFromParser(const sergut::xml::PullParser& parser, const sergut::xml::ParseTokenType expectedTokenType)
+{
+  switch(expectedTokenType) {
+  case sergut::xml::ParseTokenType::OpenTag:
+  case sergut::xml::ParseTokenType::CloseTag:
+    return parser.getCurrentTagName().toString();
+  case sergut::xml::ParseTokenType::Attribute:
+    return parser.getCurrentAttributeName().toString();
+  case sergut::xml::ParseTokenType::Text:
+    return parser.getCurrentValue().toString();
+  case sergut::xml::ParseTokenType::InitialState:
+  case sergut::xml::ParseTokenType::OpenDocument:
+  case sergut::xml::ParseTokenType::CloseDocument:
+  case sergut::xml::ParseTokenType::IncompleteDocument:
+  case sergut::xml::ParseTokenType::Error:
+    break;
+  }
+  return std::string();
+}
+
+TEST_CASE("XML-Parser (savepoint Test)", "[XML]")
+{
+  const std::vector<std::tuple<std::string, std::string, std::size_t>> testData{
+    std::make_tuple( "<root><inner a", "tt=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner></root>",  3 ),
+    std::make_tuple( "<root><inner att=\"1\"><", "v>1</v></inner><inner att=\"1\"><v>1</v></inner></root>",  4 ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v>", "</inner><inner att=\"1\"><v>1</v></inner></root>",  7 ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner", "><inner att=\"1\"><v>1</v></inner></root>",  7 ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner>", "<inner att=\"1\"><v>1</v></inner></root>",  8 ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner", " att=\"1\"><v>1</v></inner></root>",  8 ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner a", "tt=\"1\"><v>1</v></inner></root>",  9 ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\">", "<v>1</v></inner></root>", 10 ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1", "</v></inner></root>", 12 ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v>", "</inner></root>", 13 ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner", "></root>", 13 ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner>", "</root>", 14 ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner></", "root>", 14 ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner></root", ">", 14 )
+  };
+  const int savePoint1 = 2;
+  const int savePoint2 = 8;
+  const std::vector<std::tuple<sergut::xml::ParseTokenType, std::string>> expectedTokens{
+    std::make_tuple( sergut::xml::ParseTokenType::OpenDocument,  std::string() ),
+        std::make_tuple( sergut::xml::ParseTokenType::OpenTag,   std::string("root") ),
+        std::make_tuple( sergut::xml::ParseTokenType::OpenTag,   std::string("inner") ),
+        std::make_tuple( sergut::xml::ParseTokenType::Attribute, std::string("att") ),
+        std::make_tuple( sergut::xml::ParseTokenType::OpenTag,   std::string("v") ),
+        std::make_tuple( sergut::xml::ParseTokenType::Text,      std::string("1") ),
+        std::make_tuple( sergut::xml::ParseTokenType::CloseTag,  std::string("v") ),
+        std::make_tuple( sergut::xml::ParseTokenType::CloseTag,  std::string("inner") ),
+        std::make_tuple( sergut::xml::ParseTokenType::OpenTag,   std::string("inner") ),
+        std::make_tuple( sergut::xml::ParseTokenType::Attribute, std::string("att") ),
+        std::make_tuple( sergut::xml::ParseTokenType::OpenTag,   std::string("v") ),
+        std::make_tuple( sergut::xml::ParseTokenType::Text,      std::string("1") ),
+        std::make_tuple( sergut::xml::ParseTokenType::CloseTag,  std::string("v") ),
+        std::make_tuple( sergut::xml::ParseTokenType::CloseTag,  std::string("inner") ),
+        std::make_tuple( sergut::xml::ParseTokenType::CloseTag,  std::string("root") ),
+        std::make_tuple( sergut::xml::ParseTokenType::CloseDocument, std::string() )
+  };
+  for(const auto& values: testData) {
+    const std::string& firstPart = std::get<0>(values);
+    const std::string& secondPart = std::get<1>(values);
+    const std::size_t interruptedAtCount = std::get<2>(values);
+    for(const TargetEncoding encodingType: encodings)
+    {
+      GIVEN("The " + toString(encodingType) + " PullParser") {
+        WHEN("Starting to parse an incomplete XML, setting a savePoint, Reading data out of the document until the end "
+             "of the fragment is reached and then repeating the deserialization after the last save point")
+        {
+          const std::string  firstXmlFragment = asciiToEncoding( firstPart, encodingType);
+          const std::string secondXmlFragment = asciiToEncoding(secondPart, encodingType, false);
+
+          std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(firstXmlFragment));
+          sergut::xml::PullParser& parser = *parserTmp;
+
+          THEN("The parser can restart at the savepoint and correctly proceed the parsing") {
+            std::size_t currentSavepoint = 0;
+            for(std::size_t i = 0; i < interruptedAtCount; ++i) {
+              CHECK(parser.parseNext() == std::get<0>(expectedTokens[i]));
+              CHECK(getTextFromParser(parser, std::get<0>(expectedTokens[i])) == std::get<1>(expectedTokens[i]));
+              if(i == savePoint1 || i == savePoint2) {
+                CHECK(parser.setSavePoint() == true);
+                currentSavepoint = i;
+              }
+            }
+            CHECK(parser.parseNext() == sergut::xml::ParseTokenType::IncompleteDocument);
+
+            if(currentSavepoint%2==0) {
+              // check that restoreToSavePoint() can be called before appendData()
+              CHECK(parser.restoreToSavePoint() == true);
+              parser.appendData(secondXmlFragment.data(), secondXmlFragment.size());
+            } else {
+              // check that appendData() can be called before restoreToSavePoint()
+              parser.appendData(secondXmlFragment.data(), secondXmlFragment.size());
+              CHECK(parser.restoreToSavePoint() == true);
+            }
+
+            CHECK(parser.getCurrentTokenType() == std::get<0>(expectedTokens[currentSavepoint]));
+            CHECK(getTextFromParser(parser, std::get<0>(expectedTokens[currentSavepoint]))
+                  == std::get<1>(expectedTokens[currentSavepoint]));
+
+            for(std::size_t i = currentSavepoint+1; i < expectedTokens.size(); ++i) {
+              CHECK(parser.parseNext() == std::get<0>(expectedTokens[i]));
+              CHECK(getTextFromParser(parser, std::get<0>(expectedTokens[i])) == std::get<1>(expectedTokens[i]));
+            }
+          }
+        }
+      }
+    }
+  }
+}

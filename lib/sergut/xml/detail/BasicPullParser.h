@@ -77,6 +77,29 @@ public:
     Attribute,
   };
 
+  // The InnerStateSavePoint is allways on the beginning of a tag, be it an opening or
+  // a closing tag. Thus when restoring, the tag has to be parsed, such that the
+  // currentTokenType can be deduced.
+  struct InnerStateSavePoint {
+    InnerStateSavePoint() = default;
+    InnerStateSavePoint(const InnerStateSavePoint&) = delete;
+    InnerStateSavePoint(const InnerStateSavePoint&&) = delete;
+    InnerStateSavePoint& operator=(const InnerStateSavePoint&) = delete;
+    InnerStateSavePoint& operator=(const InnerStateSavePoint&&) = delete;
+
+    void addOffset(const std::ptrdiff_t offset);
+    bool hasParseStackCopy() const;
+    void aboutToPopParseStack();
+
+  public:
+    const char* readPointer = nullptr;
+    // the parseStack is merely copied if required. While the stack is larger than it was at
+    // the save-point we just memorize its size
+    ParseStack<std::is_same<CharDecoder, sergut::unicode::Utf8Codec>::value> parseStackCopy;
+    ParseStack<std::is_same<CharDecoder, sergut::unicode::Utf8Codec>::value>* parseStackPtr = nullptr;
+    std::size_t parseStackSize = 0;
+  };
+
   BasicPullParser(const sergut::misc::ConstStringRef& data);
   BasicPullParser(std::vector<char>&& data);
   std::vector<char>&& extractXmlData() override;
@@ -86,6 +109,9 @@ public:
   sergut::misc::ConstStringRef getCurrentAttributeName() const override;
   sergut::misc::ConstStringRef getCurrentValue() const override;
   void appendData(const char* data, const std::size_t size) override;
+
+  bool setSavePoint() override;
+  bool restoreToSavePoint() override;
 
 private:
   void recomputePointersToInput(const char* oldStartOfInput);
@@ -134,10 +160,44 @@ private:
 
   ParseTokenType currentTokenType = ParseTokenType::InitialState;
   bool incompleteDocument = true;
+
+  // Variables needed for safe/restore
+  const char* currentTagStart = nullptr;
+  std::unique_ptr<InnerStateSavePoint> innerStateSavePoint;
 };
+
 }
 }
 }
+
+template<typename CharDecoder>
+inline
+void sergut::xml::detail::BasicPullParser<CharDecoder>::InnerStateSavePoint::addOffset(const std::ptrdiff_t offset)
+{
+  readPointer += offset;
+}
+
+template<typename CharDecoder>
+inline
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::InnerStateSavePoint::hasParseStackCopy() const
+{
+  return parseStackPtr == &parseStackCopy;
+}
+
+template<typename CharDecoder>
+inline
+void sergut::xml::detail::BasicPullParser<CharDecoder>::InnerStateSavePoint::aboutToPopParseStack()
+{
+  // if we hold a copy of the parseStack or if the stack is larger than it was when we took
+  // the savepoint there is nothing to do, as the part of the stack that represents the state
+  // at the time of the savepoint is still there
+  if(hasParseStackCopy() || parseStackPtr->frameCount() != parseStackSize) {
+    return;
+  }
+  parseStackCopy = *parseStackPtr; // copy the data
+  parseStackPtr = &parseStackCopy; // then point the pointer to the copy
+}
+
 
 template<typename CharDecoder>
 sergut::xml::detail::BasicPullParser<CharDecoder>::BasicPullParser(const sergut::misc::ConstStringRef& data)
@@ -190,6 +250,67 @@ void sergut::xml::detail::BasicPullParser<CharDecoder>::appendData(const char* d
 }
 
 template<typename CharDecoder>
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::setSavePoint()
+{
+  if(incompleteDocument
+     || currentTokenType == ParseTokenType::Error
+     || currentTokenType == ParseTokenType::InitialState)
+  {
+    return false;
+  }
+  if(!innerStateSavePoint) {
+    innerStateSavePoint.reset(new InnerStateSavePoint);
+  }
+  // we could call innerStateSavePoint->parseStackCopy.clear(), but why should
+  // we? The memory consumption of the saved stack should be neglectable and by
+  // not calling clear we save the effort of some calls to delete
+  innerStateSavePoint->readPointer = currentTagStart;
+  innerStateSavePoint->parseStackPtr = &parseStack;
+  innerStateSavePoint->parseStackSize = parseStack.frameCount();
+  if(currentTokenType != ParseTokenType::CloseTag) {
+    // As the savepoint is set before the last opening tag we have
+    // to reduce the stack size by one, as returning to the savepoint
+    // we still have to visit the last stack frame.
+    innerStateSavePoint->parseStackSize -= 1;
+  }
+  return true;
+}
+
+template<typename CharDecoder>
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::restoreToSavePoint()
+{
+  if(!innerStateSavePoint) {
+    currentTokenType = ParseTokenType::Error;
+    return false;
+  }
+  currentTagStart = innerStateSavePoint->readPointer;
+  readerState.readPointer = currentTagStart;
+  incompleteDocument = false;
+
+  if(innerStateSavePoint->hasParseStackCopy()) {
+    parseStack = std::move(innerStateSavePoint->parseStackCopy);
+    innerStateSavePoint->parseStackPtr = &parseStack;
+    innerStateSavePoint->parseStackSize = parseStack.frameCount();
+  } else {
+    while(innerStateSavePoint->parseStackPtr->frameCount() > innerStateSavePoint->parseStackSize) {
+      innerStateSavePoint->parseStackPtr->popData();
+    }
+  }
+  if(!nextAsciiChar()) {
+    return false;
+  }
+  if(parseCloseTag()) {
+    return true;
+  }
+  if(parseOpenTag()) {
+    return true;
+  }
+  currentTokenType = ParseTokenType::Error;
+  return false;
+}
+
+
+template<typename CharDecoder>
 void sergut::xml::detail::BasicPullParser<CharDecoder>::recomputePointersToInput(const char* oldStartOfInput)
 {
   if(oldStartOfInput == inputData.data()) {
@@ -199,6 +320,9 @@ void sergut::xml::detail::BasicPullParser<CharDecoder>::recomputePointersToInput
   readerState.readPointer += diff;
   parseStack.addOffset(diff);
   decodedNameBuffers.addOffset(diff);
+  if(innerStateSavePoint) {
+    innerStateSavePoint->addOffset(diff);
+  }
 }
 
 template<typename CharDecoder>
@@ -394,6 +518,8 @@ bool sergut::xml::detail::BasicPullParser<CharDecoder>::parseOpenTag()
   if(!parseName(NameType::Tag)) { return false; }
   if(!skipWhitespaces())        { return true;  }
   readStateResetter.release();
+  // memorize the position of the opening '<' of the tag
+  currentTagStart = readStateResetter.getOriginalReadPointer() - std::size_t(CharDecoder::encodeChar('<'));
   parseStack.pushData(decodedNameBuffers.decodedTagName);
   currentTokenType = ParseTokenType::OpenTag;
   return true;
@@ -514,6 +640,8 @@ bool sergut::xml::detail::BasicPullParser<CharDecoder>::parseCloseTag()
       return true;
     }
   }
+  // memorize the position of the opening '<' of the tag
+  currentTagStart = readStateResetter.getOriginalReadPointer() - std::size_t(CharDecoder::encodeChar('<'));
   currentTokenType = ParseTokenType::CloseTag;
   return true;
 }
@@ -598,6 +726,9 @@ sergut::xml::ParseTokenType sergut::xml::detail::BasicPullParser<CharDecoder>::p
     currentTokenType = ParseTokenType::Error;
     return getCurrentTokenType();
   case ParseTokenType::CloseTag:
+    if(innerStateSavePoint != nullptr) {
+      innerStateSavePoint->aboutToPopParseStack();
+    }
     parseStack.popData();
     if(parseStack.frameCount() == 0) {
       currentTokenType = ParseTokenType::CloseDocument;

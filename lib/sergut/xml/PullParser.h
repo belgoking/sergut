@@ -62,6 +62,9 @@ public:
 
   virtual void appendData(const char* data, const std::size_t size) = 0;
 
+  virtual bool setSavePoint() = 0;
+  virtual bool restoreToSavePoint() = 0;
+
 private:
   std::string currentValueBuffer;
 };
