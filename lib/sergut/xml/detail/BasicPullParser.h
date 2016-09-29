@@ -513,13 +513,12 @@ bool sergut::xml::detail::BasicPullParser<CharDecoder>::parseOpenTag()
 {
 // [40] STag ::= '<' Name (S Attribute)* S? '>'
   if(readerState.currentChar != '<') { return false; }
-  ReaderStateResetter readStateResetter(readerState);
+  const char* tmpStartChar = readerState.readPointer;
   if(!nextChar())               { return true;  }
   if(!parseName(NameType::Tag)) { return false; }
   if(!skipWhitespaces())        { return true;  }
-  readStateResetter.release();
   // memorize the position of the opening '<' of the tag
-  currentTagStart = readStateResetter.getOriginalReadPointer() - std::size_t(CharDecoder::encodeChar('<'));
+  currentTagStart = tmpStartChar - std::size_t(CharDecoder::encodeChar('<'));
   parseStack.pushData(decodedNameBuffers.decodedTagName);
   currentTokenType = ParseTokenType::OpenTag;
   return true;
