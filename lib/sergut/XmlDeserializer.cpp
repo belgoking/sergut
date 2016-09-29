@@ -252,7 +252,13 @@ void XmlDeserializer::feedMembers(MyMemberDeserializer &retriever, xml::PullPars
   if(state.getCurrentTokenType() != xml::ParseTokenType::CloseTag) {
     throw ParsingException("Expecting closing tag", XmlDeserializer::ErrorContext(state));
   }
-  state.parseNext();
+  const xml::ParseTokenType currentTokenType = state.parseNext();
+  if(currentTokenType != xml::ParseTokenType::OpenTag
+     && currentTokenType != xml::ParseTokenType::CloseTag
+     && currentTokenType != xml::ParseTokenType::CloseDocument)
+  {
+    throw ParsingException("Expecting opening or closing tag after element", XmlDeserializer::ErrorContext(state));
+  }
 
   // finally check whether mandatory members are missing
   for(const std::pair<const std::string, std::shared_ptr<MyMemberDeserializer::HolderBase>>& e: retriever.getMembers()) {

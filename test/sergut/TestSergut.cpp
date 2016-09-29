@@ -948,6 +948,80 @@ TEST_CASE("Deserialize XML snippets of nested datastructure as attributes", "[se
 }
 
 
+struct SavepointTest {
+  SavepointTest() = default;
+  SavepointTest(int aAtt, int aV) : att(aAtt), v(aV) { }
+  bool operator==(const SavepointTest& rhs) const { return att == rhs.att && v == rhs.v; }
+  int att = 0;
+  int v = 0;
+};
+SERGUT_FUNCTION(SavepointTest, data, ar) {
+  ar
+      & SERGUT_MMEMBER(data, att)
+      & sergut::children
+      & SERGUT_MMEMBER(data, v);
+}
+
+TEST_CASE("Deserialize incomplete XML with resume", "[sergut]")
+{
+  const std::vector<std::tuple<std::string, std::string, int>> testData{
+    std::make_tuple( std::string("<root><inner a"), std::string("tt=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner></root>"), 0 ),
+    std::make_tuple( std::string("<root><inner att=\"1\"><"), std::string("v>1</v></inner><inner att=\"1\"><v>1</v></inner></root>"), 0 ),
+    std::make_tuple( std::string("<root><inner att=\"1\"><v>1</v>"), std::string("</inner><inner att=\"1\"><v>1</v></inner></root>"), 0 ),
+    std::make_tuple( std::string("<root><inner att=\"1\"><v>1</v></inner"), std::string("><inner att=\"1\"><v>1</v></inner></root>"), 0 ),
+    std::make_tuple( std::string("<root><inner att=\"1\"><v>1</v></inner>"), std::string("<inner att=\"1\"><v>1</v></inner></root>"), 0 ),
+    std::make_tuple( std::string("<root><inner att=\"1\"><v>1</v></inner><inner"), std::string(" att=\"1\"><v>1</v></inner></root>"), 0 ),
+    std::make_tuple( std::string("<root><inner att=\"1\"><v>1</v></inner><inner a"), std::string("tt=\"1\"><v>1</v></inner></root>"), 1 ),
+    std::make_tuple( std::string("<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\">"), std::string("<v>1</v></inner></root>"), 1 ),
+    std::make_tuple( std::string("<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1"), std::string("</v></inner></root>"), 1 ),
+    std::make_tuple( std::string("<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v>"), std::string("</inner></root>"), 1 ),
+    std::make_tuple( std::string("<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner"), std::string("></root>"), 1 ),
+    std::make_tuple( std::string("<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner>"), std::string("</root>"), 1 ),
+    std::make_tuple( std::string("<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner></"), std::string("root>"), 1 ),
+    std::make_tuple( std::string("<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner></root"), std::string(">"), 1 )
+  };
+  for(const auto& values: testData) {
+    const std::string& firstPart = std::get<0>(values);
+    const std::string& secondPart = std::get<1>(values);
+    const int interruptedAtCount = std::get<2>(values);
+
+    GIVEN("An incomplete XML snippet with " + std::to_string(firstPart.size()) + " characters") {
+      WHEN("Starting to parse an incomplete XML, setting a savePoint, Reading data out of the document until "
+           "the end of the snippet is reachen and then repeating the deserialization after the last save point")
+      {
+        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(firstPart));
+        sergut::xml::PullParser& parser = *parserTmp;
+        CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+        CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+        CHECK(parser.getCurrentTagName() == std::string("root"));
+        CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+        CHECK(parser.getCurrentTagName() == std::string("inner"));
+        THEN("The no error is detected by the parser") {
+          int i = 0;
+          for(; i < interruptedAtCount; ++i) {
+            parser.setSavePoint();
+            const SavepointTest data = sergut::XmlDeserializer::deserializeFromSnippet<SavepointTest>("inner", parser);
+            CHECK(data == (SavepointTest{1, 1}));
+          }
+          parser.setSavePoint();
+          CHECK_THROWS_AS(sergut::XmlDeserializer::deserializeFromSnippet<SavepointTest>("inner", parser), sergut::ParsingException);
+          parser.restoreToSavePoint();
+          parser.appendData(secondPart.data(), secondPart.size());
+          const SavepointTest data = sergut::XmlDeserializer::deserializeFromSnippet<SavepointTest>("inner", parser);
+          CHECK(data == (SavepointTest{1, 1}));
+          ++i;
+          for(; i < 2; ++i) {
+            parser.setSavePoint();
+            const SavepointTest data = sergut::XmlDeserializer::deserializeFromSnippet<SavepointTest>("inner", parser);
+            CHECK(data == (SavepointTest{1, 1}));
+          }
+        }
+      }
+    }
+  }
+}
+
+
 /*
  *  TODO:
  * * UTF-16 handling

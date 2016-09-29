@@ -416,6 +416,8 @@ bool sergut::xml::detail::BasicPullParser<CharDecoder>::handleXmlDecl()
     currentTokenType = ParseTokenType::Error;
     return false;
   }
+  if(!isOk()) { return false; }
+
   if(decodedNameBuffers.decodedTagName != sergut::misc::ConstStringRef("xml")) {
     currentTokenType = ParseTokenType::Error;
     return false;
@@ -516,6 +518,7 @@ bool sergut::xml::detail::BasicPullParser<CharDecoder>::parseOpenTag()
   const char* tmpStartChar = readerState.readPointer;
   if(!nextChar())               { return true;  }
   if(!parseName(NameType::Tag)) { return false; }
+  if(!isOk())                   { return true; }
   if(!skipWhitespaces())        { return true;  }
   // memorize the position of the opening '<' of the tag
   currentTagStart = tmpStartChar - std::size_t(CharDecoder::encodeChar('<'));
@@ -541,6 +544,7 @@ bool sergut::xml::detail::BasicPullParser<CharDecoder>::parseAttribute(const boo
     // No name, so we don't have an Attribute
     return false;
   }
+  if(!isOk())            { return true; }
   if(!skipWhitespaces()) { return true; }
   if(readerState.currentChar != '=') {
     currentTokenType = ParseTokenType::Error;
@@ -621,6 +625,7 @@ bool sergut::xml::detail::BasicPullParser<CharDecoder>::parseCloseTag()
     currentTokenType = ParseTokenType::Error;
     return true;
   }
+  if(!isOk()) { return true; }
   if(decodedNameBuffers.decodedTagName != parseStack.getTopData()) {
     // tags don't match
     currentTokenType = ParseTokenType::Error;
