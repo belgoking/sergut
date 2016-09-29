@@ -59,17 +59,18 @@ bool BasicPullParser<sergut::unicode::Utf8Codec>::parseName(const NameType nameT
   //                        [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
   // [4a] NameChar ::= NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
   if(!Helper::isNameStartChar(readerState.currentChar)) return false;
-  const char* startOfName = readerState.readPointer - 1;
+  const char* startOfName = readerState.readPointer - std::size_t(sergut::unicode::Utf8Codec::encodeChar(readerState.currentChar));
   if(!nextChar()) return true;
   while(Helper::isNameChar(readerState.currentChar)) {
     if(!nextChar()) return true;
   }
   switch(nameType) {
   case NameType::Tag:
+    // here it is OK to subtract 1 from readPointer, as we know the only possible chars are '>' or 0x9, 0xA, 0xD, 0x20
     decodedNameBuffers.decodedTagName = sergut::misc::ConstStringRef(startOfName, readerState.readPointer - 1);
-//    parseStack.pushData(decodedNameBuffers.decodedTagName);
     return true;
   case NameType::Attribute:
+    // here it is OK to subtract 1 from readPointer, as we know the only possible chars are '=' or 0x9, 0xA, 0xD, 0x20
     decodedNameBuffers.decodedAttrName = sergut::misc::ConstStringRef(startOfName, readerState.readPointer - 1);
     return true;
   }
