@@ -330,7 +330,7 @@ inline
 bool sergut::xml::detail::BasicPullParser<CharDecoder>::skipWhitespaces()
 {
   while(std::isspace(readerState.currentChar) && nextChar()) { }
-  return !incompleteDocument && currentTokenType != ParseTokenType::Error;
+  return isOk();
 }
 
 template<typename CharDecoder>
