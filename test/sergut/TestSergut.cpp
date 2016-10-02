@@ -1401,6 +1401,124 @@ TEST_CASE("Serialize simple class", "[sergut]")
   }
 }
 
+struct TestFlexibleXml {
+public:
+  bool operator==(const TestFlexibleXml& rhs) {
+    return intVal       == rhs.intVal
+        && simpleVec    == rhs.simpleVec
+        && nestedIntVec == rhs.nestedIntVec
+        && emptyVec     == rhs.emptyVec
+        && nestedString == rhs.nestedString;
+  }
+
+public:
+  int intVal;
+  std::vector<Simple> simpleVec;
+  std::vector<int> nestedIntVec;
+  std::vector<std::string> emptyVec;
+  std::string nestedString;
+  std::vector<std::string> emptyNestedVector;
+};
+SERGUT_FUNCTION(TestFlexibleXml, data, ar)
+{
+  ar
+      & SERGUT_MMEMBER(data, intVal)
+      & sergut::children
+      & SERGUT_MMEMBER(data, simpleVec)
+      & SERGUT_NESTED_MMEMBER(data, nestedIntVec, val)
+      & SERGUT_MMEMBER(data, emptyVec)
+      & SERGUT_NESTED_MMEMBER(data, nestedString, val)
+      & SERGUT_NESTED_MMEMBER(data, emptyNestedVector, val)
+      ;
+}
+
+TEST_CASE("Deserialize XML with different spaces", "[sergut]")
+{
+  const TestFlexibleXml expectedResult{ 1970,
+                                        { { 12345, 2.345, Time{3, 23, 99}, 'X', 21, Time{12, 34, 55} },
+                                          { 1,    -2.345, Time{0,  0,  1}, 'Y', 12, Time{ 1,  2,  3} } },
+                                        { -12, 33 },
+                                        { },
+                                        "nestedString",
+                                        { } };
+
+
+  GIVEN("An XML-string without additional spaces") {
+    std::string xml("<outerName intVal='1970'>"
+                    "<simpleVec int1='12345' double2='2.345' time3='3:23:99'><char4><nestedChar4>X</nestedChar4></char4>"
+                    "<uchar5>21</uchar5><time6><nestedTime6>12:34:55</nestedTime6></time6></simpleVec>"
+                    "<simpleVec int1='1' double2='-2.345' time3='0:00:01'><char4><nestedChar4>Y</nestedChar4></char4>"
+                    "<uchar5>12</uchar5><time6><nestedTime6>1:02:03</nestedTime6></time6></simpleVec>"
+                    "<nestedIntVec><val>-12</val><val>33</val></nestedIntVec>"
+                    "<nestedString><val>nestedString</val></nestedString>"
+                    "<emptyNestedVector/>"
+                    "</outerName>");
+    WHEN("Deserializing it into a datastructure") {
+      sergut::XmlDeserializer ser(xml);
+      THEN("it should yield the expected result") {
+        CHECK(ser.deserializeData<TestFlexibleXml>("outerName") == expectedResult);
+      }
+    }
+  }
+
+
+  GIVEN("A nested XML-string without additional spaces") {
+    std::string xml("<outerouter><outerName intVal='1970'>"
+                    "<simpleVec int1='12345' double2='2.345' time3='3:23:99'><char4><nestedChar4>X</nestedChar4></char4>"
+                    "<uchar5>21</uchar5><time6><nestedTime6>12:34:55</nestedTime6></time6></simpleVec>"
+                    "<simpleVec int1='1' double2='-2.345' time3='0:00:01'><char4><nestedChar4>Y</nestedChar4></char4>"
+                    "<uchar5>12</uchar5><time6><nestedTime6>1:02:03</nestedTime6></time6></simpleVec>"
+                    "<nestedIntVec><val>-12</val><val>33</val></nestedIntVec>"
+                    "<nestedString><val>nestedString</val></nestedString>"
+                    "<emptyNestedVector/>"
+                    "</outerName></outerouter>");
+    WHEN("Deserializing it into a datastructure") {
+      sergut::XmlDeserializer ser(xml);
+      THEN("it should yield the expected result") {
+        CHECK(ser.deserializeNestedData<TestFlexibleXml>("outerouter", "outerName") == expectedResult);
+      }
+    }
+  }
+
+  GIVEN("An XML-string with additional spaces") {
+    std::string xml("<outerName  intVal = '1970' >\n"
+                    "<simpleVec int1 = '12345' double2 = '2.345' time3 = '3:23:99' > <char4 > <nestedChar4 >X</nestedChar4 > </char4 >\n"
+                    "<uchar5>21</uchar5> <time6> <nestedTime6>12:34:55</nestedTime6> </time6> </simpleVec>\n"
+                    "<simpleVec int1 = '1' double2 = '-2.345' time3 = '0:00:01'> <char4> <nestedChar4>Y</nestedChar4> </char4>\n"
+                    "<uchar5>12</uchar5> <time6> <nestedTime6>1:02:03</nestedTime6> </time6> </simpleVec>\n"
+                    "<nestedIntVec> <val>-12</val> <val>33</val> </nestedIntVec>\n"
+                    "<nestedString> <val>nestedString</val> </nestedString>\n"
+                    "<emptyNestedVector />\n"
+                    "</outerName>\n");
+    WHEN("Deserializing it into a datastructure") {
+      sergut::XmlDeserializer ser(xml);
+      THEN("it should yield the expected result") {
+        CHECK(ser.deserializeData<TestFlexibleXml>("outerName") == expectedResult);
+      }
+    }
+  }
+
+  GIVEN("An XML-string with additional spaces") {
+    std::string xml("<outerouter><outerName  intVal = '1970' >\n"
+                    "<simpleVec int1 = '12345' double2 = '2.345' time3 = '3:23:99' > <char4 > <nestedChar4 >X</nestedChar4 > </char4 >\n"
+                    "<uchar5>21</uchar5> <time6> <nestedTime6>12:34:55</nestedTime6> </time6> </simpleVec>\n"
+                    "<simpleVec int1 = '1' double2 = '-2.345' time3 = '0:00:01'> <char4> <nestedChar4>Y</nestedChar4> </char4>\n"
+                    "<uchar5>12</uchar5> <time6> <nestedTime6>1:02:03</nestedTime6> </time6> </simpleVec>\n"
+                    "<nestedIntVec> <val>-12</val> <val>33</val> </nestedIntVec>\n"
+                    "<nestedString> <val>nestedString</val> </nestedString>\n"
+                    "<emptyNestedVector />\n"
+                    "</outerName></outerouter>\n");
+    WHEN("Deserializing it into a datastructure") {
+      sergut::XmlDeserializer ser(xml);
+      THEN("it should yield the expected result") {
+        CHECK(ser.deserializeNestedData<TestFlexibleXml>("outerouter", "outerName") == expectedResult);
+      }
+    }
+  }
+}
+
+
+
 int main_disabled(int /*argc*/, char */*argv*/[])
 {
   const TestParent tp{ 21, 99, 124, TestChild{ -27, -42, {4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,

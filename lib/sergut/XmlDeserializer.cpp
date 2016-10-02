@@ -252,7 +252,9 @@ void XmlDeserializer::feedMembers(MyMemberDeserializer &retriever, xml::PullPars
   if(state.getCurrentTokenType() != xml::ParseTokenType::CloseTag) {
     throw ParsingException("Expecting closing tag", XmlDeserializer::ErrorContext(state));
   }
-  const xml::ParseTokenType currentTokenType = state.parseNext();
+  state.parseNext();
+  skipText(state);
+  const xml::ParseTokenType currentTokenType = state.getCurrentTokenType();
   if(currentTokenType != xml::ParseTokenType::OpenTag
      && currentTokenType != xml::ParseTokenType::CloseTag
      && currentTokenType != xml::ParseTokenType::CloseDocument)
