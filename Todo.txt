@@ -1,8 +1,9 @@
 TODO:
 
+* Marshalling
+
 * XML-Parser
 ** Change "const char*" to StringRef where possible
-** Simple XML, checking structure (i.e. check that closing tags match opening tags)
 ** XML-Namespace support
 ** Document type declarations
 ** Comments
@@ -10,13 +11,9 @@ TODO:
 ** CDText
 ** Validate structure... (never)
 ** Profile the parser and optimize memory handling
-** Incremental feeding
 
 * Deserialization
-** Untittests
 ** XML
-*** Proper error handling
-*** Bool-Types
 *** Collections
 **** Associative Containers
 ** JSON
@@ -33,14 +30,18 @@ TODO:
 *** Unescaping
 
 * Serialization
-** Untittests
-** Proper error handling
-** Bool-Types
 ** Collections
 *** Associative Containers
 
 DONE:
+* XML-Parser
+** Simple XML, checking structure (i.e. check that closing tags match opening tags)
+** Incremental feeding
+
 * Serialization
+** Proper error handling
+** Untittests
+** Bool-Types
 ** Int-Types
 ** Float-Types
 ** String-Types
@@ -56,6 +57,8 @@ DONE:
 * Deserialization
 ** XML
 *** Untittests
+*** Proper error handling
+*** Bool-Types
 ** implement in-place processing (without copying the XML-Data)
 ** XML-Declaration (<? xml version="1.0" ... ?>)
 ** Utf8-handling
