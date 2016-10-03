@@ -1,8 +1,10 @@
 TODO:
 
 * Marshalling
+* JavaClassGenerator
 
 * XML-Parser
+** Implement compacting of inner data to save memory
 ** Change "const char*" to StringRef where possible
 ** XML-Namespace support
 ** Document type declarations
