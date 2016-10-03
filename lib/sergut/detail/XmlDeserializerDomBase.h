@@ -89,12 +89,39 @@ public:
 
 public:
   XmlDeserializerDomBase(const std::string& xml);
-  XmlDeserializerDomBase(const XmlDeserializerDomBase& ref)
-    : parentValueType(ref.valueType)
-    , valueType(XmlValueType::Attribute)
-    , currentElement(ref.currentElement)
-  { }
 
+  template<typename DT>
+  DT deserializeData(const char* name) {
+    if(name != nullptr && std::strcmp(currentElement->Value(), name) != 0) {
+      throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
+    }
+    DT data;
+    valueType = XmlValueType::Attribute;
+    if(detail::XmlDeserializerHelper::canDeserializeIntoAttribute<DT>()) {
+      *this & toNamedMember(name, toNestedMember("DUMMY", data, true, XmlValueType::SingleChild), true);
+    } else {
+      *this & toNamedMember(name, data, true);
+    }
+    return data;
+  }
+
+  template<typename DT, XmlValueType xmlValueType = XmlValueType::Child>
+  DT deserializeNestedData(const char* outerName, const char* innerName)
+  {
+    static_assert(detail::XmlDeserializerHelper::canDeserializeIntoAttribute<DT>()
+                  || xmlValueType == XmlValueType::Child,
+                  "Datatypes that cannot be serialized as an Attribute (i.e. those for which serialize() is called), "
+                  "must be deserialized with xmlValueType == sergut::XmlValueType::Child.");
+    if(outerName != nullptr && std::strcmp(currentElement->Value(), outerName) != 0) {
+      throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
+    }
+    DT data;
+    valueType = XmlValueType::Child;
+    *this & toNamedMember(outerName, toNestedMember(innerName, data, true, xmlValueType), true);
+    return data;
+  }
+
+public: // The archive operator& that is used by the \c serialize() functions.
   template<typename T>
   typename std::enable_if<std::is_arithmetic<T>::value, XmlDeserializerDomBase&>::type
   operator&(const NamedMemberForDeserialization<T>& data) {
@@ -200,42 +227,13 @@ public:
     return *this;
   }
 
-  /// Initial call to the serializer
-  /// \param name The name of the outer tag
-  template<typename DT>
-  DT deserializeData(const char* name) {
-    if(name != nullptr && std::strcmp(currentElement->Value(), name) != 0) {
-      throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
-    }
-    DT data;
-    valueType = XmlValueType::Attribute;
-    if(detail::XmlDeserializerHelper::canDeserializeIntoAttribute<DT>()) {
-      *this & toNamedMember(name, toNestedMember("DUMMY", data, true, XmlValueType::SingleChild), true);
-    } else {
-      *this & toNamedMember(name, data, true);
-    }
-    return data;
-  }
-
-  /// Initial call to the serializer
-  /// \param name The name of the outer tag
-  template<typename DT, XmlValueType xmlValueType = XmlValueType::Child>
-  DT deserializeNestedData(const char* outerName, const char* innerName)
-  {
-    static_assert(detail::XmlDeserializerHelper::canDeserializeIntoAttribute<DT>()
-                  || xmlValueType == XmlValueType::Child,
-                  "Datatypes that cannot be serialized as an Attribute (i.e. those for which serialize() is called), "
-                  "must be deserialized with xmlValueType == sergut::XmlValueType::Child.");
-    if(outerName != nullptr && std::strcmp(currentElement->Value(), outerName) != 0) {
-      throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
-    }
-    DT data;
-    valueType = XmlValueType::Child;
-    *this & toNamedMember(outerName, toNestedMember(innerName, data, true, xmlValueType), true);
-    return data;
-  }
-
 private:
+  XmlDeserializerDomBase(const XmlDeserializerDomBase& ref)
+    : parentValueType(ref.valueType)
+    , valueType(XmlValueType::Attribute)
+    , currentElement(ref.currentElement)
+  { }
+
   std::string popString(const char* name, const bool mandatory) {
     std::string d;
     *this & toNamedMember(name, d, mandatory);
