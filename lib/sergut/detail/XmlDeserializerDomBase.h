@@ -38,17 +38,6 @@
 #include <sstream>
 #include <vector>
 
-/*
- * <foo>
- *   <bar baz="1">val</bar>
- *   <bam>val</bam>
- *   <bo><tox>tom</tox></bo>
- *   <mer><fo1>1</fo1><fo1>2</fo1></mer>
- *   <collection><member>1</member><member>2</member></collection>
- * <!-- ^-from 'foo' ^-from? -->
- *   <huk foo="fufu"/>
- * </foo>
- */
 namespace sergut {
 namespace detail {
 
@@ -81,6 +70,16 @@ void readInto(const char* str, const NamedMemberForDeserialization<DT>& data,
   sergut::misc::ReadHelper::readInto(sergut::misc::ConstStringRef(str, str + std::strlen(str)), data.data);
 }
 
+/**
+ * \brief Deserializer that uses a DOM-Like parser for XML deserialization.
+ *
+ * This is potentially slower than using a pull parser based approach as in
+ * \c sergut::XmlDeserializer (even though tinyXml2 is blazing fast) and
+ * possibly uses more memory (admitedly I have not checked this and would not
+ * bet on it either, at least for the current implementation of
+ * \c sergut::xml::PullParser) but it is much, much, much simpler (this class
+ * has less than 300 lines of code)!
+ */
 template<typename XmlDomParser>
 class XmlDeserializerDomBase : public DeserializerBase
 {
@@ -90,6 +89,11 @@ public:
 public:
   XmlDeserializerDomBase(const std::string& xml);
 
+  /**
+   * \brief Deserialize data into type \c DT
+   * \param name The name of the outer tag.
+   * \tparam DT The type into which the XML should be deserialized.
+   */
   template<typename DT>
   DT deserializeData(const char* name) {
     if(name != nullptr && std::strcmp(currentElement->Value(), name) != 0) {
@@ -105,6 +109,14 @@ public:
     return data;
   }
 
+  /**
+   * \brief Deserialize data from nested XML into type \c DT
+   * \param outerName The name of the outer tag.
+   * \param innerName The name of the inner tag.
+   * \tparam DT The type into which the XML should be deserialized.
+   * \tparam xmlValueType How the inner type should be rendered into the outer
+   *         type (as attribute or as child).
+   */
   template<typename DT, XmlValueType xmlValueType = XmlValueType::Child>
   DT deserializeNestedData(const char* outerName, const char* innerName)
   {

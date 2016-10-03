@@ -36,7 +36,16 @@
 #include <cassert>
 #include <iostream>
 
+namespace sergut {
+
 /**
+ * \brief This is a data driven deserializer for XML
+ *
+ * It has the advantage that no DOM-tree of the XML is created, possibly reducing
+ * the memory requirements. But the main advantage is that it can be used to
+ * deserialize partial data using a sergut::xml::PullParser.
+ *
+ * \internal
  * This data driven XmlDeserializer pulls XML events out of a PullParser and tries
  * to match them to the data type that it is requested to deserialize into.
  *
@@ -53,9 +62,6 @@
  *     of the \c PullParser. In case there is a matching handler for that XML-Node,
  *     the handler is executed with the PullParser as parameter.
  */
-namespace sergut {
-
-
 class XmlDeserializer
 {
   template<typename T, typename S> friend class detail::MemberDeserializer;
@@ -73,9 +79,25 @@ public:
   };
 
 public:
+  /**
+   * /brief Create an XmlDeserializer copying the \c xml into an inner variable.
+   * /param xml A null terminated string with the XML data.
+   */
   XmlDeserializer(const char* xml) : XmlDeserializer(sergut::misc::ConstStringRef(xml)) { }
+  /**
+   * \brief Create an XmlDeserializer copying the \c xml into an inner variable.
+   * \param xml A string with the XML data.
+   */
   XmlDeserializer(const std::string& xml) : XmlDeserializer(sergut::misc::ConstStringRef(xml)) { }
+  /**
+   * \brief Create an XmlDeserializer copying the \c xml into an inner variable.
+   * \param xml A ConstStringRef with the XML data.
+   */
   XmlDeserializer(const misc::ConstStringRef& xml);
+  /**
+   * \brief Create an XmlDeserializer moving the \c xml into an inner variable.
+   * \param xml A std::vector with the XML data that will be moved into the class.
+   */
   XmlDeserializer(std::vector<char>&& xml);
 
 //  /// Initial call to the serializer
@@ -92,8 +114,11 @@ public:
 //    return data;
 //  }
 
-  /// Initial call to the serializer
-  /// \param name The name of the outer tag
+  /**
+   * \brief Deserialize data into type \c DT
+   * \param name The name of the outer tag.
+   * \tparam DT The type into which the XML should be deserialized.
+   */
   template<typename DT>
   DT deserializeData(const char* name) {
     DT data;
@@ -112,6 +137,14 @@ public:
     return data;
   }
 
+  /**
+   * \brief Deserialize data from nested XML into type \c DT
+   * \param outerName The name of the outer tag.
+   * \param innerName The name of the inner tag.
+   * \tparam DT The type into which the XML should be deserialized.
+   * \tparam xmlValueType How the inner type should be rendered into the outer
+   *         type (as attribute or as child).
+   */
   template<typename DT, XmlValueType xmlValueType = XmlValueType::Child>
   DT deserializeNestedData(const char* outerName, const char* innerName) {
     static_assert(detail::XmlDeserializerHelper::canDeserializeIntoAttribute<DT>()
@@ -126,6 +159,22 @@ public:
     return data;
   }
 
+  /**
+   * \brief Deserialize XML fragment into type \c DT
+   *
+   * This can be used to deserialize a class out of an XML fragment. This can
+   * be usefull if you receive a long list of elements and want to start
+   * processing even before the complete list has been received.
+   *
+   * Check the unit test "Deserialize XML snippets of simple type" for an
+   * example how this can be done.
+   *
+   * \param name The name of the outer tag.
+   * \param currentXmlNode a \c sergut::xml::PullParser that must be positioned
+   *        at the start tag of the element that should be deserialized out of
+   *        the parser.
+   * \tparam DT The type into which the XML should be deserialized.
+   */
   template<typename DT>
   static DT deserializeFromSnippet(const char* name, xml::PullParser& currentXmlNode) {
     DT data;
@@ -145,6 +194,25 @@ public:
     return data;
   }
 
+  /**
+   * \brief Deserialize XML fragment into type \c DT
+   *
+   * This can be used to deserialize a class out of an XML fragment. This can
+   * be usefull if you receive a long list of elements and want to start
+   * processing even before the complete list has been received.
+   *
+   * Check the unit test "Deserialize XML snippets of simple nested type as children"
+   * for an example how this can be done.
+   *
+   * \param outerName The name of the outer tag.
+   * \param innerName The name of the inner tag.
+   * \param currentXmlNode a \c sergut::xml::PullParser that must be positioned
+   *        at the start tag of the element that should be deserialized out of
+   *        the parser.
+   * \tparam DT The type into which the XML should be deserialized.
+   * \tparam xmlValueType How the inner type should be rendered into the outer
+   *         type (as attribute or as child).
+   */
   template<typename DT, XmlValueType xmlValueType = XmlValueType::Child>
   static DT deserializeNestedFromSnippet(const char* outerName,
                                   const char* innerName,
@@ -256,6 +324,7 @@ private:
   }
 
   /**
+   * \internal
    * SFINAE trick to ensure that this template function is called only if SERGUT_FUNCTION(DT, data, ar) exists for datatype DT.
    * \see handleChild that is responsible for SERGUT_DESERIALIZE_FROM_STRING(DT, variableName, stringVariableName)
    */
@@ -277,6 +346,7 @@ private:
   }
 
   /**
+   * \internal
    * SFINAE trick to ensure that this template function is called only if SERGUT_DESERIALIZE_FROM_STRING(DT, variableName, stringVariableName)
    * exists for datatype DT.
    * \see handleChild that is responsible for SERGUT_FUNCTION(DT, data, ar)

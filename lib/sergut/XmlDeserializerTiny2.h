@@ -102,6 +102,13 @@ void Tiny2Dom::deleteChildNode(tinyxml2::XMLNode& parentNode, tinyxml2::XMLNode&
 
 } // namespace detail
 
+/**
+ * \brief Deserializer of type sergut::detail::XmlDeserializerDomBase that uses TinyXML version 2
+ *
+ * If you don't have a good reason to use XmlDeserializerTiny you should favor this type.
+ *
+ * \see sergut::detail::XmlDeserializerDomBase
+ */
 typedef detail::XmlDeserializerDomBase<detail::Tiny2Dom> XmlDeserializerTiny2;
 
 } // namespace sergut

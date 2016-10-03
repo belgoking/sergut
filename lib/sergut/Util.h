@@ -21,47 +21,292 @@
 
 #pragma once
 
+/** \mainpage Serialization Library for C++ (mainly XML)
+ *
+ * \section introduction Introduction
+ * The \c sergut library provides an interface similar to \c boost-serialization
+ * that permits for out-of-class serialization/deserialization of nested C++
+ * classes in XML. A design goal of this library was to be able to easily be able
+ * to create a matching between a given XML and C++ datastructures. Something that
+ * is possible in JAXB for Java but that is lacking in all C++ serialization
+ * libraries that I have looked at before I started this library. On the other
+ * hand I wanted to avoid the need of creating marker classes as is needed in JAXB,
+ * just to be able to create different constructs, such as lists.
+ *
+ * \subsection notation Notation and Conventions
+ * \c sergut is for serialization and deserialization and several functions can
+ * be used for both of these tasks. However, to keep the text readable I will
+ * just refer to the serialization exemplary for both. So instead of writing
+ * 'serialize/deserialize' everywhere, I will just be writing 'serialize'
+ * when I deem it to be reasonably clear that both are meant.
+ *
+ * \section simpleClasses Serializing Simple Classes
+ * As a first example let's regard the following classes:
+   \verbatim
+    1  #include <vector>
+    2  struct InnerExample {
+    3    int intMember;
+    4    std::string stringMember;
+    5  };
+    6  struct OuterExample {
+    7    std::string stringMember;
+    8    InnerExample innerExampleMember;
+    9  };
+   \endverbatim
+ * They should be serialized into something like:
+   \verbatim
+   <outerExample stringMember="some content">
+      <innerExampleMember intMember="23">
+        <stringMember>Blah</stringMember>
+      </innerExampleMember>
+   </outerExample>
+   \endverbatim
+ *
+ * To achieve this in \c sergut you have to create a
+ * serialization/deserialization function for each of the classes, as so:
+   \verbatim
+   10  SERGUT_FUNCTION(InnerExample, data, ar) {
+   11    ar & SERGUT_MMEMBER(data, intMember)
+   12       & sergut::children
+   13       & SERGUT_MMEMBER(data, stringMember);
+   14  }
+   15  SERGUT_FUNCTION(OuterExample, data, ar) {
+   16    ar & SERGUT_MMEMBER(data, stringMember)
+   17       & sergut::children
+   18       & SERGUT_MMEMBER(data, innerExampleMember);
+   19  }
+   \endverbatim
+ * In each of those functions, it is specified, how the members of the classes
+ * are to be serialized. Let's have a look at the serialization function of
+ * \c OuterExample:
+ * \li Line 16 specifies the function signature. It says that the datatype that
+ *     is to be serialized is \c OuterExample, that within the function the
+ *     instance of \c OuterExample is stored in a variable with the name
+ *     \c data. And that the serializer that will be used to serialize the
+ *     instance of \c OuterExample is referred to as \c ar.
+ * \li In Line 17 the first member of \c OuterExample is serialized. By default
+ *     members are serialized as XML-Attributes. Obviously, only simple
+ *     datatypes or datatypes that are serialized as strings can be set as
+ *     XML-Attributes. If you try to serialize some class as an attribute you
+ *     will get an exception at runtime.
+ * \li In Line 18 it is specified, that all following members will be
+ *     serialized as children. Simple datatypes will be serialized to someting
+ *     similar to
+       \verbatim
+       <memberName>Value</memberName>
+       \endverbatim
+ * \li In Line 19 innerExampleMember is serialized. This is done by calling its
+ *     \c SERGUT_FUNCTION.
+ * This is how arbitrarily complex datastructures can be serialized using
+ * \c sergut.
+ *
+ * For convenience and to reduce the risk of Errors, \c sergut provides the
+ * macros \c SERGUT_FUNCTION(), \c SERGUT_MMEMBER() and others. In some rare
+ * situations you will be required to write the code manually. However, you
+ * have to be cautious, as there are some aspects that have to be regarded.
+ * Those will be described later (TBD).
+ *
+ * \section sequences Serializing Sequences
+ * Data of the type \c std::vector, \c std::list, and \c std::set is serialized
+ * as repeating XML with the same outer tag, e.g.
+   \verbatim
+   <tagName>1</tagName>
+   <tagName>2</tagName>
+       ...
+   <tagName>N</tagName>
+   \endverbatim
+ * This happens automatically, when you serialize one of those collections
+ * (either as member of a class or directly). However, often XML-specifications
+ * require an additional nesting level, as in
+   \verbatim
+   <outerTag>
+     <tagName>1</tagName>
+     <tagName>2</tagName>
+         ...
+     <tagName>N</tagName>
+   </outerTag>
+   \endverbatim
+ * This can be realized by creating a dummy class, as in
+   \verbatim
+    1 struct OuterTag {
+    2   std::vector<int> tagName;
+    3 };
+    4 struct MyClass {
+    5   OuterTag outerTag;
+    6 };
+    7 SERGUT_FUNCTION(OuterTag, data, ar) {
+    8   ar & sergut::children
+    9      & SERGUT_MMEMBER(data, tagName);
+   10 }
+   11 SERGUT_FUNCTION(MyClass, data, ar) {
+   12   ar & sergut::children
+   13      & SERGUT_MMEMBER(data, outerTag);
+   14 }
+   \endverbatim
+ * To prevent you of having to create that dummy class in you datastructure,
+ * \c sergut provides the helping macro \c SERGUT_NESTED_MMEMBER(). Using that
+ * the previous 14 lines get reduced to the following 7 lines:
+   \verbatim
+    1 struct MyClass {
+    2   OuterTag outerTag;
+    3 };
+    4 SERGUT_FUNCTION(MyClass, data, ar) {
+    5   ar & sergut::children
+    6      & SERGUT_NESTED_MMEMBER(data, outerTag, tagName);
+    7 }
+   \endverbatim
+ *
+ * \section plainChild Plain Child
+ * The code that we have seen so far does not permit the serialization of the
+ * following:
+   \verbatim
+   <tagName attribute="att value">plain data</tagName>
+   \endverbatim
+ * Instead one always has to add some (possibly unwanted) XML-nesting level as
+ * shown in the following example:
+   \verbatim
+   <tagName attribute="att value"><unwantedTag>plain data</unwantedTag></tagName>
+   \endverbatim
+ * \c sergut provides the marker variable \c sergut::plainChild that entitles
+ * you to omit the tag \c unwantedTag.
+   \verbatim
+    1 struct MyClass {
+    2   std::string attribute;
+    3   std::string plainChildMember;
+    4 };
+    5 SERGUT_FUNCTION(MyClass, data, ar) {
+    6   ar & SERGUT_MMEMBER(data, attribute)
+    7      & sergut::plainChild
+    8      & SERGUT_MMEMBER(data, plainChildMember);
+    9 }
+   \endverbatim
+   Note that the member name \c plainChildMember does not appear in the XML.
+ */
+
+/**
+ * \brief Serialize a mandatory member.
+ *
+ * In case a mandatory member does not appear in an XML that is being
+ * deserialized, a \c sergut::ParsingException is thrown unless it is a
+ * collection.
+ * \arg cls the name of the class instance thats member should be serialized.
+ * \arg mem the name of the member of \c cls that should be serialized. For XML
+ *      \c mem will also be the tag name.
+ */
 #define SERGUT_MMEMBER(cls, mem) \
   Archive::toNamedMember(#mem, cls.mem, true)
 
+/**
+ * \brief Serialize an optional member.
+ *
+ * In case an optional member does not appear in an XML that is being
+ * deserialized, the member is left unchanged. Usually this means it is in its
+ * default constructed state.
+ * \arg cls the name of the class instance thats member should be serialized.
+ * \arg mem the name of the member of \c cls that should be serialized. For XML
+ *      \c mem will also be the tag name.
+ */
 #define SERGUT_OMEMBER(cls, mem) \
   Archive::toNamedMember(#mem, cls.mem, false)
 
+/**
+ * \brief Serialize a nested mandatory member.
+ *
+ * This is serialized as a nested XML as in
+   \verbatim
+   <mem><innerName>Data</innerName></mem>
+   \endverbatim
+ *
+ * In case a mandatory member does not appear in an XML that is being
+ * deserialized, a \c sergut::ParsingException is thrown unless it is a
+ * collection.
+ * \arg cls the name of the class instance thats member should be serialized.
+ * \arg mem the name of the member of \c cls that should be serialized. For XML
+ *      \c mem will also be the outer tag name.
+ * \arg innerName the inner tag name of XML.
+ */
 #define SERGUT_NESTED_MMEMBER(cls, mem, innerName) \
   Archive::toNamedMember(#mem, Archive::toNestedMember(#innerName, cls.mem, true), true)
 
+/**
+ * \brief Serialize a nested optional member.
+ *
+ * This is serialized as a nested XML as in
+   \verbatim
+   <mem><innerName>Data</innerName></mem>
+   \endverbatim
+ *
+ * In case an optional member does not appear in an XML that is being
+ * deserialized, the member is left unchanged. Usually this means it is in its
+ * default constructed state.
+ * \arg cls the name of the class instance thats member should be serialized.
+ * \arg mem the name of the member of \c cls that should be serialized. For XML
+ *      \c mem will also be the outer tag name.
+ * \arg innerName the inner tag name of XML.
+ */
 #define SERGUT_NESTED_OMEMBER(cls, mem, innerName) \
   Archive::toNamedMember(#mem, Archive::toNestedMember(#innerName, cls.mem, false), false)
 
+/**
+ * \brief Declaration of the deserialization/serialization function.
+ */
 #define SERGUT_FUNCTION(DataType, dataName, archiveName) \
   inline const char* getTypeName(const DataType*) { return #DataType; } \
   template<typename DT, typename Archive> \
   void serialize(Archive& archiveName, DT& dataName, const DataType*)
 
+/**
+ * \brief Friend declaration of the deserialization/serialization function.
+ */
 #define SERGUT_FUNCTION_FRIEND_DECL(DataType, dataName, archiveName) \
   template<typename DT, typename Archive> \
   friend \
   void serialize(Archive& archiveName, DT& dataName, const DataType*)
 
+/**
+ * \brief Declaration of the serialize to string function.
+ *
+ * This can be used for classes that should be serialized into a plain string.
+ */
 #define SERGUT_SERIALIZE_TO_STRING(DT, variableName) \
   inline const char* getTypeName(const DT*) { return #DT; } \
   inline std::string serializeToString(const DT& variableName)
 
+/**
+ * \brief Friend declaration of the serialize to string function.
+ */
 #define SERGUT_SERIALIZE_TO_STRING_FRIEND_DECL(DT, variableName) \
   friend std::string serializeToString(const DT& variableName)
 
+/**
+ * \brief Declaration of the deserialize from string function.
+ *
+ * This can be used for classes that should be deserialized from a plain string.
+ */
 #define SERGUT_DESERIALIZE_FROM_STRING(DT, variableName, stringVariableName) \
   inline void deserializeFromString(DT& variableName, const std::string& stringVariableName)
 
+/**
+ * \brief Friend declaration of the deserialize from string function.
+ */
 #define SERGUT_DESERIALIZE_FROM_STRING_FRIEND_DECL(DT, variableName, stringVariableName) \
   friend void deserializeFromString(DT& variableName, const std::string& stringVariableName)
 
 namespace sergut {
 
 struct ChildrenFollow {};
+/**
+ * \brief Marker variable that is used to signal that all member should be
+ * serialized as XML children.
+ */
 const ChildrenFollow children;
 
 struct PlainChildFollows {};
+/**
+ * \brief Marker variable that is used to signal that the next member should be
+ * serialized as plain child.
+ * \see plainChild
+ */
 const PlainChildFollows plainChild;
 
 }

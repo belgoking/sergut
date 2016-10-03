@@ -129,7 +129,10 @@ void TinyDom::deleteChildNode(TiXmlNode& parentNode, TiXmlNode& childNode) {
 
 } // namespace detail
 
-
+/**
+ * \brief Deserializer of type sergut::detail::XmlDeserializerDomBase that uses TinyXML version 1
+ * \see sergut::detail::XmlDeserializerDomBase
+ */
 typedef detail::XmlDeserializerDomBase<detail::TinyDom> XmlDeserializerTiny;
 
 } // namespace sergut
