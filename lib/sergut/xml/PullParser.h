@@ -102,9 +102,6 @@ public:
   virtual bool setSavePoint() = 0;
   /// \brief Restore the parser to the tag where the save point was set
   virtual bool restoreToSavePoint() = 0;
-
-private:
-  std::string currentValueBuffer;
 };
 
 }
