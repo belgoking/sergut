@@ -76,6 +76,7 @@ public:
   XmlDeserializer(const char* xml) : XmlDeserializer(sergut::misc::ConstStringRef(xml)) { }
   XmlDeserializer(const std::string& xml) : XmlDeserializer(sergut::misc::ConstStringRef(xml)) { }
   XmlDeserializer(const misc::ConstStringRef& xml);
+  XmlDeserializer(std::vector<char>&& xml);
 
 //  /// Initial call to the serializer
 //  /// \param name The name of the outer tag

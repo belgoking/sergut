@@ -49,6 +49,8 @@ public:
 
   static std::unique_ptr<PullParser> createParser(const sergut::misc::ConstStringRef& data);
 
+  static std::unique_ptr<PullParser> createParser(std::vector<char>&& data);
+
   virtual ~PullParser();
   virtual std::vector<char>&& extractXmlData() = 0;
   virtual ParseTokenType parseNext() = 0;

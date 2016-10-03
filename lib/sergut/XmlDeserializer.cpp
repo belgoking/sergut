@@ -100,6 +100,11 @@ XmlDeserializer::XmlDeserializer(const misc::ConstStringRef& xml)
     , xmlDocument(&*ownXmlDocument)
 { }
 
+XmlDeserializer::XmlDeserializer(std::vector<char>&& xml)
+  : ownXmlDocument(xml::PullParser::createParser(std::move(xml)))
+  , xmlDocument(&*ownXmlDocument)
+{ }
+
 XmlDeserializer::XmlDeserializer(xml::PullParser& currentXmlNode)
     : xmlDocument(&currentXmlNode)
 { }

@@ -101,7 +101,7 @@ public:
   };
 
   BasicPullParser(const sergut::misc::ConstStringRef& data);
-  BasicPullParser(std::vector<char>&& data);
+  BasicPullParser(std::vector<char>&& data, const std::size_t offset);
   std::vector<char>&& extractXmlData() override;
   ParseTokenType parseNext() override;
   ParseTokenType getCurrentTokenType() const override;
@@ -201,15 +201,14 @@ void sergut::xml::detail::BasicPullParser<CharDecoder>::InnerStateSavePoint::abo
 
 template<typename CharDecoder>
 sergut::xml::detail::BasicPullParser<CharDecoder>::BasicPullParser(const sergut::misc::ConstStringRef& data)
-  : BasicPullParser(std::vector<char>(data.begin(), data.end()))
+  : BasicPullParser(std::vector<char>(data.begin(), data.end()), 0)
 { }
 
 template<typename CharDecoder>
-sergut::xml::detail::BasicPullParser<CharDecoder>::BasicPullParser(std::vector<char>&& data)
+sergut::xml::detail::BasicPullParser<CharDecoder>::BasicPullParser(std::vector<char>&& data, const std::size_t offset)
   : inputData(std::move(data))
-  , readerState(&*inputData.begin())
+  , readerState(&*inputData.begin() + offset)
 {
-  readerState.readPointer = &*inputData.begin();
   if(incompleteDocument) {
     incompleteDocument = false;
     nextChar();

@@ -42,3 +42,17 @@ std::unique_ptr<sergut::xml::PullParser> sergut::xml::PullParser::createParser(c
   }
   return std::unique_ptr<sergut::xml::detail::PullParserUtf8>(new sergut::xml::detail::PullParserUtf8(sergut::misc::ConstStringRef(data.begin(), data.end())));
 }
+
+std::unique_ptr<sergut::xml::PullParser> sergut::xml::PullParser::createParser(std::vector<char>&& data)
+{
+  if(sergut::unicode::Utf16BECodec::hasBom(&*data.begin(), &*data.end())) {
+    return std::unique_ptr<sergut::xml::detail::PullParserUtf16BE>(new sergut::xml::detail::PullParserUtf16BE(std::move(data), 2));
+  }
+  if(sergut::unicode::Utf16LECodec::hasBom(&*data.begin(), &*data.end())) {
+    return std::unique_ptr<sergut::xml::detail::PullParserUtf16LE>(new sergut::xml::detail::PullParserUtf16LE(std::move(data), 2));
+  }
+  if(sergut::unicode::Utf8Codec::hasBom(&*data.begin(), &*data.end())) {
+    return std::unique_ptr<sergut::xml::detail::PullParserUtf8>(new sergut::xml::detail::PullParserUtf8(std::move(data), 3));
+  }
+  return std::unique_ptr<sergut::xml::detail::PullParserUtf8>(new sergut::xml::detail::PullParserUtf8(std::move(data), 0));
+}
