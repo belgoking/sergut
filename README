@@ -10,7 +10,9 @@ A detailed documentation for how to use sergut is maintained as Doxygen source
 code comments. You can also have a look at test/sergut/TestSergut.cpp to get an
 idea of the possibilities you have with this library.
 
+## Semantic Versioning 2.0.0
 
+Sergut uses \c semver 2.0.0 as described at http://semver.org.
 
 ## Dependencies & Compiling
 

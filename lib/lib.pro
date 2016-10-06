@@ -24,6 +24,7 @@ SOURCES += \
     VersionTracker.cpp \
     sergut/JsonSerializer.cpp \
     sergut/ParsingException.cpp \
+    sergut/Version.cpp \
     sergut/XmlDeserializer.cpp \
     sergut/XmlDeserializerTiny.cpp \
     sergut/XmlDeserializerTiny2.cpp \
@@ -48,6 +49,7 @@ HEADERS += \
     sergut/SerializationException.h \
     sergut/SerializerBase.h \
     sergut/Util.h \
+    sergut/Version.h \
     sergut/XmlDeserializer.h \
     sergut/XmlDeserializerTiny.h \
     sergut/XmlDeserializerTiny2.h \
