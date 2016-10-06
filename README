@@ -6,45 +6,11 @@ adding new formats should be more or less straight forward. Especially if those
 formats can be converted into some kind of tree notation (something like DOM
 for XML).
 
-To serialize a C++ datastructure you have to write a serialization function
-that lists the members of this datastructure. This could be something like the
-following:
+A detailed documentation for how to use sergut is maintained as Doxygen source
+code comments. You can also have a look at test/sergut/TestSergut.cpp to get an
+idea of the possibilities you have with this library.
 
-#include <sergut/Util.h>
 
-struct SomeStruct {
-    int    member1;
-    double member2;
-};
-SERGUT_FUNCTION(SomeStruct, data, ar) {
-  ar & sergut::children
-      & SERGUT_MMEMBER(data, member1)
-      & SERGUT_OMEMBER(data, member2);
-}
-
-Some SomeStruct can then be serialized to XML like so:
-
-#include <sergut/XmlSerializer.h>
-
-std::string serializeSomeStruct(const SomeStruct& someData) {
-    sergut::XmlSerializer ser;
-    ser.serializeData("OuterElementName", someData);
-    return ser.str();
-}
-
-And it can be deserialized from XML like this:
-
-#include <sergut/XmlDeserializer.h>
-
-SomeStruct deserializeSomeStruct(const std::string& xml) {
-    sergut::XmlDeserializer deser(xml);
-    return deser.deserializeData<SomeStruct>("OuterElementName",
-                                             sergut::ValueType::Attribute);
-}
-
-Unfortunately this is all documentation there is so far. However, you can have
-a look at test/sergut/TestSergut.cpp to get an idea of the possibilities you
-have with this library.
 
 ## Dependencies & Compiling
 

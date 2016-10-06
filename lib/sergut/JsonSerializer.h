@@ -165,10 +165,10 @@ public:
     return operator&(toNamedMember(data.name, serializeToString(data.data), data.mandatory));
   }
 
-  /// This is unused for JSON
+  // This is unused for JSON
   JsonSerializer& operator&(const ChildrenFollow&) { return *this; }
 
-  /// This is unused for JSON
+  // This is unused for JSON
   JsonSerializer& operator&(const PlainChildFollows&) { return *this; }
 
   /// \param name this is not needed for JSON, we just add it here for symmetry to XML.
