@@ -28,9 +28,10 @@
 #include "sergut/xml/detail/ReaderStateResetter.h"
 #include "sergut/xml/detail/TextDecodingHelper.h"
 
+#include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace sergut {
 namespace xml {
@@ -114,6 +115,7 @@ public:
   bool restoreToSavePoint() override;
 
 private:
+  void compressInnerData();
   void recomputePointersToInput(const char* oldStartOfInput);
   /** Check whether there is an XML declaration and if so whether it is correct
    * @return true if there is no XML declaration or there is one that is OK (right version and encoding)
@@ -243,6 +245,7 @@ sergut::misc::ConstStringRef sergut::xml::detail::BasicPullParser<CharDecoder>::
 template<typename CharDecoder>
 void sergut::xml::detail::BasicPullParser<CharDecoder>::appendData(const char* data, const std::size_t size)
 {
+  compressInnerData();
   const char* oldStartPos = inputData.data();
   inputData.insert(inputData.end(), data, data + size);
   recomputePointersToInput(oldStartPos);
@@ -306,6 +309,26 @@ bool sergut::xml::detail::BasicPullParser<CharDecoder>::restoreToSavePoint()
   }
   currentTokenType = ParseTokenType::Error;
   return false;
+}
+
+
+template<typename CharDecoder>
+void sergut::xml::detail::BasicPullParser<CharDecoder>::compressInnerData()
+{
+  // implement compressInnerData() for UTF-16
+
+  // the save point is allways at least before the read pointer
+  const char* storedReadPtrPos = innerStateSavePoint != nullptr ? innerStateSavePoint->readPointer : readerState.readPointer;
+
+  const std::size_t reduceBy = storedReadPtrPos - inputData.data();
+  const std::size_t remainingDataSize = (&*inputData.end()) - storedReadPtrPos;
+  std::memcpy(inputData.data(), storedReadPtrPos, remainingDataSize);
+
+  if(innerStateSavePoint != nullptr) {
+    innerStateSavePoint->readPointer -= reduceBy;
+  }
+  readerState.readPointer -= reduceBy;
+  inputData.erase(inputData.begin()+remainingDataSize, inputData.end());
 }
 
 

@@ -78,6 +78,12 @@ bool BasicPullParser<sergut::unicode::Utf8Codec>::parseName(const NameType nameT
   return true;
 }
 
+template<>
+void sergut::xml::detail::BasicPullParser<sergut::unicode::Utf8Codec>::compressInnerData()
+{
+  // Todo: implement
+}
+
 }
 }
 }
