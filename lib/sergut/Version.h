@@ -27,18 +27,18 @@ namespace sergut {
 class Version {
 public:
   Version(uint16_t aMajor, uint16_t aMinor, uint16_t aPatch, std::string aSuffix)
-    : major(aMajor)
-    , minor(aMinor)
-    , patch(aPatch)
-    , suffix(aSuffix)
+    : _major(aMajor)
+    , _minor(aMinor)
+    , _patch(aPatch)
+    , _suffix(aSuffix)
   { }
 
   static Version getCurrentVersion();
 
 private:
-  uint16_t major;
-  uint16_t minor;
-  uint16_t patch;
-  std::string suffix;
+  uint16_t _major;
+  uint16_t _minor;
+  uint16_t _patch;
+  std::string _suffix;
 };
 }
