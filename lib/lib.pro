@@ -34,6 +34,7 @@ SOURCES += \
     sergut/detail/MemberDeserializer.cpp \
     sergut/detail/NameSpace.cpp \
     sergut/detail/TypeName.cpp \
+    sergut/misc/Debug.cpp \
     sergut/misc/ReadHelper.cpp \
     sergut/unicode/Utf8Codec.cpp \
     sergut/xml/PullParser.cpp \
