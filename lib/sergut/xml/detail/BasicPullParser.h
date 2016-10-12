@@ -164,7 +164,7 @@ private:
   bool incompleteDocument = true;
 
   // Variables needed for safe/restore
-  const char* currentTagStart = nullptr;
+  const char* lastTagStart = nullptr;
   std::unique_ptr<InnerStateSavePoint> innerStateSavePoint;
 };
 
@@ -266,7 +266,7 @@ bool sergut::xml::detail::BasicPullParser<CharDecoder>::setSavePoint()
   // we could call innerStateSavePoint->parseStackCopy.clear(), but why should
   // we? The memory consumption of the saved stack should be neglectable and by
   // not calling clear we save the effort of some calls to delete
-  innerStateSavePoint->readPointer = currentTagStart;
+  innerStateSavePoint->readPointer = lastTagStart;
   innerStateSavePoint->parseStackPtr = &parseStack;
   innerStateSavePoint->parseStackSize = parseStack.frameCount();
   if(currentTokenType != ParseTokenType::CloseTag) {
@@ -285,8 +285,8 @@ bool sergut::xml::detail::BasicPullParser<CharDecoder>::restoreToSavePoint()
     currentTokenType = ParseTokenType::Error;
     return false;
   }
-  currentTagStart = innerStateSavePoint->readPointer;
-  readerState.readPointer = currentTagStart;
+  lastTagStart = innerStateSavePoint->readPointer;
+  readerState.readPointer = lastTagStart;
   incompleteDocument = false;
 
   if(innerStateSavePoint->hasParseStackCopy()) {
@@ -543,7 +543,7 @@ bool sergut::xml::detail::BasicPullParser<CharDecoder>::parseOpenTag()
   if(!isOk())                   { return true; }
   if(!skipWhitespaces())        { return true;  }
   // memorize the position of the opening '<' of the tag
-  currentTagStart = tmpStartChar - std::size_t(CharDecoder::encodeChar('<'));
+  lastTagStart = tmpStartChar - std::size_t(CharDecoder::encodeChar('<'));
   parseStack.pushData(decodedNameBuffers.decodedTagName);
   currentTokenType = ParseTokenType::OpenTag;
   return true;
@@ -667,7 +667,7 @@ bool sergut::xml::detail::BasicPullParser<CharDecoder>::parseCloseTag()
     }
   }
   // memorize the position of the opening '<' of the tag
-  currentTagStart = readStateResetter.getOriginalReadPointer() - std::size_t(CharDecoder::encodeChar('<'));
+  lastTagStart = readStateResetter.getOriginalReadPointer() - std::size_t(CharDecoder::encodeChar('<'));
   currentTokenType = ParseTokenType::CloseTag;
   return true;
 }
