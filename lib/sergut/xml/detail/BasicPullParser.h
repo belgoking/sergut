@@ -753,6 +753,9 @@ sergut::xml::ParseTokenType sergut::xml::detail::BasicPullParser<CharDecoder>::p
     return getCurrentTokenType();
   case ParseTokenType::CloseTag:
     if(innerStateSavePoint != nullptr) {
+      // in case we are about to reduce the parse stack to below
+      // the level, that the innerStateSavePoint requires, the
+      // innerStateSavePoint needs to create a copy of the parseStack
       innerStateSavePoint->aboutToPopParseStack();
     }
     parseStack.popData();
