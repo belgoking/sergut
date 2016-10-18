@@ -999,11 +999,11 @@ TEST_CASE("Deserialize incomplete XML with resume", "[sergut]")
         THEN("The no error is detected by the parser") {
           int i = 0;
           for(; i < interruptedAtCount; ++i) {
-            parser.setSavePoint();
+            parser.setSavePointAtLastTag();
             const SavepointTest data = sergut::XmlDeserializer::deserializeFromSnippet<SavepointTest>("inner", parser);
             CHECK(data == (SavepointTest{1, 1}));
           }
-          parser.setSavePoint();
+          parser.setSavePointAtLastTag();
           CHECK_THROWS_AS(sergut::XmlDeserializer::deserializeFromSnippet<SavepointTest>("inner", parser), sergut::ParsingException);
           parser.restoreToSavePoint();
           parser.appendData(secondPart.data(), secondPart.size());
@@ -1011,7 +1011,7 @@ TEST_CASE("Deserialize incomplete XML with resume", "[sergut]")
           CHECK(data == (SavepointTest{1, 1}));
           ++i;
           for(; i < 2; ++i) {
-            parser.setSavePoint();
+            parser.setSavePointAtLastTag();
             const SavepointTest data = sergut::XmlDeserializer::deserializeFromSnippet<SavepointTest>("inner", parser);
             CHECK(data == (SavepointTest{1, 1}));
           }

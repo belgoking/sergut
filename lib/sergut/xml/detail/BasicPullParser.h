@@ -111,7 +111,7 @@ public:
   sergut::misc::ConstStringRef getCurrentValue() const override;
   void appendData(const char* data, const std::size_t size) override;
 
-  bool setSavePoint() override;
+  bool setSavePointAtLastTag() override;
   bool restoreToSavePoint() override;
 
 private:
@@ -252,12 +252,14 @@ void sergut::xml::detail::BasicPullParser<CharDecoder>::appendData(const char* d
 }
 
 template<typename CharDecoder>
-bool sergut::xml::detail::BasicPullParser<CharDecoder>::setSavePoint()
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::setSavePointAtLastTag()
 {
   if(incompleteDocument
      || currentTokenType == ParseTokenType::Error
-     || currentTokenType == ParseTokenType::InitialState)
+     || currentTokenType == ParseTokenType::InitialState
+     || currentTokenType == ParseTokenType::OpenDocument)
   {
+    // we cannot set a save point if we have not seen at least one tag
     return false;
   }
   if(!innerStateSavePoint) {
@@ -317,8 +319,13 @@ void sergut::xml::detail::BasicPullParser<CharDecoder>::compressInnerData()
 {
   // implement compressInnerData() for UTF-16
 
+  if(lastTagStart == nullptr) {
+    // if we have not started parsing, we cannot compress either
+    return;
+  }
+
   // the save point is allways at least before the read pointer
-  const char* storedReadPtrPos = innerStateSavePoint != nullptr ? innerStateSavePoint->readPointer : readerState.readPointer;
+  const char* storedReadPtrPos = innerStateSavePoint != nullptr ? innerStateSavePoint->readPointer : lastTagStart;
 
   const std::size_t reduceBy = storedReadPtrPos - inputData.data();
   const std::size_t remainingDataSize = (&*inputData.end()) - storedReadPtrPos;
@@ -327,8 +334,12 @@ void sergut::xml::detail::BasicPullParser<CharDecoder>::compressInnerData()
   if(innerStateSavePoint != nullptr) {
     innerStateSavePoint->readPointer -= reduceBy;
   }
+  lastTagStart -= reduceBy;
   readerState.readPointer -= reduceBy;
+
+  const char* oldDataPtr = inputData.data();
   inputData.erase(inputData.begin()+remainingDataSize, inputData.end());
+  recomputePointersToInput(oldDataPtr);
 }
 
 
@@ -339,9 +350,8 @@ void sergut::xml::detail::BasicPullParser<CharDecoder>::recomputePointersToInput
     return;
   }
   const std::ptrdiff_t diff = inputData.data() - oldStartOfInput;
+  lastTagStart += diff;
   readerState.readPointer += diff;
-  parseStack.addOffset(diff);
-  decodedNameBuffers.addOffset(diff);
   if(innerStateSavePoint) {
     innerStateSavePoint->addOffset(diff);
   }

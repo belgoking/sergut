@@ -78,10 +78,138 @@ bool BasicPullParser<sergut::unicode::Utf8Codec>::parseName(const NameType nameT
   return true;
 }
 
+inline
+std::size_t moveNReturnOffset(sergut::misc::ConstStringRef& ref, char* lastDataEnd) {
+  sergut::misc::ConstStringRef orig = ref;
+  std::memcpy(lastDataEnd, orig.begin(), orig.size());
+  char* const newEnd = lastDataEnd + orig.size();
+  const sergut::misc::ConstStringRef newPos(lastDataEnd, newEnd);
+  ref = newPos;
+  return orig.begin() - lastDataEnd;
+}
+
+template<>
+void sergut::xml::detail::BasicPullParser<sergut::unicode::Utf8Codec>::recomputePointersToInput(const char* oldStartOfInput)
+{
+  if(oldStartOfInput == inputData.data()) {
+    return;
+  }
+  const std::ptrdiff_t diff = inputData.data() - oldStartOfInput;
+  lastTagStart += diff;
+  readerState.readPointer += diff;
+  parseStack.addOffset(diff);
+  decodedNameBuffers.addOffset(diff);
+  if(innerStateSavePoint) {
+    innerStateSavePoint->addOffset(diff);
+  }
+}
+
 template<>
 void sergut::xml::detail::BasicPullParser<sergut::unicode::Utf8Codec>::compressInnerData()
 {
-  // Todo: implement
+  // implement compressInnerData() for UTF-8
+
+  if(currentTokenType == ParseTokenType::Error) {
+    // If we have an error, we don't try to do anything here
+    return;
+  }
+
+  ParseStack<true>::iterator  mainStackIter = parseStack.begin();
+  const ParseStack<true>::iterator  mainStackEndIter = parseStack.end();
+
+  std::size_t offset = 0;
+  char* writePointer = inputData.data();
+
+  if(innerStateSavePoint) {
+    // if we have a save point, we compact until innerStateSavePoint->readPointer
+    ParseStack<true>::iterator savepointStackIter = innerStateSavePoint->parseStackPtr->begin();
+    const ParseStack<true>::iterator savepointStackEndIter =
+        innerStateSavePoint->parseStackPtr != &parseStack
+          ? innerStateSavePoint->parseStackPtr->end()
+          : (innerStateSavePoint->parseStackPtr->begin() + innerStateSavePoint->parseStackSize);
+
+    for(;savepointStackIter != savepointStackEndIter; ++savepointStackIter) {
+      sergut::misc::ConstStringRef orig = *savepointStackIter;
+      offset = moveNReturnOffset(*savepointStackIter, writePointer);
+      writePointer += savepointStackIter->size();
+      if(&*mainStackIter == &*savepointStackIter) {
+        // if innerStateSavePoint just points to the stack of the main
+        // parser, we just need to increase the mainStackIter, as the
+        // values of the ConstStringRef that are pointed to by it have
+        // been increased already
+        ++mainStackIter;
+      } else if(orig.begin() == mainStackIter->begin()) {
+        // if the current frame (previous to being moved) is the same for the
+        // stored and the main ParseStack, we also move the frame on the
+        // mainStackIter. We can do this, as we know that both stacks are
+        // equal up to a certain point. After this point all pointers held by
+        // the innerStateSavePoint are before all remaining pointers in the
+        // main parseStack.
+        *mainStackIter = *savepointStackIter;
+        ++mainStackIter;
+      }
+    }
+    innerStateSavePoint->readPointer -= offset;
+    // then I have to fix the remaining positions of the main parseStack
+    // (those it does not have in common with innerStateSavePoint->parseStackPtr
+    for(;mainStackIter != mainStackEndIter; ++mainStackIter) {
+      mainStackIter->addOffset(-offset);
+    }
+    // now I have to fix the other pointers
+    decodedNameBuffers.addOffset(-offset);
+
+    // copying of the data and trimming happens after the else block
+  } else {
+    // if we don't have a save point, we compact until the main readPointer
+
+    if(incompleteDocument) {
+      // we need a savepoint to recover from an incomplete document
+      // hence we don't try to compact in this case
+      return;
+    }
+
+    // first we compact the parse stack
+    while(mainStackIter != mainStackEndIter) {
+      offset = moveNReturnOffset(*mainStackIter, writePointer);
+      writePointer += mainStackIter->size();
+      ++mainStackIter;
+    }
+
+    // compact
+    switch(currentTokenType) {
+    case sergut::xml::ParseTokenType::OpenTag:
+    case sergut::xml::ParseTokenType::CloseTag:
+      decodedNameBuffers.decodedAttrName = sergut::misc::StringRef();
+      decodedNameBuffers.decodedTagName.addOffset(-offset);
+      break;
+    case sergut::xml::ParseTokenType::Attribute:
+      decodedNameBuffers.decodedTagName = sergut::misc::StringRef();
+      decodedNameBuffers.decodedAttrName.addOffset(-offset);
+      break;
+    case sergut::xml::ParseTokenType::Text:
+    case sergut::xml::ParseTokenType::InitialState:
+    case sergut::xml::ParseTokenType::OpenDocument:
+    case sergut::xml::ParseTokenType::CloseDocument:
+      decodedNameBuffers.decodedTagName = sergut::misc::StringRef();
+      decodedNameBuffers.decodedAttrName = sergut::misc::StringRef();
+      break;
+    case sergut::xml::ParseTokenType::IncompleteDocument:
+      // This should never have happened. In case we want to work with
+      // partial data we need a savepoint to recover.
+    case sergut::xml::ParseTokenType::Error:
+      return;
+    }
+  }
+  const std::size_t remaining = &*inputData.end() - (writePointer + offset);
+  std::memcpy(writePointer, writePointer + offset, remaining);
+  lastTagStart -= offset;
+  readerState.readPointer -= offset;
+
+  std::size_t compressedDataSize = writePointer + remaining - inputData.data();
+
+  const char* oldDataPtr = inputData.data();
+  inputData.erase(inputData.begin()+compressedDataSize, inputData.end());
+  recomputePointersToInput(oldDataPtr);
 }
 
 }

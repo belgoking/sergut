@@ -98,8 +98,8 @@ public:
   static bool isError(DecodingResult r) noexcept { return r < DecodingResult::Empty; }
   /// \brief Append some data to the inner XML
   virtual void appendData(const char* data, const std::size_t size) = 0;
-  /// \brief Set an inner save point right before the current tag
-  virtual bool setSavePoint() = 0;
+  /// \brief Set an inner save point right before the last tag (opening or closing)
+  virtual bool setSavePointAtLastTag() = 0;
   /// \brief Restore the parser to the tag where the save point was set
   virtual bool restoreToSavePoint() = 0;
 };

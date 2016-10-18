@@ -101,6 +101,8 @@ template<>
 class ParseStack<true>
 {
 public:
+  typedef std::vector<sergut::misc::ConstStringRef>::iterator iterator;
+
   ParseStack() { }
 
   void pushData(const sergut::misc::ConstStringRef& data) {
@@ -127,6 +129,9 @@ public:
       frame.addOffset(offset);
     }
   }
+
+  iterator begin() { return frames.begin(); }
+  iterator end() { return frames.end(); }
 
 private:
   std::vector<sergut::misc::ConstStringRef> frames;
