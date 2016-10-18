@@ -613,44 +613,67 @@ TEST_CASE("XML-Parser (append data Test)", "[XML]")
 {
   for(const TargetEncoding encodingType: encodings)
   {
-    constexpr int REPETITION_COUNT=10;
-    GIVEN("The " + toString(encodingType) + " PullParser") {
-      WHEN("Starting to parse an incomplete XML and then completing the document after starting") {
-        const std::string unencodedNested = "<nested attr=\"ad1\">content</nested>";
-        const std::string initialXml = asciiToEncoding("<root>" + unencodedNested.substr(0, 10), encodingType);
-        std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(initialXml));
-        sergut::xml::PullParser& parser = *parserTmp;
-        CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
-        CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
-        CHECK(parser.getCurrentTagName() == std::string("root"));
-        CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
-        CHECK(parser.getCurrentTagName() == std::string("nested"));
-        const std::string remainingFragment = asciiToEncoding(unencodedNested.substr(10), encodingType, false);
-        parser.appendData(remainingFragment.c_str(), remainingFragment.size());
-        const std::string nested = asciiToEncoding(unencodedNested, encodingType, false);
-        for(int i = 0; i < REPETITION_COUNT; ++i) {
-          parser.appendData(nested.c_str(), nested.size());
-        }
-        const std::string closingTag = asciiToEncoding("</root>", encodingType, false);
-        parser.appendData(closingTag.c_str(), closingTag.size());
-
-        THEN("The no error is detected by the parser") {
-          int i = 0;
-          for(; i < REPETITION_COUNT + 1 && parser.isOk(); ++i) {
-            CHECK(parser.getCurrentTokenType() == sergut::xml::ParseTokenType::OpenTag);
-            CHECK(parser.getCurrentTagName() == std::string("nested"));
-            CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
-            CHECK(parser.getCurrentAttributeName() == std::string("attr"));
-            CHECK(parser.getCurrentValue() == std::string("ad1"));
-            CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Text);
-            CHECK(parser.getCurrentValue() == std::string("content"));
-            CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
-            CHECK(parser.getCurrentTagName() == std::string("nested"));
-            parser.parseNext();
-          }
-          CHECK(i == REPETITION_COUNT + 1);
-          CHECK(parser.getCurrentTokenType() == sergut::xml::ParseTokenType::CloseTag);
+    for(const bool withSavePoint: {false, true}) {
+      constexpr int REPETITION_COUNT=10;
+      GIVEN("The " + toString(encodingType) + " PullParser (setting save points " + std::to_string(withSavePoint) + ")") {
+        WHEN("Starting to parse an incomplete XML and then completing the document while parsing") {
+          const std::string unencodedNested = "<nested attr=\"ad1\">content</nested>";
+          const std::string initialXml = asciiToEncoding("<root>" + unencodedNested.substr(0, 10), encodingType);
+          std::unique_ptr<sergut::xml::PullParser> parserTmp = sergut::xml::PullParser::createParser(sergut::misc::ConstStringRef(initialXml));
+          sergut::xml::PullParser& parser = *parserTmp;
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenDocument);
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
           CHECK(parser.getCurrentTagName() == std::string("root"));
+          CHECK(parser.parseNext() == sergut::xml::ParseTokenType::OpenTag);
+          CHECK(parser.getCurrentTagName() == std::string("nested"));
+          const std::string remainingFragment = asciiToEncoding(unencodedNested.substr(10), encodingType, false);
+          parser.appendData(remainingFragment.c_str(), remainingFragment.size());
+          const std::string nested = asciiToEncoding(unencodedNested, encodingType, false);
+
+          parser.appendData(nested.c_str(), nested.size());
+
+          THEN("The parser generates the same events as when parsing directly") {
+            int i = 0;
+            for(; i < REPETITION_COUNT && parser.isOk(); ++i) {
+              CHECK(parser.getCurrentTokenType() == sergut::xml::ParseTokenType::OpenTag);
+              CHECK(parser.getCurrentTagName() == std::string("nested"));
+
+              if(withSavePoint) { parser.setSavePointAtLastTag(); }
+              if(i < REPETITION_COUNT - 2 && (i % 4) == 0) {
+                parser.appendData(nested.c_str(), nested.size());
+              }
+              CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Attribute);
+              CHECK(parser.getCurrentAttributeName() == std::string("attr"));
+              CHECK(parser.getCurrentValue() == std::string("ad1"));
+
+              if(withSavePoint) { parser.setSavePointAtLastTag(); }
+              if(i < REPETITION_COUNT - 2 && (i % 4) == 1) {
+                parser.appendData(nested.c_str(), nested.size());
+              }
+              CHECK(parser.parseNext() == sergut::xml::ParseTokenType::Text);
+              CHECK(parser.getCurrentValue() == std::string("content"));
+
+              if(withSavePoint) { parser.setSavePointAtLastTag(); }
+              if(i < REPETITION_COUNT - 2 && (i % 4) == 2) {
+                parser.appendData(nested.c_str(), nested.size());
+              }
+              CHECK(parser.parseNext() == sergut::xml::ParseTokenType::CloseTag);
+              CHECK(parser.getCurrentTagName() == std::string("nested"));
+
+              if(withSavePoint) { parser.setSavePointAtLastTag(); }
+              if(i < REPETITION_COUNT - 2 && (i % 4) == 3) {
+                parser.appendData(nested.c_str(), nested.size());
+              }
+              else if(i == REPETITION_COUNT - 2) {
+                const std::string closingTag = asciiToEncoding("</root>", encodingType, false);
+                parser.appendData(closingTag.c_str(), closingTag.size());
+              }
+              parser.parseNext();
+            }
+            CHECK(i == REPETITION_COUNT);
+            CHECK(parser.getCurrentTokenType() == sergut::xml::ParseTokenType::CloseTag);
+            CHECK(parser.getCurrentTagName() == std::string("root"));
+          }
         }
       }
     }
@@ -680,21 +703,123 @@ static std::string getTextFromParser(const sergut::xml::PullParser& parser, cons
 
 TEST_CASE("XML-Parser (savepoint Test)", "[XML]")
 {
-  const std::vector<std::tuple<std::string, std::string, std::size_t>> testData{
-    std::make_tuple( "<root><inner a", "tt=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner></root>",  3 ),
-    std::make_tuple( "<root><inner att=\"1\"><", "v>1</v></inner><inner att=\"1\"><v>1</v></inner></root>",  4 ),
-    std::make_tuple( "<root><inner att=\"1\"><v>1</v>", "</inner><inner att=\"1\"><v>1</v></inner></root>",  7 ),
-    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner", "><inner att=\"1\"><v>1</v></inner></root>",  7 ),
-    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner>", "<inner att=\"1\"><v>1</v></inner></root>",  8 ),
-    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner", " att=\"1\"><v>1</v></inner></root>",  8 ),
-    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner a", "tt=\"1\"><v>1</v></inner></root>",  9 ),
-    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\">", "<v>1</v></inner></root>", 10 ),
-    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1", "</v></inner></root>", 12 ),
-    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v>", "</inner></root>", 13 ),
-    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner", "></root>", 13 ),
-    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner>", "</root>", 14 ),
-    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner></", "root>", 14 ),
-    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner></root", ">", 14 )
+  const std::vector<std::tuple<std::string, std::size_t, std::string, std::size_t, std::string>> testData{
+    std::make_tuple( "<root><inner a", 3, "tt=\"",  3, "1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner a", 3, "tt=\"1\"><",  4, "v>1</v></inner><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner a", 3, "tt=\"1\"><v>1</v>",  7, "</inner><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner a", 3, "tt=\"1\"><v>1</v></inner",  7, "><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner a", 3, "tt=\"1\"><v>1</v></inner>",  8, "<inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner a", 3, "tt=\"1\"><v>1</v></inner><inner",  8, " att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner a", 3, "tt=\"1\"><v>1</v></inner><inner a",  9, "tt=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner a", 3, "tt=\"1\"><v>1</v></inner><inner att=\"1\">", 10, "<v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner a", 3, "tt=\"1\"><v>1</v></inner><inner att=\"1\"><v>1", 12, "</v></inner></root>" ),
+    std::make_tuple( "<root><inner a", 3, "tt=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v>", 13, "</inner></root>" ),
+    std::make_tuple( "<root><inner a", 3, "tt=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner", 13, "></root>" ),
+    std::make_tuple( "<root><inner a", 3, "tt=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner>", 14, "</root>" ),
+    std::make_tuple( "<root><inner a", 3, "tt=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner></", 14, "root>" ),
+    std::make_tuple( "<root><inner a", 3, "tt=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><", 4, "v>1</v>",  7, "</inner><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><", 4, "v>1</v></inner",  7, "><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><", 4, "v>1</v></inner>",  8, "<inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><", 4, "v>1</v></inner><inner",  8, " att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><", 4, "v>1</v></inner><inner a",  9, "tt=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><", 4, "v>1</v></inner><inner att=\"1\">", 10, "<v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><", 4, "v>1</v></inner><inner att=\"1\"><v>1", 12, "</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><", 4, "v>1</v></inner><inner att=\"1\"><v>1</v>", 13, "</inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><", 4, "v>1</v></inner><inner att=\"1\"><v>1</v></inner", 13, "></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><", 4, "v>1</v></inner><inner att=\"1\"><v>1</v></inner>", 14, "</root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><", 4, "v>1</v></inner><inner att=\"1\"><v>1</v></inner><", 14, "/root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><", 4, "v>1</v></inner><inner att=\"1\"><v>1</v></inner></", 14, "root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><", 4, "v>1</v></inner><inner att=\"1\"><v>1</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v", 4, ">1</v>",  7, "</inner><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v", 4, ">1</v></inner",  7, "><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v", 4, ">1</v></inner>",  8, "<inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v", 4, ">1</v></inner><inner",  8, " att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v", 4, ">1</v></inner><inner a",  9, "tt=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v", 4, ">1</v></inner><inner att=\"1\">", 10, "<v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v", 4, ">1</v></inner><inner att=\"1\"><v>1", 12, "</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v", 4, ">1</v></inner><inner att=\"1\"><v>1</v>", 13, "</inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v", 4, ">1</v></inner><inner att=\"1\"><v>1</v></inner", 13, "></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v", 4, ">1</v></inner><inner att=\"1\"><v>1</v></inner>", 14, "</root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v", 4, ">1</v></inner><inner att=\"1\"><v>1</v></inner><", 14, "/root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v", 4, ">1</v></inner><inner att=\"1\"><v>1</v></inner></", 14, "root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v", 4, ">1</v></inner><inner att=\"1\"><v>1</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>", 5, "1</v>",  7, "</inner><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>", 5, "1</v></inner",  7, "><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>", 5, "1</v></inner>",  8, "<inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>", 5, "1</v></inner><inner",  8, " att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>", 5, "1</v></inner><inner a",  9, "tt=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>", 5, "1</v></inner><inner att=\"1\">", 10, "<v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>", 5, "1</v></inner><inner att=\"1\"><v>1", 12, "</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>", 5, "1</v></inner><inner att=\"1\"><v>1</v>", 13, "</inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>", 5, "1</v></inner><inner att=\"1\"><v>1</v></inner", 13, "></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>", 5, "1</v></inner><inner att=\"1\"><v>1</v></inner>", 14, "</root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>", 5, "1</v></inner><inner att=\"1\"><v>1</v></inner><", 14, "/root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>", 5, "1</v></inner><inner att=\"1\"><v>1</v></inner></", 14, "root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>", 5, "1</v></inner><inner att=\"1\"><v>1</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1", 5, "</v>",  7, "</inner><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1", 5, "</v></inner",  7, "><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1", 5, "</v></inner>",  8, "<inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1", 5, "</v></inner><inner",  8, " att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1", 5, "</v></inner><inner a",  9, "tt=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1", 5, "</v></inner><inner att=\"1\">", 10, "<v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1", 5, "</v></inner><inner att=\"1\"><v>1", 12, "</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1", 5, "</v></inner><inner att=\"1\"><v>1</v>", 13, "</inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1", 5, "</v></inner><inner att=\"1\"><v>1</v></inner", 13, "></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1", 5, "</v></inner><inner att=\"1\"><v>1</v></inner>", 14, "</root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1", 5, "</v></inner><inner att=\"1\"><v>1</v></inner><", 14, "/root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1", 5, "</v></inner><inner att=\"1\"><v>1</v></inner></", 14, "root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1", 5, "</v></inner><inner att=\"1\"><v>1</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1<", 6, "/v>",  7, "</inner><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1<", 6, "/v></inner",  7, "><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1<", 6, "/v></inner>",  8, "<inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1<", 6, "/v></inner><inner",  8, " att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1<", 6, "/v></inner><inner a",  9, "tt=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1<", 6, "/v></inner><inner att=\"1\">", 10, "<v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1<", 6, "/v></inner><inner att=\"1\"><v>1", 12, "</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1<", 6, "/v></inner><inner att=\"1\"><v>1</v>", 13, "</inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1<", 6, "/v></inner><inner att=\"1\"><v>1</v></inner", 13, "></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1<", 6, "/v></inner><inner att=\"1\"><v>1</v></inner>", 14, "</root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1<", 6, "/v></inner><inner att=\"1\"><v>1</v></inner><", 14, "/root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1<", 6, "/v></inner><inner att=\"1\"><v>1</v></inner></", 14, "root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1<", 6, "/v></inner><inner att=\"1\"><v>1</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</", 6, "v>",  7, "</inner><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</", 6, "v></inner",  7, "><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</", 6, "v></inner>",  8, "<inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</", 6, "v></inner><inner",  8, " att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</", 6, "v></inner><inner a",  9, "tt=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</", 6, "v></inner><inner att=\"1\">", 10, "<v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</", 6, "v></inner><inner att=\"1\"><v>1", 12, "</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</", 6, "v></inner><inner att=\"1\"><v>1</v>", 13, "</inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</", 6, "v></inner><inner att=\"1\"><v>1</v></inner", 13, "></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</", 6, "v></inner><inner att=\"1\"><v>1</v></inner>", 14, "</root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</", 6, "v></inner><inner att=\"1\"><v>1</v></inner><", 14, "/root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</", 6, "v></inner><inner att=\"1\"><v>1</v></inner></", 14, "root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</", 6, "v></inner><inner att=\"1\"><v>1</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v", 6, ">",  7, "</inner><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v", 6, "></inner",  7, "><inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v", 6, "></inner>",  8, "<inner att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v", 6, "></inner><inner",  8, " att=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v", 6, "></inner><inner a",  9, "tt=\"1\"><v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v", 6, "></inner><inner att=\"1\">", 10, "<v>1</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v", 6, "></inner><inner att=\"1\"><v>1", 12, "</v></inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v", 6, "></inner><inner att=\"1\"><v>1</v>", 13, "</inner></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v", 6, "></inner><inner att=\"1\"><v>1</v></inner", 13, "></root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v", 6, "></inner><inner att=\"1\"><v>1</v></inner>", 14, "</root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v", 6, "></inner><inner att=\"1\"><v>1</v></inner><", 14, "/root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v", 6, "></inner><inner att=\"1\"><v>1</v></inner></", 14, "root>" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v", 6, "></inner><inner att=\"1\"><v>1</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v>", 7, "</inner><inner att=\"1\"><v>1</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner", 7, "><inner att=\"1\"><v>1</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner>", 8, "<inner att=\"1\"><v>1</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner", 8, " att=\"1\"><v>1</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner a", 9, "tt=\"1\"><v>1</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\">",10, "<v>1</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1",12, "</v></inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v>",13, "</inner></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner",13, "></root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner>",14, "</root", 14, ">" ),
+    std::make_tuple( "<root><inner att=\"1\"><v>1</v></inner><inner att=\"1\"><v>1</v></inner></",14, "root", 14, ">" ),
   };
   const int savePoint1 = 2;
   const int savePoint2 = 8;
@@ -718,8 +843,10 @@ TEST_CASE("XML-Parser (savepoint Test)", "[XML]")
   };
   for(const auto& values: testData) {
     const std::string& firstPart = std::get<0>(values);
-    const std::string& secondPart = std::get<1>(values);
-    const std::size_t interruptedAtCount = std::get<2>(values);
+    const std::size_t interruptedAtCount = std::get<1>(values);
+    const std::string& secondPart = std::get<2>(values);
+    const std::size_t interrupted2AtCount = std::get<3>(values);
+    const std::string& thirdPart = std::get<2>(values);
     for(const TargetEncoding encodingType: encodings)
     {
       GIVEN("The " + toString(encodingType) + " PullParser") {
@@ -738,7 +865,7 @@ TEST_CASE("XML-Parser (savepoint Test)", "[XML]")
               CHECK(parser.parseNext() == std::get<0>(expectedTokens[i]));
               CHECK(getTextFromParser(parser, std::get<0>(expectedTokens[i])) == std::get<1>(expectedTokens[i]));
               if(i == savePoint1 || i == savePoint2) {
-                CHECK(parser.setSavePoint() == true);
+                CHECK(parser.setSavePointAtLastTag() == true);
                 currentSavepoint = i;
               }
             }
