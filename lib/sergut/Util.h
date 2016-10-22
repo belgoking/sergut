@@ -274,7 +274,7 @@
     8
     9 while(pullParser->getCurrentTokenType() == sergut::xml::ParseTokenType::OpenTag
    10    && pullParser->getCurrentTagName() == std::string("data")) {
-   11   pullParser->setSavePointAtLastTag();
+   11   pullParser->setSavePointAtCurrentTag();
    12   try {
    13     handle(sergut::XmlDeserializer::deserializeNestedFromSnippet<int, sergut::XmlValueType::Attribute>(
    14              "element", "id", *pullParser)) == i);

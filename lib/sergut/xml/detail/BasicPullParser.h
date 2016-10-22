@@ -111,7 +111,7 @@ public:
   sergut::misc::ConstStringRef getCurrentValue() const override;
   void appendData(const char* data, const std::size_t size) override;
 
-  bool setSavePointAtLastTag() override;
+  bool setSavePointAtCurrentTag() override;
   bool restoreToSavePoint() override;
 
 private:
@@ -252,14 +252,13 @@ void sergut::xml::detail::BasicPullParser<CharDecoder>::appendData(const char* d
 }
 
 template<typename CharDecoder>
-bool sergut::xml::detail::BasicPullParser<CharDecoder>::setSavePointAtLastTag()
+bool sergut::xml::detail::BasicPullParser<CharDecoder>::setSavePointAtCurrentTag()
 {
   if(incompleteDocument
-     || currentTokenType == ParseTokenType::Error
-     || currentTokenType == ParseTokenType::InitialState
-     || currentTokenType == ParseTokenType::OpenDocument)
+     || (   currentTokenType != ParseTokenType::OpenTag
+         && currentTokenType != ParseTokenType::CloseTag))
   {
-    // we cannot set a save point if we have not seen at least one tag
+    // we cannot set a save point if we are not on a tag
     return false;
   }
   if(!innerStateSavePoint) {

@@ -132,21 +132,23 @@ void sergut::xml::detail::BasicPullParser<sergut::unicode::Utf8Codec>::compressI
       sergut::misc::ConstStringRef orig = *savepointStackIter;
       offset = moveNReturnOffset(*savepointStackIter, writePointer);
       writePointer += savepointStackIter->size();
-      if(&*mainStackIter == &*savepointStackIter) {
-        // if innerStateSavePoint just points to the stack of the main
-        // parser, we just need to increase the mainStackIter, as the
-        // values of the ConstStringRef that are pointed to by it have
-        // been increased already
-        ++mainStackIter;
-      } else if(orig.begin() == mainStackIter->begin()) {
-        // if the current frame (previous to being moved) is the same for the
-        // stored and the main ParseStack, we also move the frame on the
-        // mainStackIter. We can do this, as we know that both stacks are
-        // equal up to a certain point. After this point all pointers held by
-        // the innerStateSavePoint are before all remaining pointers in the
-        // main parseStack.
-        *mainStackIter = *savepointStackIter;
-        ++mainStackIter;
+      if(mainStackIter != mainStackEndIter) {
+        if(&*mainStackIter == &*savepointStackIter) {
+          // if innerStateSavePoint just points to the stack of the main
+          // parser, we just need to increase the mainStackIter, as the
+          // values of the ConstStringRef that are pointed to by it have
+          // been increased already
+          ++mainStackIter;
+        } else if(orig.begin() == mainStackIter->begin()) {
+          // if the current frame (previous to being moved) is the same for the
+          // stored and the main ParseStack, we also move the frame on the
+          // mainStackIter. We can do this, as we know that both stacks are
+          // equal up to a certain point. After this point all pointers held by
+          // the innerStateSavePoint are before all remaining pointers in the
+          // main parseStack.
+          *mainStackIter = *savepointStackIter;
+          ++mainStackIter;
+        }
       }
     }
     innerStateSavePoint->readPointer -= offset;
