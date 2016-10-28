@@ -264,14 +264,7 @@ private:
     out() << data;
   }
 
-  void writeEscaped(const bool& data) {
-    if(data) {
-      out() << "true";
-    } else {
-      out() << "false";
-    }
-  }
-
+  void writeEscaped(const bool data);
   void writeEscaped(const std::string& str);
 
   XmlValueType getValueType() const;

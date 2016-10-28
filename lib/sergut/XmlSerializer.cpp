@@ -97,6 +97,16 @@ const std::map<char, std::string>& xmlEntities() {
   return entities;
 }
 
+void XmlSerializer::writeEscaped(const bool data)
+{
+  // TODO: make true/false-string configurable
+  if(data) {
+    out() << "true";
+  } else {
+    out() << "false";
+  }
+}
+
 void XmlSerializer::writeEscaped(const std::string& str)
 {
   std::ostringstream& ostr = impl->out;
