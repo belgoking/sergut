@@ -34,6 +34,7 @@ SOURCES += \
     sergut/detail/MemberDeserializer.cpp \
     sergut/detail/NameSpace.cpp \
     sergut/detail/TypeName.cpp \
+    sergut/marshaller/RequestClient.cpp \
     sergut/misc/Debug.cpp \
     sergut/misc/ReadHelper.cpp \
     sergut/unicode/Utf8Codec.cpp \
@@ -66,11 +67,16 @@ HEADERS += \
     sergut/detail/TypeName.h \
     sergut/detail/XmlDeserializerDomBase.h \
     sergut/detail/XmlDeserializerHelper.h \
+    sergut/marshaller/InvalidCodePathException.h \
     sergut/marshaller/MarshallingException.h \
+    sergut/marshaller/RemoteCallingException.h \
+    sergut/marshaller/RequestClient.h \
     sergut/marshaller/RequestServer.h \
     sergut/marshaller/UnknownFunctionException.h \
     sergut/marshaller/UnsupportedFormatException.h \
+    sergut/marshaller/detail/FunctionSignatureExtractor.h \
     sergut/misc/ConstStringRef.h \
+    sergut/misc/DataType.h \
     sergut/misc/ReadHelper.h \
     sergut/misc/StringRef.h \
     sergut/unicode/ParseResult.h \

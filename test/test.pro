@@ -24,12 +24,14 @@ SOURCES += \
     sergut/TestJavaClassGenerator.cpp \
     sergut/TestSergut.cpp \
     sergut/XmlDeSerializerTiny.cpp \
+    sergut/marshaller/TestRequestClient.cpp \
     sergut/marshaller/TestRequestServer.cpp \
     sergut/unicode/TestUtf16Codec.cpp \
     sergut/unicode/TestUtf8Codec.cpp \
     sergut/xml/TestPullParser.cpp \
     sergut/xml/TestTextDecodingHelper.cpp \
 
-HEADERS +=
-    sergut/TestSupportClasses.h \
 
+HEADERS += \
+    sergut/TestSupportClasses.h \
+    sergut/marshaller/TestSupportClassesMarshaller.h \

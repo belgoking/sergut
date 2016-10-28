@@ -102,7 +102,11 @@ public:
 
   Time getMoreTime() const;
   void setMoreTime(const Time& value);
-
+  bool operator==(const SomeMoreComplexTestData& rhs) const
+  {
+    return time == rhs.time && someLetter == rhs.someLetter &&
+        rhs.someUnsignedShortInt == rhs.someUnsignedShortInt && moreTime == rhs.moreTime;
+  }
 private:
   SERGUT_FUNCTION_FRIEND_DECL(SomeMoreComplexTestData, data, ar);
   Time time;

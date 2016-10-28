@@ -160,6 +160,32 @@ public:
   }
 
   /**
+   * \brief Deserialize data from nested XML into type \c DT
+   * \param outerName The name of the outer tag.
+   * \param innerName The name of the inner tag.
+   * \param xmlValueType How the inner type should be rendered into the outer
+   *         type (as attribute or as child).
+   * \tparam DT The type into which the XML should be deserialized.
+   *
+   * This is a less safe alternative to the previous function that takes the
+   * \c XmlValueType as template parameter, but is necessary for some kinds
+   * of generic code.
+   */
+  template<typename DT>
+  DT deserializeNestedData(const char* outerName, const char* innerName, XmlValueType xmlValueType) {
+    // Datatypes that cannot be serialized as an Attribute (i.e. those for which serialize() is called),
+    // must be deserialized with xmlValueType == sergut::XmlValueType::Child.
+    assert(detail::XmlDeserializerHelper::canDeserializeIntoAttribute<DT>()
+           || xmlValueType == XmlValueType::Child);
+    DT data;
+    doDeserializeData(MyMemberDeserializer::toNamedMember(outerName,
+                                                          MyMemberDeserializer::toNestedMember(innerName, data, true,
+                                                                                              xmlValueType),
+                                                          true));
+    return data;
+  }
+
+  /**
    * \brief Deserialize XML fragment into type \c DT
    *
    * This can be used to deserialize a class out of an XML fragment. This can

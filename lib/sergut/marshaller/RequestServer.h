@@ -24,6 +24,7 @@
 #include "sergut/marshaller/UnsupportedFormatException.h"
 #include "sergut/marshaller/UnknownFunctionException.h"
 #include "sergut/misc/ConstStringRef.h"
+#include "sergut/misc/ReadHelper.h"
 #include "sergut/XmlDeserializer.h"
 #include "sergut/XmlSerializer.h"
 
@@ -53,9 +54,8 @@ public:
       if(param.empty()) {
         return T();
       }
-      std::istringstream istr(param.toString());
       T t;
-      istr >> t;
+      sergut::misc::ReadHelper::readInto(param, t);
       return t;
 
 //      throw sergut::marshaller::UnsupportedFormatException("Unsupported");

@@ -21,50 +21,15 @@
 
 #include <catch.hpp>
 
-#include "../TestSupportClasses.h"
+#include "sergut/TestSupportClasses.h"
 #include "sergut/marshaller/RequestServer.h"
+#include "sergut/marshaller/TestSupportClassesMarshaller.h"
 
 #include <sstream>
 #include <iomanip>
 
 
-class MyInterface {
-public:
-  virtual ~MyInterface() { }
 
-  virtual
-  SomeMoreComplexTestData
-  constructSomeMoreComplexTestData(std::uint8_t hour1, const std::uint8_t minute1, const std::uint8_t& second1,
-                                   char someLetter, std::uint16_t someUnsignedShortInt,
-                                   std::uint8_t hour2, std::uint8_t minute2, std::uint8_t second2) const = 0;
-  virtual
-  uint32_t sumUpSomeData(std::uint32_t someUInt, const Time& t, uint32_t otherUInt) const = 0;
-
-  virtual
-  uint32_t empty() const = 0;
-
-  template<typename Server>
-  void initialize(Server& server) {
-//    server.add(std::string("constructSomeMoreComplexTestData"), this, std::string("returnType"),
-//               &MyInterface::constructSomeMoreComplexTestData,
-//               typename Server::Parameter("hour1"),
-//               typename Server::Parameter("minute1"),
-//               typename Server::Parameter("second1"),
-//               typename Server::Parameter("someLetter"),
-//               typename Server::Parameter("someUnsignedShortInt"),
-//               typename Server::Parameter("hour2"),
-//               typename Server::Parameter("minute2"),
-//               typename Server::Parameter("second2")
-//               );
-    server.add("sumUpSomeData", this, "returnUInt32",
-               &MyInterface::sumUpSomeData,
-               typename Server::Parameter("someUInt"),
-               typename Server::Input("t"),
-               typename Server::Parameter("otherUInt")
-               );
-    server.add("empty", this, "rt", &MyInterface::empty);
-  }
-};
 class MyImplementation: public sergut::marshaller::RequestServer, public MyInterface {
 public:
   MyImplementation() {
@@ -75,11 +40,10 @@ public:
   SomeMoreComplexTestData
   constructSomeMoreComplexTestData(std::uint8_t hour1, const std::uint8_t minute1, const std::uint8_t& second1,
                                    char someLetter, std::uint16_t someUnsignedShortInt,
-                                   std::uint8_t hour2, std::uint8_t minute2, std::uint8_t second2) const override
+                                   const Time& time2) const override
   {
     return SomeMoreComplexTestData(Time(hour1, minute1, second1), someLetter,
-                                   someUnsignedShortInt,
-                                   Time(hour2, minute2, second2));
+                                   someUnsignedShortInt, time2);
   }
   uint32_t sumUpSomeData(std::uint32_t someUInt, const Time& t, uint32_t otherUInt) const override
   {
@@ -117,7 +81,7 @@ public:
   std::string inputData;
 };
 
-TEST_CASE("Call some simple functions", "[RequestServer]")
+TEST_CASE("Call simple function 1 with RequestServer", "[RequestServer]")
 {
   GIVEN("A RequestServer") {
     MyImplementation myImplementation;
@@ -125,6 +89,22 @@ TEST_CASE("Call some simple functions", "[RequestServer]")
       Request request{ "sumUpSomeData", {{"someUInt", "3"}, {"otherUInt", "5"}}, "<t>23:12:20</t>" };
       THEN("Deserialization, marshalling & unmarshalling works") {
         CHECK(myImplementation.call(request) == "<returnUInt32>231228</returnUInt32>");
+      }
+    }
+  }
+}
+
+TEST_CASE("Call simple function 2 with RequestServer", "[RequestServer]")
+{
+  GIVEN("A RequestServer") {
+    MyImplementation myImplementation;
+    WHEN("A request comes in") {
+      Request request{ "constructSomeMoreComplexTestData", {
+          {"someLetter", "b"}, {"second1", "1"}, {"hour1", "2"}, {"minute1", "3"},
+                       {"someUnsignedShortInt", "123"}}, "<time2>23:12:20</time2>" };
+      THEN("Deserialization, marshalling & unmarshalling works") {
+        CHECK(myImplementation.call(request) ==
+              "<returnType time=\"2:03:01\" someLetter=\"b\" someUnsignedShortInt=\"123\" moreTime=\"23:12:20\"/>");
       }
     }
   }
