@@ -77,11 +77,15 @@ TEST_CASE("Call simple function 1 with RequestClient", "[RequestClient]")
     MyImplementation myImplementation(requestHandler);
     WHEN("A request comes in") {
       {
-        const std::string res("<returnUInt32>23</returnUInt32>");
+        const std::string res("<rt>42</rt>");
         requestHandler._response = std::make_pair("application/xml", std::vector<char>(res.begin(), res.end()));
       }
       THEN("Deserialization, marshalling & unmarshalling works") {
-        CHECK(myImplementation.sumUpSomeData(3, {23, 12, 20}, 5) == 23);
+        CHECK(myImplementation.empty() == 42);
+        CHECK(requestHandler._seenRequest._functionName == "empty");
+        CHECK(requestHandler._seenRequest._input == "");
+        CHECK(requestHandler._seenRequest._params ==
+              (std::vector<std::pair<std::string,std::string>>{}));
       }
     }
   }
@@ -94,16 +98,38 @@ TEST_CASE("Call simple function 2 with RequestClient", "[RequestClient]")
     MyImplementation myImplementation(requestHandler);
     WHEN("A request comes in") {
       {
-        const std::string res("<returnType time=\"2:03:01\" someLetter=\"b\" someUnsignedShortInt=\"123\" moreTime=\"23:12:20\"/>");
+        const std::string res("<returnUInt32>23</returnUInt32>");
         requestHandler._response = std::make_pair("application/xml", std::vector<char>(res.begin(), res.end()));
       }
-//      sergut::marshaller::RequestClient::Request request{ "constructSomeMoreComplexTestData", {
-//          {"someLetter", "b"}, {"second1", "1"}, {"hour1", "2"}, {"minute1", "3"},
-//                       {"someUnsignedShortInt", "123"}}, "<time2>23:12:20</time2>" };
       THEN("Deserialization, marshalling & unmarshalling works") {
-        CHECK(myImplementation.constructSomeMoreComplexTestData(2, 3, 1, 'b', 123, {23, 12, 20}) ==
-              SomeMoreComplexTestData());
-//        "<returnType time=\"2:03:01\" someLetter=\"b\" someUnsignedShortInt=\"123\" moreTime=\"23:12:20\"/>");
+        CHECK(myImplementation.sumUpSomeData(3, {23, 12, 20}, 5) == 23);
+        CHECK(requestHandler._seenRequest._functionName == "sumUpSomeData");
+        CHECK(requestHandler._seenRequest._input == "<t>23:12:20</t>");
+        CHECK(requestHandler._seenRequest._params ==
+              (std::vector<std::pair<std::string,std::string>>{{"someUInt", "3"}, {"otherUInt", "5"}}));
+      }
+    }
+  }
+}
+
+TEST_CASE("Call simple function 3 with RequestClient", "[RequestClient]")
+{
+  GIVEN("A RequestServer") {
+    RequestHandler requestHandler;
+    MyImplementation myImplementation(requestHandler);
+    WHEN("A request comes in") {
+      {
+        const std::string res("<returnType time=\"1:02:03\" someLetter=\"b\" someUnsignedShortInt=\"123\" moreTime=\"23:12:20\"/>");
+        requestHandler._response = std::make_pair("application/xml", std::vector<char>(res.begin(), res.end()));
+      }
+      THEN("Deserialization, marshalling & unmarshalling works") {
+        CHECK(myImplementation.constructSomeMoreComplexTestData(1, 2, 3, 'b', 123, {23, 12, 20}) ==
+              SomeMoreComplexTestData(Time{1, 2, 3}, 'b', 123, Time{23, 12, 20}));
+        CHECK(requestHandler._seenRequest._functionName == "constructSomeMoreComplexTestData");
+        CHECK(requestHandler._seenRequest._input == "<time2>23:12:20</time2>");
+        CHECK(requestHandler._seenRequest._params ==
+              (std::vector<std::pair<std::string,std::string>>{
+                {"hour1", "1"}, {"minute1", "2"}, {"second1", "3"}, {"someLetter", "b"}, {"someUnsignedShortInt", "123"}}));
       }
     }
   }

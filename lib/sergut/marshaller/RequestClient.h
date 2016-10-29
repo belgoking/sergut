@@ -46,7 +46,7 @@ std::string toString(const T& d) {
 }
 
 inline std::string toString(const bool d)               { return std::to_string(d); }
-inline std::string toString(const char d)               { return std::to_string(d); }
+inline std::string toString(const char d)               { return std::string(1, d); }
 inline std::string toString(const unsigned char d)      { return std::to_string(d); }
 inline std::string toString(const signed char d)        { return std::to_string(d); }
 inline std::string toString(const short d)              { return std::to_string(d); }
