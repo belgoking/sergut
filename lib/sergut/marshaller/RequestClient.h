@@ -70,60 +70,6 @@ public:
   typedef sergut::marshaller::detail::FunctionSignatureExtractor::Input Input;
   typedef sergut::marshaller::detail::FunctionSignatureExtractor::NestedInput NestedInput;
 public:
-//  class Parameter {
-//  public:
-//    Parameter(const std::string& parameterName) : _parameterName(parameterName) { }
-//  private:
-//    friend class RequestClient;
-//    void registerThis(FunctionSignature& sig, const std::size_t ordinalPosition) const {
-//      assert(sig._inputData._parameterPosition != ordinalPosition);
-//      assert(sig._parameterNames.size() > ordinalPosition && sig._parameterNames[ordinalPosition].empty());
-//      sig._parameterNames[ordinalPosition] = _parameterName;
-//    }
-//  private:
-//    std::string _parameterName;
-//  };
-
-//  class Input {
-//  public:
-//    Input(const std::string& outerTagName)
-//      : _outerTagName(outerTagName)
-//    { }
-//  private:
-//    friend class RequestClient;
-//    void registerThis(FunctionSignature& sig, const std::size_t ordinalPosition) const {
-//      assert(sig._inputData._parameterPosition == std::size_t(-1));
-//      assert(sig._parameterNames.size() > ordinalPosition && sig._parameterNames[ordinalPosition].empty());
-//      sig._inputData._parameterPosition = ordinalPosition;
-//      sig._inputData._outerTagName = _outerTagName;
-//    }
-//  private:
-//    std::string _outerTagName;
-//  };
-
-//  class NestedInput {
-//  public:
-//    /// \param xmlValueType the type of nesting that is desired this is mainly relevant for simple data types and
-//    ///        string serializable types as they can be serialized as attributes or as simpleChild
-//    NestedInput(const std::string& outerTagName, const std::string& innerTagName, const XmlValueType xmlValueType)
-//      : _outerTagName(outerTagName), _innerTagName(innerTagName), _xmlValueType(xmlValueType)
-//    { }
-//  private:
-//    friend class RequestClient;
-//    void registerThis(FunctionSignature& sig, const std::size_t ordinalPosition) const {
-//      assert(sig._inputData._parameterPosition == std::size_t(-1));
-//      assert(sig._parameterNames.size() > ordinalPosition && sig._parameterNames[ordinalPosition].empty());
-//      sig._inputData._parameterPosition = ordinalPosition;
-//      sig._inputData._outerTagName = _outerTagName;
-//      sig._inputData._innerTagName = _innerTagName;
-//      sig._inputData._xmlValueType = _xmlValueType;
-//    }
-//  private:
-//    std::string _outerTagName;
-//    std::string _innerTagName;
-//    XmlValueType _xmlValueType;
-//  };
-
   struct Request {
     /// The name of the remote function
     std::string _functionName;
@@ -156,19 +102,6 @@ public:
   { }
   virtual ~RequestClient() { }
 
-//  template<typename Parameter>
-//  void addDescription(FunctionSignature& signature, const Parameter& parameter)
-//  {
-//    parameter.registerThis(signature, signature._parameterNames.size() - 1);
-//  }
-
-//  template<typename Parameter, typename ...Parameters>
-//  void addDescription(FunctionSignature& signature, const Parameter& parameter, const Parameters& ...parameters)
-//  {
-//    parameter.registerThis(signature, signature._parameterNames.size() - sizeof...(parameters) - 1);
-//    addDescription(signature, parameters...);
-//  }
-
   template<typename Cls, typename RetT, typename ...FunArgs, typename ...Converters>
   void add(const std::string& funName,
            const Cls* cls, const std::string& returnWrapperName, RetT(Cls::*fun)(FunArgs ...funArgs) const,
@@ -176,14 +109,6 @@ public:
   {
     (void)cls;
     _functionSignatures.add(funName, cls, returnWrapperName, fun, converters...);
-//    (void)fun;
-//    static_assert(sizeof...(FunArgs) == sizeof...(Converters), "One converter is required per function argument");
-
-//    FunctionSignature signature;
-//    addDescription(signature, converters...);
-//    signature._returnData._outerTagName = returnWrapperName;
-//    const bool hasInserted = _mappings.insert(std::make_pair({funName, sizeof(FunArgs)...}, signature)).second;
-//    assert(hasInserted);
   }
 
 
@@ -220,7 +145,6 @@ public:
       request._params.push_back(std::make_pair(signature._parameters[ParamPos]._name, toString(funArg)));
     }
 
-//    fillRequest<ParamPos>(request, signature, std::forward(funArg));
     // then we handle the remaining parameters
     fillRequest<ParamPos+1>(request, signature, funArgs...);
   }
@@ -242,7 +166,6 @@ public:
     // I know the following reserves one element too much in case we have input data but don't care
     request._params.reserve(signature._parameters.size());
     if(sizeof...(funArgs) > 0) {
-//      fillRequest<0>(request, std::forward(funArgs)...);
       fillRequest<0>(request, signature, funArgs...);
     }
     std::pair<std::string, std::vector<char>> result = _requestHandler.handleRequest(request);
@@ -260,36 +183,9 @@ public:
     }
   }
 
-//private:
-//  struct FunctionNameNParameterCount {
-//    std::string _functionName;
-//    std::size_t _parameterCount;
-//    bool operator<(const FunctionNameNParameterCount& rhs) const {
-//      return _functionName < rhs._functionName ||
-//          (_functionName == rhs._functionName && _parameterCount < rhs._parameterCount);
-//    }
-//  };
-//  struct SerializationDescription {
-//    std::string _outerTagName; ///< The outer tag name (for XML (nested and non-nested))
-//    std::string _innerTagName; ///< The inner tag name (for XML (nested only))
-//    XmlValueType _xmlValueType; ///< The XmlValueType for nested outer tags
-//  };
-
-//  struct InputData: SerializationDescription {
-//    std::size_t _parameterPosition = std::size_t(-1); ///< The position of the input data (as opposed to the parameters). -1 if there is no inputData for this function.
-//  };
-
-//  struct FunctionSignature {
-//    SerializationDescription _returnData; ///< The description on what return data is expected
-//    InputData _inputData; ///< The input name,
-//    std::vector<std::string> _parameterNames; ///< The names of the parameters (the value at position \c parameterNames[inputData.parameterPosition] will be ignored)
-//  };
-
 private:
   const RequestHandler& _requestHandler;
   detail::FunctionSignatureExtractor _functionSignatures;
-  // map the function name along with the amount of parameters to the parameter types
-//  std::map<FunctionNameNParameterCount, FunctionSignature> _mappings;
 };
 
 }
