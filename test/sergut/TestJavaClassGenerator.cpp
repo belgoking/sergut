@@ -19,6 +19,8 @@
  * SOFTWARE.
  */
 
+#if 0
+
 #include "sergut/JavaClassGenerator.h"
 #include "sergut/detail/JavaClassGeneratorBuilder.h"
 
@@ -407,3 +409,5 @@ TEST_CASE("Generate Java Class overriding a datatype", "[JavaGen]")
     CHECK(ostr.str() == std::string(""));
   }
 }
+
+#endif
