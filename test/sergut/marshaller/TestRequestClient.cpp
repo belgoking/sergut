@@ -29,7 +29,7 @@
 #include <iomanip>
 
 
-
+namespace {
 class MyImplementation: public sergut::marshaller::RequestClient, public MyInterface {
 public:
   MyImplementation(sergut::marshaller::RequestClient::RequestHandler& requestHandler)
@@ -89,6 +89,7 @@ TEST_CASE("Call simple function 1 with RequestClient", "[RequestClient]")
       }
     }
   }
+}
 }
 
 TEST_CASE("Call simple function 2 with RequestClient", "[RequestClient]")

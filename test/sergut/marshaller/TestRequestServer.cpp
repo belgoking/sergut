@@ -29,7 +29,7 @@
 #include <iomanip>
 
 
-
+namespace {
 class MyImplementation: public sergut::marshaller::RequestServer, public MyInterface {
 public:
   MyImplementation() {
@@ -80,6 +80,7 @@ public:
   std::map<std::string, std::string> parameters;
   std::string inputData;
 };
+}
 
 TEST_CASE("Call simple function 1 with RequestServer", "[RequestServer]")
 {
