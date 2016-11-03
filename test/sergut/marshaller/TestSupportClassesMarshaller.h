@@ -32,8 +32,8 @@ public:
 
   virtual
   SomeMoreComplexTestData
-  constructSomeMoreComplexTestData(std::uint8_t hour1, const std::uint8_t minute1, const std::uint8_t& second1,
-                                   char someLetter, std::uint16_t someUnsignedShortInt, const Time& time2) const = 0;
+  constructSomeMoreComplexTestData(const std::uint8_t hour1, const std::uint8_t minute1, const std::uint8_t second1,
+                                   const char someLetter, const std::uint16_t someUnsignedShortInt, const Time& time2) const = 0;
   virtual
   uint32_t sumUpSomeData(std::uint32_t someUInt, const Time& t, uint32_t otherUInt) const = 0;
 
@@ -72,13 +72,11 @@ public:
   }
 
   SomeMoreComplexTestData
-  constructSomeMoreComplexTestData(std::uint8_t hour1, const std::uint8_t minute1, const std::uint8_t& second1,
-                                   char someLetter, std::uint16_t someUnsignedShortInt,
+  constructSomeMoreComplexTestData(const std::uint8_t hour1, const std::uint8_t minute1, const std::uint8_t second1,
+                                   const char someLetter, const std::uint16_t someUnsignedShortInt,
                                    const Time& time2) const override
   {
-    return call<SomeMoreComplexTestData>("constructSomeMoreComplexTestData",
-                                         hour1, minute1, second1, someLetter,
-                                         someUnsignedShortInt, time2);
+    return call<SomeMoreComplexTestData>("constructSomeMoreComplexTestData", hour1, minute1, second1, someLetter, someUnsignedShortInt, time2);
   }
   uint32_t sumUpSomeData(std::uint32_t someUInt, const Time& t, uint32_t otherUInt) const override
   {
@@ -112,8 +110,8 @@ public:
   }
 
   SomeMoreComplexTestData
-  constructSomeMoreComplexTestData(std::uint8_t hour1, const std::uint8_t minute1, const std::uint8_t& second1,
-                                   char someLetter, std::uint16_t someUnsignedShortInt,
+  constructSomeMoreComplexTestData(const std::uint8_t hour1, const std::uint8_t minute1, const std::uint8_t second1,
+                                   const char someLetter, const std::uint16_t someUnsignedShortInt,
                                    const Time& time2) const override
   {
     return SomeMoreComplexTestData(Time(hour1, minute1, second1), someLetter,
