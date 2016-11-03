@@ -1,10 +1,14 @@
 TODO:
 
 * Marshalling
+** Creation of documentation out of meta-data
+** Serialization of complex datatypes to URL-Encoding
+*** Abstract the way the names of sub-structures are created
+** Deserialization of complex datatypes from URL-Encoding
+*** Abstract the way the names of sub-structures are created
 * JavaClassGenerator
 
 * XML-Parser
-** Implement compacting of inner data to save memory
 ** Change "const char*" to StringRef where possible
 ** XML-Namespace support
 ** Document type declarations
@@ -37,6 +41,7 @@ TODO:
 
 DONE:
 * XML-Parser
+** Implement compacting of inner data to save memory
 ** Simple XML, checking structure (i.e. check that closing tags match opening tags)
 ** Incremental feeding
 
