@@ -24,6 +24,7 @@
 #include "TestSupportClasses.h"
 
 #include "sergut/JsonSerializer.h"
+#include "sergut/UrlSerializer.h"
 #include "sergut/XmlDeserializer.h"
 #include "sergut/XmlDeserializerTiny.h"
 #include "sergut/XmlDeserializerTiny2.h"
@@ -1274,7 +1275,7 @@ TEST_CASE("Serialize complex class", "[sergut]")
 
   GIVEN("A complex C++ POD datastructure")  {
     const TestParent tp{ 21, 99, 124, TestChild{ -27, -42, {4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
-                         "\nstring\\escaped\"quoted\" <b>Daten</b>foo", "char* Daten", 'c', { {22}, {33}, {44} }, { 1, 2, 3, 4}, { -99 } };
+                         "\nstring\\escaped\"quoted\" &<b>Daten</b>foo", "char* Daten", 'c', { {22}, {33}, {44} }, { 1, 2, 3, 4}, { -99 } };
 
     WHEN("The datastructure is serialized to JSON") {
       sergut::JsonSerializer ser;
@@ -1285,13 +1286,33 @@ TEST_CASE("Serialize complex class", "[sergut]")
                                 "\"childMember4\":{\"intMember1\":-27,\"intMember2\":-42,"
                                 "\"timeMember3\":\"4:45:00\",\"intMember4\":-23,\"doubleMember5\":3.14159,"
                                 "\"floatMember6\":2.718,\"intMember7\":-127},\"intMember5\":{\"nestedIntMember5\":65000},"
-                                "\"intMember6\":255,\"stringMember7\":\"\\nstring\\\\escaped\\\"quoted\\\" <b>Daten<\\/b>foo\","
+                                "\"intMember6\":255,\"stringMember7\":\"\\nstring\\\\escaped\\\"quoted\\\" &<b>Daten<\\/b>foo\","
                                 "\"charPtrMember8\":\"char* Daten\",\"charMember9\":\"c\","
                                 "\"childVectorMember10\":[{\"grandChildValue\":22},{\"grandChildValue\":33},{\"grandChildValue\":44}],"
                                 "\"intVectorMember11\":[1,2,3,4],\"childMember12\":{\"grandChildValue\":-99}}";
         CHECK(ser.str() == req);
       }
     }
+
+    WHEN("The datastructure is serialized to URL") {
+      sergut::UrlSerializer ser;
+      ser.serializeData("outer", tp);
+
+      THEN("The result is the specified string") {
+        const std::string req = "outer.intMember1=21&outer.intMember2=99&outer.intMember3=124&"
+            "outer.childMember4.intMember1=-27&outer.childMember4.intMember2=-42&outer.childMember4.timeMember3=4%3a45%3a00&"
+            "outer.childMember4.intMember4=-23&outer.childMember4.doubleMember5=3.14159&"
+            "outer.childMember4.floatMember6=2.718&outer.childMember4.intMember7=-127&"
+            "outer.intMember5.nestedIntMember5=65000&"
+            "outer.intMember6=255&outer.stringMember7=%0astring%5cescaped%22quoted%22+%26%3cb%3eDaten%3c%2fb%3efoo&"
+            "outer.charPtrMember8=char%2a+Daten&outer.charMember9=c&outer.childVectorMember10.grandChildValue=22&"
+            "outer.childVectorMember10.grandChildValue=33&outer.childVectorMember10.grandChildValue=44&"
+            "outer.intVectorMember11=1&outer.intVectorMember11=2&outer.intVectorMember11=3&"
+            "outer.intVectorMember11=4&outer.childMember12.grandChildValue=-99";
+        CHECK(ser.str() == req);
+      }
+    }
+
     WHEN("The datastructure is serialized to XML") {
       sergut::XmlSerializer ser;
       ser.serializeData("Dummy", tp);
@@ -1302,7 +1323,7 @@ TEST_CASE("Serialize complex class", "[sergut]")
             "<childMember4 intMember1=\"-27\" intMember2=\"-42\" timeMember3=\"4:45:00\" intMember4=\"-23\" doubleMember5=\"3.14159\" "
               "floatMember6=\"2.718\">-127</childMember4>"
             "<intMember5><nestedIntMember5>65000</nestedIntMember5></intMember5>"
-            "<intMember6>255</intMember6><stringMember7>\nstring\\escaped&quot;quoted&quot; &lt;b&gt;Daten&lt;/b&gt;foo</stringMember7>"
+            "<intMember6>255</intMember6><stringMember7>\nstring\\escaped&quot;quoted&quot; &amp;&lt;b&gt;Daten&lt;/b&gt;foo</stringMember7>"
             "<charPtrMember8>char* Daten</charPtrMember8><charMember9>c</charMember9><childVectorMember10 grandChildValue=\"22\"/>"
             "<childVectorMember10 grandChildValue=\"33\"/><childVectorMember10 grandChildValue=\"44\"/>"
             "<intVectorMember11>1</intVectorMember11><intVectorMember11>2</intVectorMember11><intVectorMember11>3</intVectorMember11>"
