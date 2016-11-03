@@ -70,7 +70,7 @@ std::string JsonSerializer::str() const
 }
 
 static
-const std::map<char, std::string>& xmlEntities() {
+const std::map<char, std::string>& specialCharacters() {
   static const std::map<char, std::string> entities{
     {'"' ,  "\\\"" },
     {'\\',  "\\\\" },
@@ -94,7 +94,7 @@ void JsonSerializer::writeEscaped(const std::string &str)
   std::ostringstream& ostr = impl->out;
   std::string::const_iterator regionStartIt = str.begin();
   std::string::const_iterator regionEndIt = str.begin();
-  const std::map<char, std::string>& entities = xmlEntities();
+  const std::map<char, std::string>& entities = specialCharacters();
   while(regionEndIt != str.end()) {
     std::map<char, std::string>::const_iterator entityIt = entities.find(*regionEndIt);
     const bool isNonPrintable = !isPrintableAscii(*regionEndIt);

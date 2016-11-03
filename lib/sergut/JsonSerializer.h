@@ -86,9 +86,6 @@ public:
     return operator&(toNamedMember(data.name, static_cast<double>(data.data), data.mandatory));
   }
 
-  // ToDo: Implement sensible escaping
-  static std::string escape(const std::string& str) { return str; }
-
   JsonSerializer& operator&(const NamedMemberForSerialization<std::string>& data) {
     addCommaIfNeeded();
     if(data.name) { out() << "\"" << data.name << "\":"; }
