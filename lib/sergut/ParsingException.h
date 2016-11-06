@@ -36,6 +36,7 @@ public:
   };
 
 public:
+  using Exception::Exception;
   ParsingException(const std::string& txt, const ErrorContext& errorContext);
   ParsingException(const std::string& txt, const std::size_t row, const std::size_t column);
 };
