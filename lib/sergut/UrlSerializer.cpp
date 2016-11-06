@@ -30,11 +30,11 @@
 namespace sergut {
 
 UrlSerializer::UrlSerializer(std::unique_ptr<UrlNameCombiner>&& nameCombiner)
-  : _ownedOut(new std::ostringstream)
-  , _ownedUrlNameCombiner(nameCombiner ? std::move(nameCombiner) : std::unique_ptr<UrlNameCombiner>(new UrlNameCombiner))
-  , _out(*_ownedOut)
-  , _urlNameCombiner(*_ownedUrlNameCombiner)
-  , _seenNames(_ownedSeenNames)
+  : _ownOut(new std::ostringstream)
+  , _ownUrlNameCombiner(nameCombiner ? std::move(nameCombiner) : std::unique_ptr<UrlNameCombiner>(new UrlNameCombiner))
+  , _out(*_ownOut)
+  , _urlNameCombiner(*_ownUrlNameCombiner)
+  , _seenNames(_ownSeenNames)
 { }
 
 UrlSerializer::UrlSerializer(const UrlSerializer &ref, const misc::ConstStringRef memberName)

@@ -40,7 +40,6 @@ class UrlSerializer: public SerializerBase
 {
 public:
   UrlSerializer(std::unique_ptr<UrlNameCombiner>&& nameCombiner = nullptr);
-  UrlSerializer(const UrlSerializer& ref, const misc::ConstStringRef memberName);
   ~UrlSerializer();
 
   UrlSerializer& operator&(const NamedMemberForSerialization<long long>& data) {
@@ -172,6 +171,7 @@ public:
   std::string str() const;
 
 private:
+  UrlSerializer(const UrlSerializer& ref, const misc::ConstStringRef memberName);
   void addName(const std::string& name) {
     const bool seenNamesWasEmpty = _seenNames.empty();
     if(!_seenNames.insert(name).second) {
@@ -186,9 +186,9 @@ private:
   void writeEscaped(const std::string& str);
 
 private:
-  std::unique_ptr<std::ostringstream> _ownedOut;
-  std::unique_ptr<UrlNameCombiner> _ownedUrlNameCombiner;
-  std::set<std::string> _ownedSeenNames;
+  std::unique_ptr<std::ostringstream> _ownOut;
+  std::unique_ptr<UrlNameCombiner> _ownUrlNameCombiner;
+  std::set<std::string> _ownSeenNames;
   std::ostringstream& _out;
   UrlNameCombiner& _urlNameCombiner;
   std::set<std::string>& _seenNames;
