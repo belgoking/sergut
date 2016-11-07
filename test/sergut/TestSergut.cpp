@@ -25,6 +25,7 @@
 
 #include "sergut/JsonSerializer.h"
 #include "sergut/UrlDeserializer.h"
+#include "sergut/UrlSerializeToVector.h"
 #include "sergut/UrlSerializer.h"
 #include "sergut/XmlDeserializer.h"
 #include "sergut/XmlDeserializerTiny.h"
@@ -1374,6 +1375,27 @@ TEST_CASE("Serialize complex class", "[sergut]")
                                 "\"childVectorMember10\":[{\"grandChildValue\":22},{\"grandChildValue\":33},{\"grandChildValue\":44}],"
                                 "\"intVectorMember11\":[1,2,3,4],\"childMember12\":{\"grandChildValue\":-99}}";
         CHECK(ser.str() == req);
+      }
+    }
+
+    WHEN("The datastructure is serialized to URL (vector of pairs)") {
+      sergut::UrlSerializeToVector ser;
+      ser.serializeData("outer", tp);
+
+      THEN("The result is the specified string") {
+        const std::vector<std::pair<std::string,std::string>> req =
+            {{"outer.intMember1", "21"}, {"outer.intMember2", "99"}, {"outer.intMember3", "124"},
+             {"outer.childMember4.intMember1", "-27"}, {"outer.childMember4.intMember2", "-42"},
+             {"outer.childMember4.timeMember3", "4:45:00"}, {"outer.childMember4.intMember4", "-23"},
+             {"outer.childMember4.doubleMember5", "3.14159"}, {"outer.childMember4.floatMember6", "2.718"},
+             {"outer.childMember4.intMember7", "-127"}, {"outer.intMember5.nestedIntMember5", "65000"},
+             {"outer.intMember6", "255"}, {"outer.stringMember7", "\nstring\\escaped\"quoted\" &<b>Daten</b>foo"},
+             {"outer.charPtrMember8", "char* Daten"}, {"outer.charMember9", "c"},
+             {"outer.childVectorMember10.grandChildValue", "22"}, {"outer.childVectorMember10.grandChildValue", "33"},
+             {"outer.childVectorMember10.grandChildValue", "44"}, {"outer.intVectorMember11", "1"},
+             {"outer.intVectorMember11", "2"}, {"outer.intVectorMember11", "3"}, {"outer.intVectorMember11", "4"},
+             {"outer.childMember12.grandChildValue", "-99"}};
+        CHECK(ser.getParams() == req);
       }
     }
 

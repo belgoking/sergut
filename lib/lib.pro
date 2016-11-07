@@ -25,6 +25,7 @@ SOURCES += \
     sergut/JsonSerializer.cpp \
     sergut/ParsingException.cpp \
     sergut/UrlDeserializer.cpp \
+    sergut/UrlSerializeToVector.cpp \
     sergut/UrlSerializer.cpp \
     sergut/Version.cpp \
     sergut/XmlDeserializer.cpp \
@@ -54,6 +55,7 @@ HEADERS += \
     sergut/SerializerBase.h \
     sergut/UrlNameCombiner.h \
     sergut/UrlDeserializer.h \
+    sergut/UrlSerializeToVector.h \
     sergut/UrlSerializer.h \
     sergut/Util.h \
     sergut/Version.h \
