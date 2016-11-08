@@ -41,7 +41,7 @@ TEST_CASE("Call simple function 1 with RequestServer", "[RequestServer]")
   }
 }
 
-TEST_CASE("Call simple function 2 with RequestServer", "[RequestServer]")
+TEST_CASE("Call more complex function 2 with RequestServer", "[RequestServer]")
 {
   GIVEN("A RequestServer") {
     MyInterfaceServer myInterfaceServer;
@@ -52,6 +52,23 @@ TEST_CASE("Call simple function 2 with RequestServer", "[RequestServer]")
       THEN("Deserialization, marshalling & unmarshalling works") {
         CHECK(myInterfaceServer.call(request) ==
               "<returnType time=\"2:03:01\" someLetter=\"b\" someUnsignedShortInt=\"123\" moreTime=\"23:12:20\"/>");
+      }
+    }
+  }
+}
+
+TEST_CASE("Call more complex function 3 with RequestServer", "[RequestServer]")
+{
+  GIVEN("A RequestServer") {
+    MyInterfaceServer myInterfaceServer;
+    WHEN("A request comes in") {
+      RequestMock request{ "constructFromComplexParams", {
+          {"p1.time", "3:03:03"}, {"p1.someLetter", "c"}, {"p1.someUnsignedShortInt", "3"}, {"p1.moreTime", "6:06:06"},
+          {"p2.time", "4:04:04"}, {"p2.someLetter", "d"}, {"p2.someUnsignedShortInt", "4"}, {"p2.moreTime", "7:07:07"}},
+          "<input time=\"1:02:03\" someLetter=\"b\" someUnsignedShortInt=\"123\" moreTime=\"23:12:20\"/>" };
+      THEN("Deserialization, marshalling & unmarshalling works") {
+        CHECK(myInterfaceServer.call(request) ==
+              "<returnType time=\"1:02:03\" someLetter=\"c\" someUnsignedShortInt=\"7\" moreTime=\"7:07:07\"/>");
       }
     }
   }

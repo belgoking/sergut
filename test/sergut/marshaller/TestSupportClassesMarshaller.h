@@ -32,6 +32,10 @@ public:
 
   virtual
   SomeMoreComplexTestData
+  constructFromComplexParams(const SomeMoreComplexTestData& input, const SomeMoreComplexTestData& p1,
+                             const SomeMoreComplexTestData& p2) const = 0;
+  virtual
+  SomeMoreComplexTestData
   constructSomeMoreComplexTestData(const std::uint8_t hour1, const std::uint8_t minute1, const std::uint8_t second1,
                                    const char someLetter, const std::uint16_t someUnsignedShortInt, const Time& time2) const = 0;
   virtual
@@ -42,6 +46,12 @@ public:
 
   template<typename Server>
   void initialize(Server& server) {
+    server.add(std::string("constructFromComplexParams"), this, std::string("returnType"),
+               &MyInterface::constructFromComplexParams,
+               typename Server::Input("input"),
+               typename Server::Parameter("p1"),
+               typename Server::Parameter("p2")
+               );
     server.add(std::string("constructSomeMoreComplexTestData"), this, std::string("returnType"),
                &MyInterface::constructSomeMoreComplexTestData,
                typename Server::Parameter("hour1"),
@@ -69,6 +79,13 @@ public:
   {
     sergut::marshaller::RequestClient& cnt = *static_cast<sergut::marshaller::RequestClient*>(this);
     MyInterface::initialize(cnt);
+  }
+
+  SomeMoreComplexTestData
+  constructFromComplexParams(const SomeMoreComplexTestData& input, const SomeMoreComplexTestData& p1,
+                             const SomeMoreComplexTestData& p2) const override
+  {
+    return call<SomeMoreComplexTestData>("constructFromComplexParams", input, p1, p2);
   }
 
   SomeMoreComplexTestData
@@ -110,6 +127,15 @@ public:
   }
 
   SomeMoreComplexTestData
+  constructFromComplexParams(const SomeMoreComplexTestData& input, const SomeMoreComplexTestData& p1,
+                             const SomeMoreComplexTestData& p2) const override
+  {
+    return SomeMoreComplexTestData(input.getTime(), p1.getSomeLetter(),
+                                   p1.getSomeUnsignedShortInt() + p2.getSomeUnsignedShortInt(),
+                                   p2.getMoreTime());
+  }
+
+  SomeMoreComplexTestData
   constructSomeMoreComplexTestData(const std::uint8_t hour1, const std::uint8_t minute1, const std::uint8_t second1,
                                    const char someLetter, const std::uint16_t someUnsignedShortInt,
                                    const Time& time2) const override
@@ -143,6 +169,10 @@ public:
       return sergut::misc::ConstStringRef();
     }
     return sergut::misc::ConstStringRef(it->second);
+  }
+  std::vector<std::pair<std::string,std::string>> getParameters() const override {
+    std::vector<std::pair<std::string,std::string>> ret(parameters.begin(), parameters.end());
+    return ret;
   }
   sergut::misc::ConstStringRef getInputDataContentType() const override { return sergut::misc::ConstStringRef("application/xml"); }
   sergut::misc::ConstStringRef getInputData() const override { return sergut::misc::ConstStringRef(inputData); }

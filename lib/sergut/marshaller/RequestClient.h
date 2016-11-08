@@ -27,6 +27,7 @@
 #include "sergut/marshaller/detail/FunctionSignatureExtractor.h"
 #include "sergut/misc/ConstStringRef.h"
 #include "sergut/misc/ReadHelper.h"
+#include "sergut/UrlSerializeToVector.h"
 #include "sergut/XmlDeserializer.h"
 #include "sergut/XmlSerializer.h"
 
@@ -45,23 +46,6 @@ std::string toString(const T& d) {
   throw sergut::marshaller::InvalidCodePathException("Trying to read non-simple parameter from string");
 }
 
-inline std::string toString(const bool d)               { return std::to_string(d); }
-inline std::string toString(const char d)               { return std::string(1, d); }
-inline std::string toString(const unsigned char d)      { return std::to_string(d); }
-inline std::string toString(const signed char d)        { return std::to_string(d); }
-inline std::string toString(const short d)              { return std::to_string(d); }
-inline std::string toString(const unsigned short d)     { return std::to_string(d); }
-inline std::string toString(const int d)                { return std::to_string(d); }
-inline std::string toString(const unsigned int d)       { return std::to_string(d); }
-inline std::string toString(const long d)               { return std::to_string(d); }
-inline std::string toString(const unsigned long d)      { return std::to_string(d); }
-inline std::string toString(const long long d)          { return std::to_string(d); }
-inline std::string toString(const unsigned long long d) { return std::to_string(d); }
-inline std::string toString(const float d)              { return std::to_string(d); }
-inline std::string toString(const double d)             { return std::to_string(d); }
-inline std::string toString(const long double d)        { return std::to_string(d); }
-inline std::string toString(const std::string& d)       { return d; }
-inline std::string toString(const char* d)              { return std::string(d); }
 }
 
 class RequestClient {
@@ -115,14 +99,17 @@ public:
 
   template<std::size_t ParamPos>
   void fillRequest(Request& request,
+                   UrlSerializeToVector& urlSerializer,
                    const detail::FunctionSignatureExtractor::FunctionSignature& signature) const
   {
     (void)request;
+    (void)urlSerializer;
     (void)signature;
   }
 
   template<std::size_t ParamPos, typename FunArg, typename ...FunArgs>
   void fillRequest(Request& request,
+                   UrlSerializeToVector& urlSerializer,
                    const detail::FunctionSignatureExtractor::FunctionSignature& signature,
                    FunArg&& funArg,
                    FunArgs&& ...funArgs) const
@@ -142,11 +129,11 @@ public:
       }
       request._input = ser.str();
     } else {
-      request._params.push_back(std::make_pair(signature._parameters[ParamPos]._name, toString(funArg)));
+      urlSerializer.serializeData(signature._parameters[ParamPos]._name, funArg);
     }
 
     // then we handle the remaining parameters
-    fillRequest<ParamPos+1>(request, signature, funArgs...);
+    fillRequest<ParamPos+1>(request, urlSerializer, signature, funArgs...);
   }
 
   template<typename RetT, typename ...FunArgs>
@@ -166,7 +153,9 @@ public:
     // I know the following reserves one element too much in case we have input data but don't care
     request._params.reserve(signature._parameters.size());
     if(sizeof...(funArgs) > 0) {
-      fillRequest<0>(request, signature, funArgs...);
+      UrlSerializeToVector urlSerializer;
+      fillRequest<0>(request, urlSerializer, signature, funArgs...);
+      request._params = std::move(urlSerializer.takeParams());
     }
     std::pair<std::string, std::vector<char>> result = _requestHandler.handleRequest(request);
     if(!result.second.empty() && result.first != "application/xml") {

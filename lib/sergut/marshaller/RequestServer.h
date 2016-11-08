@@ -21,12 +21,12 @@
 
 #pragma once
 
+#include "sergut/UrlDeserializer.h"
+#include "sergut/XmlDeserializer.h"
+#include "sergut/XmlSerializer.h"
 #include "sergut/marshaller/UnsupportedFormatException.h"
 #include "sergut/marshaller/UnknownFunctionException.h"
 #include "sergut/misc/ConstStringRef.h"
-#include "sergut/misc/ReadHelper.h"
-#include "sergut/XmlDeserializer.h"
-#include "sergut/XmlSerializer.h"
 
 #include <type_traits>
 
@@ -40,6 +40,7 @@ public:
     virtual ~Request() { }
     virtual sergut::misc::ConstStringRef getFunctionName() const = 0;
     virtual sergut::misc::ConstStringRef getParameter(const sergut::misc::ConstStringRef& parameterName) const = 0;
+    virtual std::vector<std::pair<std::string,std::string>> getParameters() const = 0;
     virtual sergut::misc::ConstStringRef getInputDataContentType() const = 0;
     virtual sergut::misc::ConstStringRef getInputData() const = 0;
     virtual sergut::misc::ConstStringRef getOutputDataContentType() const = 0;
@@ -49,20 +50,9 @@ public:
   public:
     Parameter(const std::string& parameterName) : _parameterName(parameterName) { }
     template<typename T>
-    T convert(const Request& request) const {
-      const sergut::misc::ConstStringRef param = request.getParameter(sergut::misc::ConstStringRef(_parameterName));
-      if(param.empty()) {
-        return T();
-      }
-      T t;
-      sergut::misc::ReadHelper::readInto(param, t);
-      return t;
-
-//      throw sergut::marshaller::UnsupportedFormatException("Unsupported");
-//      if(request.getDataContentType() == "text/plain") {
-//      sergut::detail::PlainTextDeserializer des(param.toString());
-//      return des.deserialize<T>();
-//      }
+    T convert(const Request& request, UrlDeserializer& urlDeserializer) const {
+      (void)request;
+      return urlDeserializer.deserializeData<T>(_parameterName.c_str());
     }
     std::string _parameterName;
   };
@@ -73,16 +63,13 @@ public:
       : _outerTagName(outerTagName)
     { }
     template<typename T>
-    T convert(const Request& request) const {
+    T convert(const Request& request, UrlDeserializer& urlDeserializer) const {
+      (void)urlDeserializer;
       if(request.getInputDataContentType() == "application/xml") {
         sergut::XmlDeserializer des(request.getInputData());
         return des.deserializeData<T>(_outerTagName.c_str());
       }
       throw sergut::marshaller::UnsupportedFormatException("Unsupported input format: " + request.getInputDataContentType().toString());
-//      if(request.getDataContentType() == "text/plain") {
-//      sergut::detail::PlainTextDeserializer des(request.getInputData());
-//      return des.deserialize<T>();
-//      }
     }
     std::string _outerTagName;
   };
@@ -95,16 +82,13 @@ public:
       : _outerTagName(outerTagName), _innerTagName(innerTagName), _xmlValueType(xmlValueType)
     { }
     template<typename T>
-    T convert(const Request& request) const {
+    T convert(const Request& request, UrlDeserializer& urlDeserializer) const {
+      (void)urlDeserializer;
       if(request.getInputDataContentType() == "application/xml") {
         sergut::XmlDeserializer des(request.getInputData());
         return des.deserializeNestedData<T>(_outerTagName.c_str(), _innerTagName.c_str(), _xmlValueType);
       }
       throw sergut::marshaller::UnsupportedFormatException("Unsupported input format: " + request.getInputDataContentType().toString());
-      //      if(request.getDataContentType() == "text/plain") {
-      //      sergut::detail::PlainTextDeserializer des(request.getInputData());
-      //      return des.deserialize<T>();
-      //      }
     }
     std::string _outerTagName;
     std::string _innerTagName;
@@ -119,7 +103,8 @@ public:
     static_assert(sizeof...(FunArgs) == sizeof...(Converters), "One converter is required per function argument");
     std::function<std::string(const Request&)> foo = (
           [=](const Request& request) {
-             RetT retVal = (cls->*fun)((converters.template convert<typename std::decay<FunArgs>::type>(request))...);
+             UrlDeserializer urlDeserializer(request.getParameters());
+             RetT retVal = (cls->*fun)((converters.template convert<typename std::decay<FunArgs>::type>(request, urlDeserializer))...);
              if(request.getOutputDataContentType() == "application/xml") {
                sergut::XmlSerializer ser;
                ser.serializeData(returnWrapperName.c_str(), retVal);
