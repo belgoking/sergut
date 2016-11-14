@@ -44,6 +44,24 @@ SERGUT_FUNCTION(SomeTestData, data, ar) {
       & SERGUT_OMEMBER(data, optionalMember);
 }
 
+struct SingleChildTestData {
+  SingleChildTestData() = default;
+  SingleChildTestData(const uint32_t m, const uint32_t o) : attributeMember(m), singleChildMember(o) { }
+  bool operator==(const SingleChildTestData& rhs) const
+  {
+    return attributeMember == rhs.attributeMember &&
+        singleChildMember == rhs.singleChildMember;
+  }
+  uint32_t attributeMember = 0;
+  uint32_t singleChildMember = 0;
+};
+SERGUT_FUNCTION(SingleChildTestData, data, ar) {
+  ar
+      & SERGUT_MMEMBER(data, attributeMember)
+      & sergut::plainChild
+      & SERGUT_OMEMBER(data, singleChildMember);
+}
+
 class Time {
 public:
   Time(const std::uint8_t hour = 0, const std::uint8_t minute = 0, const std::uint8_t seconds = 0) : val(hour*10000+minute*100+seconds) { }

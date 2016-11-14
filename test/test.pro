@@ -24,9 +24,11 @@ SOURCES += \
     main.cpp \
     sergut/TestJavaClassGenerator.cpp \
     sergut/TestSergut.cpp \
+    sergut/TestXsdGenerator.cpp \
     sergut/XmlDeSerializerTiny.cpp \
     sergut/marshaller/TestRequestClient.cpp \
     sergut/marshaller/TestRequestServer.cpp \
+    sergut/marshaller/TestRequestSpecificationGenerator.cpp \
     sergut/unicode/TestUtf16Codec.cpp \
     sergut/unicode/TestUtf8Codec.cpp \
     sergut/xml/TestPullParser.cpp \

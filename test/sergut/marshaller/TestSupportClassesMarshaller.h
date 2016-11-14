@@ -45,14 +45,15 @@ public:
   uint32_t empty() const = 0;
 
   template<typename Server>
-  void initialize(Server& server) {
-    server.add(std::string("constructFromComplexParams"), this, std::string("returnType"),
+  static
+  void initialize(Server& server, MyInterface* ths) {
+    server.add(std::string("constructFromComplexParams"), ths, std::string("returnType"),
                &MyInterface::constructFromComplexParams,
                typename Server::Input("input"),
                typename Server::Parameter("p1"),
                typename Server::Parameter("p2")
                );
-    server.add(std::string("constructSomeMoreComplexTestData"), this, std::string("returnType"),
+    server.add(std::string("constructSomeMoreComplexTestData"), ths, std::string("returnType"),
                &MyInterface::constructSomeMoreComplexTestData,
                typename Server::Parameter("hour1"),
                typename Server::Parameter("minute1"),
@@ -61,13 +62,13 @@ public:
                typename Server::Parameter("someUnsignedShortInt"),
                typename Server::Input("time2")
                );
-    server.add("sumUpSomeData", this, "returnUInt32",
+    server.add("sumUpSomeData", ths, "returnUInt32",
                &MyInterface::sumUpSomeData,
                typename Server::Parameter("someUInt"),
                typename Server::Input("t"),
                typename Server::Parameter("otherUInt")
                );
-    server.add("empty", this, "rt", &MyInterface::empty);
+    server.add("empty", ths, "rt", &MyInterface::empty);
   }
 };
 
@@ -78,7 +79,7 @@ public:
     : sergut::marshaller::RequestClient(requestHandler)
   {
     sergut::marshaller::RequestClient& cnt = *static_cast<sergut::marshaller::RequestClient*>(this);
-    MyInterface::initialize(cnt);
+    MyInterface::initialize(cnt, this);
   }
 
   SomeMoreComplexTestData
@@ -123,7 +124,7 @@ class MyInterfaceServer: public sergut::marshaller::RequestServer, public MyInte
 public:
   MyInterfaceServer() {
     sergut::marshaller::RequestServer& srv = *static_cast<sergut::marshaller::RequestServer*>(this);
-    MyInterface::initialize(srv);
+    MyInterface::initialize(srv, this);
   }
 
   SomeMoreComplexTestData

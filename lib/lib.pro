@@ -32,6 +32,7 @@ SOURCES += \
     sergut/XmlDeserializerTiny.cpp \
     sergut/XmlDeserializerTiny2.cpp \
     sergut/XmlSerializer.cpp \
+    sergut/XsdGenerator.cpp \
     sergut/detail/JavaClassGeneratorBase.cpp \
     sergut/detail/Member.cpp \
     sergut/detail/MemberDeserializer.cpp \
@@ -64,6 +65,7 @@ HEADERS += \
     sergut/XmlDeserializerTiny2.h \
     sergut/XmlSerializer.h \
     sergut/XmlValueType.h \
+    sergut/XsdGenerator.h \
     sergut/detail/DummySerializer.h \
     sergut/detail/JavaClassGeneratorBase.h \
     sergut/detail/JavaClassGeneratorBuilder.h \
@@ -79,6 +81,7 @@ HEADERS += \
     sergut/marshaller/RemoteCallingException.h \
     sergut/marshaller/RequestClient.h \
     sergut/marshaller/RequestServer.h \
+    sergut/marshaller/RequestSpecificationGenerator.h \
     sergut/marshaller/UnknownFunctionException.h \
     sergut/marshaller/UnsupportedFormatException.h \
     sergut/marshaller/detail/FunctionSignatureExtractor.h \
