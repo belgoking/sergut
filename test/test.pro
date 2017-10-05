@@ -23,7 +23,6 @@ SOURCES += \
     hypercall/hypercall.cpp \
     main.cpp \
     sergut/TestJavaClassGenerator.cpp \
-    sergut/TestSergut.cpp \
     sergut/TestXsdGenerator.cpp \
     sergut/XmlDeSerializerTiny.cpp \
     sergut/marshaller/TestRequestClient.cpp \
@@ -34,7 +33,8 @@ SOURCES += \
     sergut/xml/TestPullParser.cpp \
     sergut/xml/TestTextDecodingHelper.cpp \
     sergut/TestSergutJson.cpp \
-    sergut/TestSergutUrl.cpp
+    sergut/TestSergutUrl.cpp \
+    sergut/TestSergutXml.cpp
 
 
 HEADERS += \
