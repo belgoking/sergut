@@ -33,6 +33,8 @@ SOURCES += \
     sergut/unicode/TestUtf8Codec.cpp \
     sergut/xml/TestPullParser.cpp \
     sergut/xml/TestTextDecodingHelper.cpp \
+    sergut/TestSergutJson.cpp \
+    sergut/TestSergutUrl.cpp
 
 
 HEADERS += \

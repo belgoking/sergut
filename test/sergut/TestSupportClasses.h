@@ -123,7 +123,7 @@ public:
   bool operator==(const SomeMoreComplexTestData& rhs) const
   {
     return time == rhs.time && someLetter == rhs.someLetter &&
-        rhs.someUnsignedShortInt == rhs.someUnsignedShortInt && moreTime == rhs.moreTime;
+        someUnsignedShortInt == rhs.someUnsignedShortInt && moreTime == rhs.moreTime;
   }
 private:
   SERGUT_FUNCTION_FRIEND_DECL(SomeMoreComplexTestData, data, ar);
@@ -187,4 +187,143 @@ inline
 void SomeMoreComplexTestData::setMoreTime(const Time& value)
 {
   moreTime = value;
+}
+
+namespace {
+class TestChild2
+{
+public:
+  TestChild2(int pGrandChildValue = 0) : grandChildValue(pGrandChildValue) { }
+  bool operator==(const TestChild2& rhs) const {
+    return grandChildValue == rhs.grandChildValue;
+  }
+private:
+  SERGUT_FUNCTION_FRIEND_DECL(TestChild2, data, ar);
+  int grandChildValue;
+};
+
+SERGUT_FUNCTION(TestChild2, data, ar)
+{
+  ar & SERGUT_MMEMBER(data, grandChildValue);
+}
+
+struct TestChild
+{
+public:
+  bool operator==(const TestChild& rhs) const {
+    return
+        intMember1    == rhs.intMember1    &&
+        intMember2    == rhs.intMember2    &&
+        timeMember3   == rhs.timeMember3   &&
+        intMember4    == rhs.intMember4    &&
+        doubleMember5 == rhs.doubleMember5 &&
+        floatMember6  == rhs.floatMember6  &&
+        intMember7    == rhs.intMember7;
+
+  }
+public:
+  long long intMember1;
+  long intMember2;
+  Time timeMember3;
+  int intMember4;
+  double doubleMember5;
+  float floatMember6;
+  short intMember7;
+};
+
+SERGUT_FUNCTION(TestChild, data, ar)
+{
+  ar
+      & SERGUT_MMEMBER(data, intMember1)
+      & SERGUT_MMEMBER(data, intMember2)
+      & SERGUT_MMEMBER(data, timeMember3)
+      & SERGUT_MMEMBER(data, intMember4)
+      & SERGUT_MMEMBER(data, doubleMember5)
+      & SERGUT_MMEMBER(data, floatMember6)
+      & sergut::plainChild
+      & SERGUT_MMEMBER(data, intMember7);
+}
+
+struct TestParent
+{
+public:
+  bool operator==(const TestParent& rhs) const {
+    return
+        intMember1          == rhs.intMember1          &&
+        intMember2          == rhs.intMember2          &&
+        intMember3          == rhs.intMember3          &&
+        childMember4        == rhs.childMember4        &&
+        intMember5          == rhs.intMember5          &&
+        intMember6          == rhs.intMember6          &&
+        stringMember7       == rhs.stringMember7       &&
+        charPtrMember8      == rhs.charPtrMember8      &&
+        charMember9         == rhs.charMember9         &&
+        childVectorMember10 == rhs.childVectorMember10 &&
+        intVectorMember11   == rhs.intVectorMember11   &&
+        childMember12       == rhs.childMember12;
+  }
+public:
+  unsigned long long intMember1;
+  unsigned long intMember2;
+  unsigned int intMember3;
+  TestChild childMember4;
+  unsigned short intMember5;
+  unsigned char intMember6;
+  std::string stringMember7;
+  std::string charPtrMember8;
+  char charMember9;
+  std::vector<TestChild2> childVectorMember10;
+  std::vector<int> intVectorMember11;
+  TestChild2 childMember12;
+};
+
+SERGUT_FUNCTION(TestParent, data, ar)
+{
+  ar
+      & SERGUT_MMEMBER(data, intMember1)
+      & SERGUT_MMEMBER(data, intMember2)
+      & sergut::children
+      & SERGUT_MMEMBER(data, intMember3)
+      & SERGUT_MMEMBER(data, childMember4)
+      & SERGUT_NESTED_MMEMBER(data, intMember5, nestedIntMember5)
+      & SERGUT_MMEMBER(data, intMember6)
+      & SERGUT_MMEMBER(data, stringMember7)
+      & SERGUT_MMEMBER(data, charPtrMember8)
+      & SERGUT_MMEMBER(data, charMember9)
+      & SERGUT_MMEMBER(data, childVectorMember10)
+      & SERGUT_MMEMBER(data, intVectorMember11)
+      & SERGUT_MMEMBER(data, childMember12);
+}
+
+struct Simple {
+public:
+  bool operator==(const Simple& rhs) const {
+    return int1    == rhs.int1
+        && double2 == rhs.double2
+        && time3   == rhs.time3
+        && char4   == rhs.char4
+        && uchar5  == rhs.uchar5
+        && time6   == rhs.time6;
+  }
+public:
+  int int1;
+  double double2;
+  Time time3;
+  char char4;
+  unsigned char uchar5;
+  Time time6;
+};
+
+SERGUT_FUNCTION(Simple, data, ar)
+{
+  ar
+      & SERGUT_MMEMBER(data, int1)
+      & SERGUT_MMEMBER(data, double2)
+      & SERGUT_MMEMBER(data, time3)
+      & sergut::children
+      & SERGUT_NESTED_MMEMBER(data, char4, nestedChar4)
+      & SERGUT_MMEMBER(data, uchar5)
+      & SERGUT_NESTED_MMEMBER(data, time6, nestedTime6)
+      ;
+}
 }

@@ -28,6 +28,7 @@
 #include "sergut/marshaller/UnknownFunctionException.h"
 #include "sergut/misc/ConstStringRef.h"
 
+#include <functional>
 #include <type_traits>
 
 namespace sergut {

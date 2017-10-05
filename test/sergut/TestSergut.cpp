@@ -23,10 +23,6 @@
 
 #include "TestSupportClasses.h"
 
-#include "sergut/JsonSerializer.h"
-#include "sergut/UrlDeserializer.h"
-#include "sergut/UrlSerializeToVector.h"
-#include "sergut/UrlSerializer.h"
 #include "sergut/XmlDeserializer.h"
 #include "sergut/XmlDeserializerTiny.h"
 #include "sergut/XmlDeserializerTiny2.h"
@@ -1169,162 +1165,6 @@ static const char utf16Xml[] = {
   0x6d, 0x00, 0x79, 0x00, 0x3e, 0x00, 0x0a, 0x00
 };
 
-
-class TestChild2
-{
-public:
-  TestChild2(int pGrandChildValue = 0) : grandChildValue(pGrandChildValue) { }
-  bool operator==(const TestChild2& rhs) const {
-    return grandChildValue == rhs.grandChildValue;
-  }
-private:
-  SERGUT_FUNCTION_FRIEND_DECL(TestChild2, data, ar);
-  int grandChildValue;
-};
-
-SERGUT_FUNCTION(TestChild2, data, ar)
-{
-  ar & SERGUT_MMEMBER(data, grandChildValue);
-}
-
-struct TestChild
-{
-public:
-  bool operator==(const TestChild& rhs) const {
-    return
-        intMember1    == rhs.intMember1    &&
-        intMember2    == rhs.intMember2    &&
-        timeMember3   == rhs.timeMember3   &&
-        intMember4    == rhs.intMember4    &&
-        doubleMember5 == rhs.doubleMember5 &&
-        floatMember6  == rhs.floatMember6  &&
-        intMember7    == rhs.intMember7;
-
-  }
-public:
-  long long intMember1;
-  long intMember2;
-  Time timeMember3;
-  int intMember4;
-  double doubleMember5;
-  float floatMember6;
-  short intMember7;
-};
-
-SERGUT_FUNCTION(TestChild, data, ar)
-{
-  ar
-      & SERGUT_MMEMBER(data, intMember1)
-      & SERGUT_MMEMBER(data, intMember2)
-      & SERGUT_MMEMBER(data, timeMember3)
-      & SERGUT_MMEMBER(data, intMember4)
-      & SERGUT_MMEMBER(data, doubleMember5)
-      & SERGUT_MMEMBER(data, floatMember6)
-      & sergut::plainChild
-      & SERGUT_MMEMBER(data, intMember7);
-}
-
-struct TestParent
-{
-public:
-  bool operator==(const TestParent& rhs) const {
-    return
-        intMember1          == rhs.intMember1          &&
-        intMember2          == rhs.intMember2          &&
-        intMember3          == rhs.intMember3          &&
-        childMember4        == rhs.childMember4        &&
-        intMember5          == rhs.intMember5          &&
-        intMember6          == rhs.intMember6          &&
-        stringMember7       == rhs.stringMember7       &&
-        charPtrMember8      == rhs.charPtrMember8      &&
-        charMember9         == rhs.charMember9         &&
-        childVectorMember10 == rhs.childVectorMember10 &&
-        intVectorMember11   == rhs.intVectorMember11   &&
-        childMember12       == rhs.childMember12;
-  }
-public:
-  unsigned long long intMember1;
-  unsigned long intMember2;
-  unsigned int intMember3;
-  TestChild childMember4;
-  unsigned short intMember5;
-  unsigned char intMember6;
-  std::string stringMember7;
-  std::string charPtrMember8;
-  char charMember9;
-  std::vector<TestChild2> childVectorMember10;
-  std::vector<int> intVectorMember11;
-  TestChild2 childMember12;
-};
-
-SERGUT_FUNCTION(TestParent, data, ar)
-{
-  ar
-      & SERGUT_MMEMBER(data, intMember1)
-      & SERGUT_MMEMBER(data, intMember2)
-      & sergut::children
-      & SERGUT_MMEMBER(data, intMember3)
-      & SERGUT_MMEMBER(data, childMember4)
-      & SERGUT_NESTED_MMEMBER(data, intMember5, nestedIntMember5)
-      & SERGUT_MMEMBER(data, intMember6)
-      & SERGUT_MMEMBER(data, stringMember7)
-      & SERGUT_MMEMBER(data, charPtrMember8)
-      & SERGUT_MMEMBER(data, charMember9)
-      & SERGUT_MMEMBER(data, childVectorMember10)
-      & SERGUT_MMEMBER(data, intVectorMember11)
-      & SERGUT_MMEMBER(data, childMember12);
-}
-
-
-struct TestParentUrl
-{
-public:
-  bool operator==(const TestParentUrl& rhs) const {
-    return
-        intMember1          == rhs.intMember1          &&
-        intMember2          == rhs.intMember2          &&
-        intMember3          == rhs.intMember3          &&
-        childMember4        == rhs.childMember4        &&
-        intMember5          == rhs.intMember5          &&
-        intMember6          == rhs.intMember6          &&
-        stringMember7       == rhs.stringMember7       &&
-        charPtrMember8      == rhs.charPtrMember8      &&
-        charMember9         == rhs.charMember9         &&
-        intVectorMember10   == rhs.intVectorMember10   &&
-        childMember11       == rhs.childMember11;
-  }
-public:
-  unsigned long long intMember1;
-  unsigned long intMember2;
-  unsigned int intMember3;
-  TestChild childMember4;
-  unsigned short intMember5;
-  unsigned char intMember6;
-  std::string stringMember7;
-  std::string charPtrMember8;
-  char charMember9;
-  std::vector<int> intVectorMember10;
-  TestChild2 childMember11;
-};
-
-SERGUT_FUNCTION(TestParentUrl, data, ar)
-{
-  ar
-      & SERGUT_MMEMBER(data, intMember1)
-      & SERGUT_MMEMBER(data, intMember2)
-      & sergut::children
-      & SERGUT_MMEMBER(data, intMember3)
-      & SERGUT_MMEMBER(data, childMember4)
-      & SERGUT_NESTED_MMEMBER(data, intMember5, nestedIntMember5)
-      & SERGUT_MMEMBER(data, intMember6)
-      & SERGUT_MMEMBER(data, stringMember7)
-      & SERGUT_MMEMBER(data, charPtrMember8)
-      & SERGUT_MMEMBER(data, charMember9)
-      & SERGUT_MMEMBER(data, intVectorMember10)
-      & SERGUT_MMEMBER(data, childMember11);
-}
-
-
 //{"intMember1":21,"intMember2":99,"intMember3":124,"childMember4":{"intMember1":-27,"intMember2":-42,"timeMember3":"4:45:00","intMember4":-23,"doubleMember5":3.14159,"floatMember6":2.718,"intMember7":-127},"intMember5":{"nestedIntMember5":65000},"intMember6":255,"stringMember7":"\u000fstring\\escaped\"quoted\" <b>Daten<\/b>foo","charPtrMember8":"char* Daten","charMember9":"c","childVectorMember10":[{"grandChildValue":22},{"grandChildValue":33},{"grandChildValue":44}],"intVectorMember11":[1,2,3,4],"childMember12":{"grandChildValue":-99}}
 
 
@@ -1360,63 +1200,6 @@ TEST_CASE("Serialize complex class", "[sergut]")
   GIVEN("A complex C++ POD datastructure")  {
     const TestParent tp{ 21, 99, 124, TestChild{ -27, -42, {4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
                          "\nstring\\escaped\"quoted\" &<b>Daten</b>foo", "char* Daten", 'c', { {22}, {33}, {44} }, { 1, 2, 3, 4}, { -99 } };
-
-    WHEN("The datastructure is serialized to JSON") {
-      sergut::JsonSerializer ser;
-      ser.serializeData("Dummy", tp);
-
-      THEN("The result is the specified string") {
-        const std::string req = "{\"intMember1\":21,\"intMember2\":99,\"intMember3\":124,"
-                                "\"childMember4\":{\"intMember1\":-27,\"intMember2\":-42,"
-                                "\"timeMember3\":\"4:45:00\",\"intMember4\":-23,\"doubleMember5\":3.14159,"
-                                "\"floatMember6\":2.718,\"intMember7\":-127},\"intMember5\":{\"nestedIntMember5\":65000},"
-                                "\"intMember6\":255,\"stringMember7\":\"\\nstring\\\\escaped\\\"quoted\\\" &<b>Daten<\\/b>foo\","
-                                "\"charPtrMember8\":\"char* Daten\",\"charMember9\":\"c\","
-                                "\"childVectorMember10\":[{\"grandChildValue\":22},{\"grandChildValue\":33},{\"grandChildValue\":44}],"
-                                "\"intVectorMember11\":[1,2,3,4],\"childMember12\":{\"grandChildValue\":-99}}";
-        CHECK(ser.str() == req);
-      }
-    }
-
-    WHEN("The datastructure is serialized to URL (vector of pairs)") {
-      sergut::UrlSerializeToVector ser;
-      ser.serializeData("outer", tp);
-
-      THEN("The result is the specified string") {
-        const std::vector<std::pair<std::string,std::string>> req =
-            {{"outer.intMember1", "21"}, {"outer.intMember2", "99"}, {"outer.intMember3", "124"},
-             {"outer.childMember4.intMember1", "-27"}, {"outer.childMember4.intMember2", "-42"},
-             {"outer.childMember4.timeMember3", "4:45:00"}, {"outer.childMember4.intMember4", "-23"},
-             {"outer.childMember4.doubleMember5", "3.14159"}, {"outer.childMember4.floatMember6", "2.718"},
-             {"outer.childMember4.intMember7", "-127"}, {"outer.intMember5.nestedIntMember5", "65000"},
-             {"outer.intMember6", "255"}, {"outer.stringMember7", "\nstring\\escaped\"quoted\" &<b>Daten</b>foo"},
-             {"outer.charPtrMember8", "char* Daten"}, {"outer.charMember9", "c"},
-             {"outer.childVectorMember10.grandChildValue", "22"}, {"outer.childVectorMember10.grandChildValue", "33"},
-             {"outer.childVectorMember10.grandChildValue", "44"}, {"outer.intVectorMember11", "1"},
-             {"outer.intVectorMember11", "2"}, {"outer.intVectorMember11", "3"}, {"outer.intVectorMember11", "4"},
-             {"outer.childMember12.grandChildValue", "-99"}};
-        CHECK(ser.getParams() == req);
-      }
-    }
-
-    WHEN("The datastructure is serialized to URL") {
-      sergut::UrlSerializer ser;
-      ser.serializeData("outer", tp);
-
-      THEN("The result is the specified string") {
-        const std::string req = "outer.intMember1=21&outer.intMember2=99&outer.intMember3=124&"
-            "outer.childMember4.intMember1=-27&outer.childMember4.intMember2=-42&outer.childMember4.timeMember3=4%3a45%3a00&"
-            "outer.childMember4.intMember4=-23&outer.childMember4.doubleMember5=3.14159&"
-            "outer.childMember4.floatMember6=2.718&outer.childMember4.intMember7=-127&"
-            "outer.intMember5.nestedIntMember5=65000&"
-            "outer.intMember6=255&outer.stringMember7=%0astring%5cescaped%22quoted%22+%26%3cb%3eDaten%3c%2fb%3efoo&"
-            "outer.charPtrMember8=char%2a+Daten&outer.charMember9=c&outer.childVectorMember10.grandChildValue=22&"
-            "outer.childVectorMember10.grandChildValue=33&outer.childVectorMember10.grandChildValue=44&"
-            "outer.intVectorMember11=1&outer.intVectorMember11=2&outer.intVectorMember11=3&"
-            "outer.intVectorMember11=4&outer.childMember12.grandChildValue=-99";
-        CHECK(ser.str() == req);
-      }
-    }
 
     WHEN("The datastructure is serialized to XML") {
       sergut::XmlSerializer ser;
@@ -1469,139 +1252,6 @@ TEST_CASE("Serialize complex class", "[sergut]")
   }
 }
 
-
-struct Simple {
-public:
-  bool operator==(const Simple& rhs) const {
-    return int1    == rhs.int1
-        && double2 == rhs.double2
-        && time3   == rhs.time3
-        && char4   == rhs.char4
-        && uchar5  == rhs.uchar5
-        && time6   == rhs.time6;
-  }
-public:
-  int int1;
-  double double2;
-  Time time3;
-  char char4;
-  unsigned char uchar5;
-  Time time6;
-};
-
-SERGUT_FUNCTION(Simple, data, ar)
-{
-  ar
-      & SERGUT_MMEMBER(data, int1)
-      & SERGUT_MMEMBER(data, double2)
-      & SERGUT_MMEMBER(data, time3)
-      & sergut::children
-      & SERGUT_NESTED_MMEMBER(data, char4, nestedChar4)
-      & SERGUT_MMEMBER(data, uchar5)
-      & SERGUT_NESTED_MMEMBER(data, time6, nestedTime6)
-      ;
-}
-
-TEST_CASE("Deserialize an URL into class", "[sergut]")
-{
-  GIVEN("An URL request split into a vector of pairs and a simple class with members in wrong Order") {
-    const std::vector<std::pair<std::string,std::string>> origRequest{
-      {"outer.double2", "2.345"}, {"outer.int1", "12345"},          {"outer.time3", "3:23:99"},
-      {"outer.uchar5", "21"},     {"outer.char4.nestedChar4", "X"}, {"outer.time6.nestedTime6", "12:34:55"}
-    };
-    const Simple origVal{ 12345, 2.345, Time{3, 23, 99}, 'X', 21, Time{12, 34, 55}};
-    WHEN("The URL-Parameters are deserialized into the simple class (UrlDeserializer)") {
-      sergut::UrlDeserializer deser{origRequest};
-      const Simple res = deser.deserializeData<Simple>("outer");
-      CHECK(res == origVal);
-    }
-  }
-
-  GIVEN("An URL request split into a vector of pairs and a complex class with members in wrong Order") {
-    const std::vector<std::pair<std::string,std::string>> origRequest{
-      {"outer.intMember1", "21"}, {"outer.intMember2", "99"}, {"outer.intMember3", "124"},
-      {"outer.childMember4.intMember1", "-27"}, {"outer.childMember4.intMember2", "-42"},
-      {"outer.childMember4.timeMember3", "4:45:00"}, {"outer.childMember4.intMember4", "-23"},
-      {"outer.childMember4.doubleMember5", "3.14159"}, {"outer.childMember4.floatMember6", "2.718"},
-      {"outer.childMember4.intMember7", "-127"}, {"outer.intMember5.nestedIntMember5", "65000"}, {"outer.intMember6", "255"},
-      {"outer.stringMember7", "\nstring\\escaped\"quoted\" &<b>Daten</b>foo"}, {"outer.charPtrMember8", "char* Daten"},
-      {"outer.charMember9", "c"},
-      {"outer.intVectorMember10", "1"}, {"outer.intVectorMember10", "2"}, {"outer.intVectorMember10", "3"},
-      {"outer.intVectorMember10", "4"}, {"outer.childMember11.grandChildValue", "-99"}
-      };
-    const TestParentUrl origVal{ 21, 99, 124, TestChild{ -27, -42, {4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
-                                 "\nstring\\escaped\"quoted\" &<b>Daten</b>foo", "char* Daten", 'c', { 1, 2, 3, 4}, { -99 } };
-
-    WHEN("The URL-Parameters are deserialized into the simple class (UrlDeserializer)") {
-      sergut::UrlDeserializer deser{origRequest};
-      const TestParentUrl res = deser.deserializeData<TestParentUrl>("outer");
-      CHECK(res == origVal);
-    }
-  }
-}
-
-TEST_CASE("Serialize/Deserialize several classes to Url", "[sergut]")
-{
-  const TestParentUrl tp1{ 21, 99, 124, TestChild{ -27, -42, {4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
-                       "\nstring\\escaped\"quoted\" &<b>Daten</b>foo", "char* Daten", 'c', { 1, 2, 3, 4}, { -99 } };
-  const Simple simple2{ 12345, 2.345, Time{3, 23, 99}, 'X', 21, Time{12, 34, 55}};
-  const Simple simple3{ 54321, 543.2, Time{23, 3, 01}, 'Y', 12, Time{21, 55, 34}};
-
-  GIVEN("Three classes") {
-    WHEN("The datastructure is serialized to URL") {
-      sergut::UrlSerializer ser;
-      ser.serializeData("tp1",     tp1);
-      ser.serializeData("simple2", simple2);
-      ser.serializeData("simple3", simple3);
-      THEN("The result is the specified string") {
-        const std::string req = "tp1.intMember1=21&tp1.intMember2=99&tp1.intMember3=124&"
-            "tp1.childMember4.intMember1=-27&tp1.childMember4.intMember2=-42&tp1.childMember4.timeMember3=4%3a45%3a00&"
-            "tp1.childMember4.intMember4=-23&tp1.childMember4.doubleMember5=3.14159&"
-            "tp1.childMember4.floatMember6=2.718&tp1.childMember4.intMember7=-127&"
-            "tp1.intMember5.nestedIntMember5=65000&"
-            "tp1.intMember6=255&tp1.stringMember7=%0astring%5cescaped%22quoted%22+%26%3cb%3eDaten%3c%2fb%3efoo&"
-            "tp1.charPtrMember8=char%2a+Daten&tp1.charMember9=c&"
-            "tp1.intVectorMember10=1&tp1.intVectorMember10=2&tp1.intVectorMember10=3&"
-            "tp1.intVectorMember10=4&tp1.childMember11.grandChildValue=-99&"
-
-            "simple2.int1=12345&simple2.double2=2.345&simple2.time3=3%3a23%3a99&"
-            "simple2.char4.nestedChar4=X&simple2.uchar5=21&simple2.time6.nestedTime6=12%3a34%3a55&"
-
-            "simple3.int1=54321&simple3.double2=543.2&simple3.time3=23%3a03%3a01&"
-            "simple3.char4.nestedChar4=Y&simple3.uchar5=12&simple3.time6.nestedTime6=21%3a55%3a34";
-        CHECK(ser.str() == req);
-      }
-    }
-  }
-
-  GIVEN("An URL request split into a multimap and a complex class with members in wrong Order") {
-    const std::string origXml();
-    const std::vector<std::pair<std::string,std::string>> origRequest{
-      {"simple2.double2", "2.345"}, {"simple2.int1", "12345"},          {"simple2.time3", "3:23:99"},
-      {"simple2.uchar5", "21"},     {"simple2.char4.nestedChar4", "X"}, {"simple2.time6.nestedTime6", "12:34:55"},
-      {"tp1.intMember1", "21"}, {"tp1.intMember2", "99"}, {"tp1.intMember3", "124"},
-      {"tp1.childMember4.intMember1", "-27"}, {"tp1.childMember4.intMember2", "-42"},
-      {"tp1.childMember4.timeMember3", "4:45:00"}, {"tp1.childMember4.intMember4", "-23"},
-      {"tp1.childMember4.doubleMember5", "3.14159"}, {"tp1.childMember4.floatMember6", "2.718"},
-      {"tp1.childMember4.intMember7", "-127"}, {"tp1.intMember5.nestedIntMember5", "65000"}, {"tp1.intMember6", "255"},
-      {"tp1.stringMember7", "\nstring\\escaped\"quoted\" &<b>Daten</b>foo"}, {"tp1.charPtrMember8", "char* Daten"},
-      {"tp1.charMember9", "c"},
-      {"tp1.intVectorMember10", "1"}, {"tp1.intVectorMember10", "2"}, {"tp1.intVectorMember10", "3"},
-      {"tp1.intVectorMember10", "4"}, {"tp1.childMember11.grandChildValue", "-99"},
-      {"simple3.double2", "543.2"}, {"simple3.int1", "54321"},          {"simple3.time3", "23:03:01"},
-      {"simple3.uchar5", "12"},     {"simple3.char4.nestedChar4", "Y"}, {"simple3.time6.nestedTime6", "21:55:34"}
-      };
-    WHEN("The URL-Parameters are deserialized into the classes (UrlDeserializer)") {
-      sergut::UrlDeserializer deser{origRequest};
-      const TestParentUrl resTp1 = deser.deserializeData<TestParentUrl>("tp1");
-      CHECK(resTp1 == tp1);
-      const Simple resSimple2 = deser.deserializeData<Simple>("simple2");
-      CHECK(resSimple2 == simple2);
-      const Simple resSimple3 = deser.deserializeData<Simple>("simple3");
-      CHECK(resSimple3 == simple3);
-    }
-  }
-}
 
 TEST_CASE("Deserialize XML into a simple class", "[sergut]")
 {
@@ -1746,72 +1396,28 @@ TEST_CASE("Deserialize XML with different spaces", "[sergut]")
 
 
 
-int main_disabled(int /*argc*/, char */*argv*/[])
-{
-  const TestParent tp{ 21, 99, 124, TestChild{ -27, -42, {4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
-                       "\x0fstring\\escaped\"quoted\" <b>Daten</b>foo", "char* Daten", 'c', { {22}, {33}, {44} }, { 1, 2, 3, 4}, { -99 } };
+//int main_disabled(int /*argc*/, char */*argv*/[])
+//{
+//  const TestParent tp{ 21, 99, 124, TestChild{ -27, -42, {4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
+//                       "\x0fstring\\escaped\"quoted\" <b>Daten</b>foo", "char* Daten", 'c', { {22}, {33}, {44} }, { 1, 2, 3, 4}, { -99 } };
 
-  {
-    sergut::JsonSerializer ser;
-    ser.serializeData("Dummy", tp);
-    std::cout << ser.str() << std::endl;
-  }
-  std::cout << "\n\n";
-  {
-
-
-
-    const std::string res = [&]() {
-      sergut::XmlSerializer ser;
-      ser.serializeData("Dummy", tp);
-      return ser.str();
-    }();
-    std::cout << "res: " << res << std::endl;
-    sergut::XmlDeserializer deser{sergut::misc::ConstStringRef(res)};
-    const TestParent tpDeser = deser.deserializeData<TestParent>("Dummy");
-    const std::string res2 = [&]() {
-      sergut::XmlSerializer ser;
-      ser.serializeData("Dummy", tpDeser);
-      return ser.str();
-    }();
-    std::cout << "res2: " << res2 << std::endl;
-  }
-
-  {
-    const std::string origXml("<Dummy double2=\"2.345\" int1=\"12345\" time3=\"3:23:99\"><uchar5>21</uchar5><char4><nestedChar4>X</nestedChar4></char4><time6><nestedTime6>12:34:55</nestedTime6></time6></Dummy>");
-    sergut::XmlDeserializer deser{sergut::misc::ConstStringRef(origXml)};
-    const Simple res = deser.deserializeData<Simple>("Dummy");
-    sergut::XmlSerializer ser;
-    ser.serializeData("Dummy", res);
-    std::cout << "Orig:  " << origXml << "\n"
-              << "Later: " << ser.str() << "\n";
-  }
-
-//  // unsupported
 //  {
-//    const std::string origXml("<vector>1</vector><vector>2</vector>");
-//    sergut::XmlDeserializer deser(origXml);
-//    const std::vector<int> res = deser.deserializeData<std::vector<int>>("vector", sergut::XmlValueType::Child);
-//    sergut::XmlSerializer ser;
-//    ser.serializeData("vector", res);
-//    std::cout << "Orig:  " << origXml << "\n"
-//              << "Later: " << ser.str() << "\n";
+//    sergut::JsonSerializer ser;
+//    ser.serializeData("Dummy", tp);
+//    std::cout << ser.str() << std::endl;
 //  }
-
-  // unsupported
+//  std::cout << "\n\n";
 //  {
-//    const std::string origXml("<vector>1:00:03</vector><vector>20:34:35</vector>");
-//    sergut::XmlDeserializer deser(origXml);
-//    const std::vector<Time> res =
-//        deser.deserializeData<std::vector<Time>>("vector", sergut::XmlValueType::Child);
-//    sergut::XmlSerializer ser;
-//    ser.serializeData<std::vector<Time>>("vector", res);
-//    std::cout << "Orig:  " << origXml << "\n"
-//              << "Later: " << ser.str() << "\n";
-//  }
 
-//  {
-//    sergut::XmlDeserializer deser(utf16Xml);
+
+
+//    const std::string res = [&]() {
+//      sergut::XmlSerializer ser;
+//      ser.serializeData("Dummy", tp);
+//      return ser.str();
+//    }();
+//    std::cout << "res: " << res << std::endl;
+//    sergut::XmlDeserializer deser{sergut::misc::ConstStringRef(res)};
 //    const TestParent tpDeser = deser.deserializeData<TestParent>("Dummy");
 //    const std::string res2 = [&]() {
 //      sergut::XmlSerializer ser;
@@ -1820,5 +1426,49 @@ int main_disabled(int /*argc*/, char */*argv*/[])
 //    }();
 //    std::cout << "res2: " << res2 << std::endl;
 //  }
-  return 0;
-}
+
+//  {
+//    const std::string origXml("<Dummy double2=\"2.345\" int1=\"12345\" time3=\"3:23:99\"><uchar5>21</uchar5><char4><nestedChar4>X</nestedChar4></char4><time6><nestedTime6>12:34:55</nestedTime6></time6></Dummy>");
+//    sergut::XmlDeserializer deser{sergut::misc::ConstStringRef(origXml)};
+//    const Simple res = deser.deserializeData<Simple>("Dummy");
+//    sergut::XmlSerializer ser;
+//    ser.serializeData("Dummy", res);
+//    std::cout << "Orig:  " << origXml << "\n"
+//              << "Later: " << ser.str() << "\n";
+//  }
+
+////  // unsupported
+////  {
+////    const std::string origXml("<vector>1</vector><vector>2</vector>");
+////    sergut::XmlDeserializer deser(origXml);
+////    const std::vector<int> res = deser.deserializeData<std::vector<int>>("vector", sergut::XmlValueType::Child);
+////    sergut::XmlSerializer ser;
+////    ser.serializeData("vector", res);
+////    std::cout << "Orig:  " << origXml << "\n"
+////              << "Later: " << ser.str() << "\n";
+////  }
+
+//  // unsupported
+////  {
+////    const std::string origXml("<vector>1:00:03</vector><vector>20:34:35</vector>");
+////    sergut::XmlDeserializer deser(origXml);
+////    const std::vector<Time> res =
+////        deser.deserializeData<std::vector<Time>>("vector", sergut::XmlValueType::Child);
+////    sergut::XmlSerializer ser;
+////    ser.serializeData<std::vector<Time>>("vector", res);
+////    std::cout << "Orig:  " << origXml << "\n"
+////              << "Later: " << ser.str() << "\n";
+////  }
+
+////  {
+////    sergut::XmlDeserializer deser(utf16Xml);
+////    const TestParent tpDeser = deser.deserializeData<TestParent>("Dummy");
+////    const std::string res2 = [&]() {
+////      sergut::XmlSerializer ser;
+////      ser.serializeData("Dummy", tpDeser);
+////      return ser.str();
+////    }();
+////    std::cout << "res2: " << res2 << std::endl;
+////  }
+//  return 0;
+//}
