@@ -83,8 +83,10 @@ const std::map<char, std::string>& specialCharacters() {
 }
 
 static
-bool isPrintableAscii(const char c) {
-  return c >= 0x20 && c < 0x7f;
+bool isPrintable(const char c) {
+  const unsigned char ci = static_cast<unsigned char>(c);
+  const unsigned char limit = 0x20;
+  return ci >= limit;
 }
 
 void JsonSerializer::writeEscaped(const std::string &str)
@@ -95,7 +97,7 @@ void JsonSerializer::writeEscaped(const std::string &str)
   const std::map<char, std::string>& entities = specialCharacters();
   while(regionEndIt != str.end()) {
     std::map<char, std::string>::const_iterator entityIt = entities.find(*regionEndIt);
-    const bool isNonPrintable = !isPrintableAscii(*regionEndIt);
+    const bool isNonPrintable = !isPrintable(*regionEndIt);
     if(entityIt != entities.end() || isNonPrintable) {
       // found XML-Entity character
       if(regionStartIt != regionEndIt) {
