@@ -17,7 +17,7 @@ TEST_CASE("Serialize complex class to JSON", "[sergut]")
 
     WHEN("The datastructure is serialized to JSON") {
       sergut::JsonSerializer ser;
-      ser.serializeData("Dummy", tp);
+      ser.serializeData(tp);
 
       THEN("The result is the specified string") {
         const std::string req = "{\"intMember1\":21,\"intMember2\":99,\"intMember3\":124,"

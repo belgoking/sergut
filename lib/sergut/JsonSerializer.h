@@ -41,125 +41,82 @@ public:
   JsonSerializer(const JsonSerializer& ref);
   ~JsonSerializer();
 
-  JsonSerializer& operator&(const NamedMemberForSerialization<long long>& data) {
+  template<typename DT>
+  JsonSerializer& operator&(const NamedMemberForSerialization<DT>& data) {
     addCommaIfNeeded();
     if(data.name) { out() << "\"" << data.name << "\":"; }
-    out() << data.data;
+    serializeValue(data.data);
     return *this;
   }
-  JsonSerializer& operator&(const NamedMemberForSerialization<long>& data) {
-    return operator&(toNamedMember(data.name, static_cast<long long>(data.data), data.mandatory));
-  }
-  JsonSerializer& operator&(const NamedMemberForSerialization<int>& data) {
-    return operator&(toNamedMember(data.name, static_cast<long long>(data.data), data.mandatory));
-  }
-  JsonSerializer& operator&(const NamedMemberForSerialization<short>& data) {
-    return operator&(toNamedMember(data.name, static_cast<long long>(data.data), data.mandatory));
-  }
 
-  JsonSerializer& operator&(const NamedMemberForSerialization<unsigned long long>& data) {
-    addCommaIfNeeded();
-    if(data.name) { out() << "\"" << data.name << "\":"; }
-    out() << data.data;
-    return *this;
-  }
-  JsonSerializer& operator&(const NamedMemberForSerialization<unsigned long>& data) {
-    return operator&(toNamedMember(data.name, static_cast<unsigned long long>(data.data), data.mandatory));
-  }
-  JsonSerializer& operator&(const NamedMemberForSerialization<unsigned int>& data) {
-    return operator&(toNamedMember(data.name, static_cast<unsigned long long>(data.data), data.mandatory));
-  }
-  JsonSerializer& operator&(const NamedMemberForSerialization<unsigned short>& data) {
-    return operator&(toNamedMember(data.name, static_cast<unsigned long long>(data.data), data.mandatory));
-  }
-  JsonSerializer& operator&(const NamedMemberForSerialization<unsigned char>& data) {
-    return operator&(toNamedMember(data.name, static_cast<unsigned long long>(data.data), data.mandatory));
-  }
-
-  JsonSerializer& operator&(const NamedMemberForSerialization<double>& data) {
-    addCommaIfNeeded();
-    if(data.name) { out() << "\"" << data.name << "\":"; }
-    out() << data.data;
-    return *this;
-  }
-  JsonSerializer& operator&(const NamedMemberForSerialization<float>& data) {
-    return operator&(toNamedMember(data.name, static_cast<double>(data.data), data.mandatory));
-  }
-
-  JsonSerializer& operator&(const NamedMemberForSerialization<std::string>& data) {
-    addCommaIfNeeded();
-    if(data.name) { out() << "\"" << data.name << "\":"; }
+  void serializeValue(const long long data) { out() << data; }
+  void serializeValue(const long data) { out() << data; }
+  void serializeValue(const int data) { out() << data; }
+  void serializeValue(const short data) { out() << data; }
+  void serializeValue(const signed char data) { out() << static_cast<short>(data); }
+  void serializeValue(const unsigned long long data) { out() << data; }
+  void serializeValue(const unsigned long data) { out() << data; }
+  void serializeValue(const unsigned int data) { out() << data; }
+  void serializeValue(const unsigned short data) { out() << data; }
+  void serializeValue(const unsigned char data) { out() << static_cast<unsigned short>(data); }
+  void serializeValue(const double data) { out() << data; }
+  void serializeValue(const float data) { out() << data; }
+  void serializeValue(const std::string& data) {
     out() << "\"";
-    writeEscaped(data.data);
+    writeEscaped(data);
     out() << "\"";
-    return *this;
   }
-  JsonSerializer& operator&(const NamedMemberForSerialization<const char*>& data) {
-    return operator&(toNamedMember(data.name, std::string(data.data), data.mandatory));
-  }
-  JsonSerializer& operator&(const NamedMemberForSerialization<char>& data) {
-    return operator&(toNamedMember(data.name, std::string(1, data.data), data.mandatory));
-  }
-
+  void serializeValue(const char*& data) { serializeValue(std::string(data)); }
+  void serializeValue(const char data) { serializeValue(std::string(1, data)); }
 
   // Containers as members
   template<typename DT>
-  JsonSerializer& serializeCollection(const NamedMemberForSerialization<DT>& data) {
-    if(data.mandatory || !data.data.empty()) {
-      addCommaIfNeeded();
-      if(data.name) { out() << "\"" << data.name << "\":"; }
-      out() << "[";
-      bool first=true;
-      for(auto&& value: data.data) {
-        if(!first) {
-          out() << ",";
-        } else {
-          first=false;
-        }
-        JsonSerializer ser(*this);
-        *this & toNamedMember(nullptr, value, true);
+  void serializeCollection(const DT& data) {
+    out() << "[";
+    bool first=true;
+    for(auto&& value: data) {
+      if(!first) {
+        out() << ",";
+      } else {
+        first=false;
       }
-      out() << "]";
+      JsonSerializer ser(*this);
+      ser.serializeValue(value);
     }
-    return *this;
+    out() << "]";
   }
 
   template<typename ValueType>
-  JsonSerializer& operator&(const NamedMemberForSerialization<std::vector<ValueType>>& data) {
+  void serializeValue(const std::vector<ValueType>& data) {
     return serializeCollection(data);
   }
 
   template<typename ValueType>
-  JsonSerializer& operator&(const NamedMemberForSerialization<std::list<ValueType>>& data) {
+  void serializeValue(const std::list<ValueType>& data) {
     return serializeCollection(data);
   }
 
   template<typename ValueType>
-  JsonSerializer& operator&(const NamedMemberForSerialization<std::set<ValueType>>& data) {
+  void serializeValue(const std::set<ValueType>& data) {
     return serializeCollection(data);
   }
 
   template<typename DT>
-  auto operator&(const NamedMemberForSerialization<DT>& data)
-  -> decltype(serialize(detail::DummySerializer::dummyInstance(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)), *this)
+  auto serializeValue(const DT& data)
+  -> decltype(serialize(detail::DummySerializer::dummyInstance(), data, static_cast<typename std::decay<DT>::type*>(nullptr)), void())
   {
-    addCommaIfNeeded();
-    {
-      if(data.name) { out() << "\"" << data.name << "\":"; }
-      out() << "{";
-      JsonSerializer ser(*this);
-      serialize(ser, data.data, static_cast<typename std::decay<DT>::type*>(nullptr));
-      out() << "}";
-    }
-    return *this;
+    out() << "{";
+    JsonSerializer ser(*this);
+    serialize(ser, data, static_cast<typename std::decay<DT>::type*>(nullptr));
+    out() << "}";
   }
 
   // Members that can be converted to string
   template<typename DT>
-  auto operator&(const NamedMemberForSerialization<DT>& data)
-  -> decltype(serializeToString(data.data), *this)
+  auto serializeValue(const DT& data)
+  -> decltype(serializeToString(data), void())
   {
-    return operator&(toNamedMember(data.name, serializeToString(data.data), data.mandatory));
+    serializeValue(serializeToString(data));
   }
 
   // This is unused for JSON
@@ -170,10 +127,8 @@ public:
 
   /// \param name this is not needed for JSON, we just add it here for symmetry to XML.
   template<typename DT>
-  void serializeData(const std::string& /*name*/, const DT& data) {
-    out() << "{";
-    serialize(*this, data, static_cast<typename std::decay<DT>::type*>(nullptr));
-    out() << "}";
+  void serializeData(const DT& data) {
+    serializeValue(data);
   }
 
   std::string str() const;

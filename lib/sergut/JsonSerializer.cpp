@@ -36,8 +36,6 @@ public:
 };
 
 struct JsonSerializer::Impl {
-
-
 public:
   std::vector<LevelStatus> levelStatus;
   std::ostringstream out;
