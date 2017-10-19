@@ -16,7 +16,7 @@ CONFIG -= app_bundle
 CONFIG += c++11
 CONFIG += staticlib
 
-INCLUDEPATH += "$${CPP_TINYXML_INCLUDE_PATH}"
+INCLUDEPATH += "$${CPP_TINYXML_INCLUDE_PATH}" "$${CPP_RAPIDJSON_PATH}"
 
 QMAKE_CXXFLAGS += -ggdb3
 
@@ -43,12 +43,14 @@ SOURCES += \
     sergut/misc/ReadHelper.cpp \
     sergut/unicode/Utf8Codec.cpp \
     sergut/xml/PullParser.cpp \
+    sergut/JsonDeserializer.cpp
 
 HEADERS += \
     VersionTracker.h \
     sergut/DeserializerBase.h \
     sergut/Exception.h \
     sergut/JavaClassGenerator.h \
+    sergut/JsonDeserializer.h \
     sergut/JsonSerializer.h \
     sergut/Misc.h \
     sergut/ParsingException.h \
