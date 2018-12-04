@@ -186,7 +186,7 @@ struct Timer {
   std::chrono::high_resolution_clock::time_point startTime;
 };
 
-int main()
+void doBenchmark()
 {
   RNG generator(23);
 
@@ -215,8 +215,6 @@ int main()
       deser.deserializeNestedData<NestingLevel0>("outer", "valuesLevel0");
     }
   }
-
-
 //  std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
 //  std::cout << data << std::endl;
@@ -227,6 +225,41 @@ int main()
 
 //  std::cout << "It took me " << time_span.count() << " ns.";
 //  std::cout << std::endl;
+}
 
+#include <rapidjson/document.h>
+
+void doTestRapidJson(const std::string& json) {
+  rapidjson::Document d;
+  d.Parse(json.c_str());
+  std::cout << "Size: " << d.MemberCount() << std::endl;
+  std::cout << "Done with: " << json << std::endl;
+  d.Parse(json.c_str());
+  std::cout << "2 Size: " << d.MemberCount() << std::endl;
+  std::cout << "2 Done with: " << json << std::endl;
+}
+
+void doTestRapidJson()
+{
+  doTestRapidJson("{\"hallo\": 1}");
+  doTestRapidJson("{\"hallo\": []}");
+  doTestRapidJson("{\"hallo\": [1,2]}");
+  doTestRapidJson("{\"hallo\": [1, 2]}");
+  doTestRapidJson("{\"hallo\": [1,2,3]}");
+  doTestRapidJson("{\"hallo\": [1, 2, 3]}");
+  doTestRapidJson("{\"intMember1\":21,\"intMember2\":99,\"intMember3\":124,"
+                  "\"childMember4\":{\"intMember1\":-27,\"intMember2\":-42,"
+                  "\"timeMember3\":\"4:45:00\",\"intMember4\":-23,\"doubleMember5\":3.14159,"
+                  "\"floatMember6\":2.718,\"intMember7\":-127},\"intMember5\":{\"nestedIntMember5\":65000},"
+                  "\"intMember6\":255,\"stringMember7\":\"\\nstring\\\\escaped\\\"quoted\\\" &<b>Daten<\\/b>foo\","
+                  "\"charPtrMember8\":\"char* Daten\",\"charMember9\":\"c\","
+                  "\"childVectorMember10\":[{\"grandChildValue\":22},{\"grandChildValue\":33},{\"grandChildValue\":44}],"
+                  "\"intVectorMember11\":[1,2,3,4],\"childMember12\":{\"grandChildValue\":-99}}");
+}
+
+int main()
+{
+  doTestRapidJson();
+  //  doBenchmark();
   return 0;
 }
