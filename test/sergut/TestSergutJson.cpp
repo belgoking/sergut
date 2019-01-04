@@ -51,7 +51,7 @@ TEST_CASE("Serialize complex class to JSON", "[sergut]")
 {
 
   GIVEN("A complex C++ POD datastructure")  {
-    const TestParent tp{ 21, 99, 124, TestChild{ -27, -42, {4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
+    const TestParent tp{ 21, 99, 124, TestChild{ -27, -42, {4, 45}, -23, 3.14159, 2.718f, -127 }, 65000, 255,
                          "\nstring\\escaped\"quoted\" &<b>Daten</b>foo", "char* Daten", 'c', { {22}, {33}, {44} }, { 1, 2, 3, 4}, { -99 } };
     const std::string req = "{\"intMember1\":21,\"intMember2\":99,\"intMember3\":124,"
                             "\"childMember4\":{\"intMember1\":-27,\"intMember2\":-42,"
