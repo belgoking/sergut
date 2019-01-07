@@ -128,7 +128,6 @@ public:
       throw ParsingException("Wrong root tag", ErrorContext(*currentElement));
     }
     DT data;
-    valueType = XmlValueType::Child;
     *this & toNamedMember(outerName, toNestedMember(innerName, data, true, xmlValueType), true);
     return data;
   }
