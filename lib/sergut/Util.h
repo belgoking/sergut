@@ -412,6 +412,23 @@
   inline std::string serializeToString(const DT& variableName)
 
 /**
+ * \brief Declaration of the serialize to string function (when moving impl to file).
+ *
+ * \see SERGUT_SERIALIZE_TO_STRING
+ */
+#define SERGUT_SERIALIZE_TO_STRING_DECL(DT, variableName) \
+  inline const char* getTypeName(const DT*) { return #DT; } \
+  std::string serializeToString(const DT& variableName)
+
+/**
+ * \brief Definition of the serialize to string function (when moving impl to file).
+ *
+ * \see SERGUT_SERIALIZE_TO_STRING
+ */
+#define SERGUT_SERIALIZE_TO_STRING_DEF(DT, variableName) \
+  std::string serializeToString(const DT& variableName)
+
+/**
  * \brief Friend declaration of the serialize to string function.
  */
 #define SERGUT_SERIALIZE_TO_STRING_FRIEND_DECL(DT, variableName) \
@@ -424,6 +441,23 @@
  */
 #define SERGUT_DESERIALIZE_FROM_STRING(DT, variableName, stringVariableName) \
   inline void deserializeFromString(DT& variableName, const std::string& stringVariableName)
+
+/**
+ * \brief Declaration of the deserialize from string function (when moving impl to file).
+ *
+ * \see SERGUT_DESERIALIZE_FROM_STRING
+ */
+#define SERGUT_DESERIALIZE_FROM_STRING_DECL(DT, variableName, stringVariableName) \
+  void deserializeFromString(DT& variableName, const std::string& stringVariableName)
+
+/**
+ * \brief Definition of the deserialize from string function (when moving impl to file).
+ *
+ * \see SERGUT_DESERIALIZE_FROM_STRING
+ */
+#define SERGUT_DESERIALIZE_FROM_STRING_DEF(DT, variableName, stringVariableName) \
+  void deserializeFromString(DT& variableName, const std::string& stringVariableName)
+
 
 /**
  * \brief Friend declaration of the deserialize from string function.
