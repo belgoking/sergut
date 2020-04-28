@@ -41,14 +41,12 @@ SOURCES += \
     sergut/misc/ReadHelper.cpp \
     sergut/unicode/Utf8Codec.cpp \
     sergut/xml/PullParser.cpp \
-    sergut/JsonDeserializer.cpp
 
 HEADERS += \
     VersionTracker.h \
     sergut/DeserializerBase.h \
     sergut/Exception.h \
     sergut/JavaClassGenerator.h \
-    sergut/JsonDeserializer.h \
     sergut/JsonSerializer.h \
     sergut/Misc.h \
     sergut/ParsingException.h \
@@ -120,5 +118,15 @@ SOURCES += \
 
 HEADERS += \
     sergut/XmlDeserializerTiny2.h \
+
+}
+
+withRapidJson {
+
+SOURCES += \
+    sergut/JsonDeserializer.cpp \
+
+HEADERS += \
+    sergut/JsonDeserializer.h \
 
 }
