@@ -29,7 +29,6 @@ SOURCES += \
     sergut/UrlSerializer.cpp \
     sergut/Version.cpp \
     sergut/XmlDeserializer.cpp \
-    sergut/XmlDeserializerTiny2.cpp \
     sergut/XmlSerializer.cpp \
     sergut/XsdGenerator.cpp \
     sergut/detail/JavaClassGeneratorBase.cpp \
@@ -62,7 +61,6 @@ HEADERS += \
     sergut/Util.h \
     sergut/Version.h \
     sergut/XmlDeserializer.h \
-    sergut/XmlDeserializerTiny2.h \
     sergut/XmlSerializer.h \
     sergut/XmlValueType.h \
     sergut/XsdGenerator.h \
@@ -115,3 +113,12 @@ HEADERS += \
 
 }
 
+withTinyXml2 {
+
+SOURCES += \
+    sergut/XmlDeserializerTiny2.cpp \
+
+HEADERS += \
+    sergut/XmlDeserializerTiny2.h \
+
+}
