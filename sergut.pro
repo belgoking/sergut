@@ -1,5 +1,7 @@
 TEMPLATE = subdirs
 
+include(local.pri)
+
 SUBDIRS += my_library
 
 withTest {
