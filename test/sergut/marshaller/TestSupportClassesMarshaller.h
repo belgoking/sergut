@@ -119,7 +119,7 @@ public:
   std::pair<std::string,std::vector<char>> _response;
 };
 
-
+#if 0 // not implemented, yet
 class MyInterfaceServer: public sergut::marshaller::RequestServer, public MyInterface {
 public:
   MyInterfaceServer() {
@@ -184,3 +184,4 @@ public:
   std::map<std::string, std::string> parameters;
   std::string inputData;
 };
+#endif

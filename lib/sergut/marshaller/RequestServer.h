@@ -31,6 +31,7 @@
 #include <functional>
 #include <type_traits>
 
+#if 0 // Not implemented, yet
 namespace sergut {
 namespace marshaller {
 
@@ -138,3 +139,4 @@ private:
 
 }
 }
+#endif

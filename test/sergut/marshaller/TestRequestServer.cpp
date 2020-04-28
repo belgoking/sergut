@@ -27,7 +27,7 @@
 #include <sstream>
 #include <iomanip>
 
-
+#if 0
 TEST_CASE("Call simple function 1 with RequestServer", "[RequestServer]")
 {
   GIVEN("A RequestServer") {
@@ -73,3 +73,4 @@ TEST_CASE("Call more complex function 3 with RequestServer", "[RequestServer]")
     }
   }
 }
+#endif
