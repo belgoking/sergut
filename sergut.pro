@@ -1,6 +1,15 @@
 TEMPLATE = subdirs
 
-SUBDIRS += my_library my_test my_benchmark
+SUBDIRS += my_library
+
+withTest {
+SUBDIRS += my_test
+}
+
+withBenchmark {
+SUBDIRS += my_benchmark
+}
+
 my_library.subdir = lib
 my_test.subdir = test
 my_test.depends = my_library
