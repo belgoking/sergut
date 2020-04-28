@@ -35,9 +35,6 @@ XmlDeserializerDomBase<detail::TinyDom>::XmlDeserializerDomBase(const std::strin
   xmlDocument.reset(new TiXmlDocument);
   xmlDocument->Parse(xml.c_str());
   if(xmlDocument->Error()) {
-    std::cout << "ErrorId: " << xmlDocument->ErrorId()
-              << " ErrorPos: " << xmlDocument->ErrorRow() << ":" << xmlDocument->ErrorCol()
-              << ":" << xmlDocument->ErrorDesc() << std::endl;
     throw ParsingException("Error parsing XML", ErrorContext(*xmlDocument));
   }
   currentElement = xmlDocument->RootElement();
