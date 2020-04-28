@@ -72,7 +72,6 @@ const std::map<char, std::string>& specialCharacters() {
   static const std::map<char, std::string> entities{
     {'"' ,  "\\\"" },
     {'\\',  "\\\\" },
-    {'/' ,  "\\/"  },
     {'\b',  "\\b"  },
     {'\f',  "\\f"  },
     {'\n',  "\\n"  },

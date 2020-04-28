@@ -57,7 +57,7 @@ TEST_CASE("Serialize complex class to JSON", "[sergut]")
                             "\"childMember4\":{\"intMember1\":-27,\"intMember2\":-42,"
                             "\"timeMember3\":\"4:45:00\",\"intMember4\":-23,\"doubleMember5\":3.14159,"
                             "\"floatMember6\":2.718,\"intMember7\":-127},\"intMember5\":{\"nestedIntMember5\":65000},"
-                            "\"intMember6\":255,\"stringMember7\":\"\\nstring\\\\escaped\\\"quoted\\\" &<b>Daten<\\/b>foo\","
+                            "\"intMember6\":255,\"stringMember7\":\"\\nstring\\\\escaped\\\"quoted\\\" &<b>Daten</b>foo\","
                             "\"charPtrMember8\":\"char* Daten\",\"charMember9\":\"c\","
                             "\"childVectorMember10\":[{\"grandChildValue\":22},{\"grandChildValue\":33},{\"grandChildValue\":44}],"
                             "\"intVectorMember11\":[1,2,3,4],\"childMember12\":{\"grandChildValue\":-99}}";
