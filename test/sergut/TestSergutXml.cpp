@@ -1280,7 +1280,7 @@ TEST_CASE("Deserialize XML into a simple class", "[sergut]")
 
 struct TestFlexibleXml {
 public:
-  bool operator==(const TestFlexibleXml& rhs) {
+  bool operator==(const TestFlexibleXml& rhs) const {
     return intVal       == rhs.intVal
         && simpleVec    == rhs.simpleVec
         && nestedIntVec == rhs.nestedIntVec
