@@ -24,7 +24,6 @@ SOURCES += \
     main.cpp \
     sergut/TestJavaClassGenerator.cpp \
     sergut/TestXsdGenerator.cpp \
-    sergut/XmlDeSerializerTiny.cpp \
     sergut/marshaller/TestRequestClient.cpp \
     sergut/marshaller/TestRequestServer.cpp \
     sergut/marshaller/TestRequestSpecificationGenerator.cpp \
@@ -40,3 +39,13 @@ SOURCES += \
 HEADERS += \
     sergut/TestSupportClasses.h \
     sergut/marshaller/TestSupportClassesMarshaller.h \
+
+
+withTinyXml {
+
+SOURCES += \
+    sergut/XmlDeSerializerTiny.cpp \
+
+HEADERS += \
+
+}

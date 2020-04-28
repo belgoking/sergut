@@ -29,7 +29,6 @@ SOURCES += \
     sergut/UrlSerializer.cpp \
     sergut/Version.cpp \
     sergut/XmlDeserializer.cpp \
-    sergut/XmlDeserializerTiny.cpp \
     sergut/XmlDeserializerTiny2.cpp \
     sergut/XmlSerializer.cpp \
     sergut/XsdGenerator.cpp \
@@ -63,7 +62,6 @@ HEADERS += \
     sergut/Util.h \
     sergut/Version.h \
     sergut/XmlDeserializer.h \
-    sergut/XmlDeserializerTiny.h \
     sergut/XmlDeserializerTiny2.h \
     sergut/XmlSerializer.h \
     sergut/XmlValueType.h \
@@ -106,4 +104,14 @@ HEADERS += \
     sergut/xml/detail/ReaderState.h \
     sergut/xml/detail/ReaderStateResetter.h \
     sergut/xml/detail/TextDecodingHelper.h \
+
+withTinyXml {
+
+SOURCES += \
+    sergut/XmlDeserializerTiny.cpp \
+
+HEADERS += \
+    sergut/XmlDeserializerTiny.h \
+
+}
 
