@@ -123,17 +123,17 @@ public:
         ser.serializeNestedData(signature._inputData._outerTagName.c_str(),
                                 signature._inputData._innerTagName.c_str(),
                                 signature._inputData._xmlValueType,
-                                funArg);
+                                funArg); //TODO: check why std::forward does not work
       } else {
-        ser.serializeData(signature._inputData._outerTagName.c_str(), funArg);
+        ser.serializeData(signature._inputData._outerTagName.c_str(), funArg); //TODO: check why std::forward does not work
       }
       request._input = ser.str();
     } else {
-      urlSerializer.serializeData(signature._parameters[ParamPos]._name, funArg);
+      urlSerializer.serializeData(signature._parameters[ParamPos]._name, funArg); //TODO: check why std::forward does not work
     }
 
     // then we handle the remaining parameters
-    fillRequest<ParamPos+1>(request, urlSerializer, signature, funArgs...);
+    fillRequest<ParamPos+1>(request, urlSerializer, signature, funArgs...); //TODO: check why std::forward does not work
   }
 
   template<typename RetT, typename ...FunArgs>
@@ -154,7 +154,7 @@ public:
     request._params.reserve(signature._parameters.size());
     if(sizeof...(funArgs) > 0) {
       UrlSerializeToVector urlSerializer;
-      fillRequest<0>(request, urlSerializer, signature, funArgs...);
+      fillRequest<0>(request, urlSerializer, signature, funArgs...); //TODO: check why std::forward does not work
       request._params = std::move(urlSerializer.takeParams());
     }
     std::pair<std::string, std::vector<char>> result = _requestHandler.handleRequest(request);
