@@ -80,3 +80,51 @@ TEST_CASE("Serialize complex class to JSON", "[sergut]")
     }
   }
 }
+
+struct JTC1 {
+  std::string path;
+  bool active = true;
+  int bar = 30;
+};
+
+bool operator==(const JTC1& lhs, const JTC1& rhs) {
+  return lhs.path==rhs.path && lhs.active==rhs.active && lhs.bar==rhs.bar;
+}
+
+SERGUT_FUNCTION(JTC1, data, ar) {
+  ar & SERGUT_OMEMBER(data, path)
+      & SERGUT_OMEMBER(data, active);
+}
+
+TEST_CASE("Test some functions", "[sergut]") {
+  GIVEN("A JTC1")  {
+    JTC1 tp;
+    tp.path="/home/";
+    const std::string req = "{\"path\":\"/home/\",\"active\":1}";
+    WHEN("The datastructure is serialized to JSON") {
+      sergut::JsonSerializer ser;
+      ser.serializeData(tp);
+
+      THEN("The result is the specified string") {
+        CHECK(ser.str() == req);
+      }
+    }
+    WHEN("The datastructure is deserialized from JSON") {
+      sergut::JsonDeserializer deser(req);
+      const JTC1 desered = deser.deserializeData<JTC1>();
+
+      THEN("The result is the specified string") {
+        CHECK(desered == tp);
+      }
+    }
+    WHEN("The datastructure is deserialized from non-minimal JSON") {
+      const std::string req2 = "{\"path\":\"\\/home\\/\",\"active\":1}";
+      sergut::JsonDeserializer deser(req2);
+      const JTC1 desered = deser.deserializeData<JTC1>();
+
+      THEN("The result is the specified string") {
+        CHECK(desered == tp);
+      }
+    }
+  }
+}
