@@ -477,7 +477,7 @@ DEFINE_COLLECTION_TEST(int64_t,  ({-9223372036854775807LL, 17, 92233720368547758
 DEFINE_COLLECTION_TEST(uint64_t, ({0, 17, 9223372036854775808ULL}), "<VectorOfuint64_t><value>0</value><value>17</value><value>9223372036854775808</value></VectorOfuint64_t>")
 DEFINE_COLLECTION_TEST(float,    ({-17.25, 0.0, 0.0000025}), "<VectorOffloat><value>-17.25</value><value>0</value><value>2.5e-06</value></VectorOffloat>")
 DEFINE_COLLECTION_TEST(double,   ({-17.25, 0.0, 0.0000025}), "<VectorOfdouble><value>-17.25</value><value>0</value><value>2.5e-06</value></VectorOfdouble>")
-DEFINE_COLLECTION_TEST(Time,     ({{0,0,0}, {14,34,15}, {15,55,55}}), "<VectorOfTime><value>0:00:00</value><value>14:34:15</value><value>15:55:55</value></VectorOfTime>")
+DEFINE_COLLECTION_TEST(Time,     ({Time{0,0,0}, Time{14,34,15}, Time{15,55,55}}), "<VectorOfTime><value>0:00:00</value><value>14:34:15</value><value>15:55:55</value></VectorOfTime>")
 namespace {
 typedef std::string string;
 DEFINE_COLLECTION_TEST(string, ({"Hallo", "Liebe", "Welt"}), "<VectorOfstring><value>Hallo</value><value>Liebe</value><value>Welt</value></VectorOfstring>")
@@ -545,7 +545,7 @@ DEFINE_COLLECTION_SIBLINGS_TEST(int64_t,  ({-9223372036854775807LL, 17}),({17, 9
 DEFINE_COLLECTION_SIBLINGS_TEST(uint64_t, ({0, 17}), ({17, 9223372036854775808ULL}), "<VectorsOfuint64_t><valueA>0</valueA><valueA>17</valueA><valueB>17</valueB><valueB>9223372036854775808</valueB></VectorsOfuint64_t>")
 DEFINE_COLLECTION_SIBLINGS_TEST(float,    ({-17.25, 0.0}), ({-18.125, 0.0000025}), "<VectorsOffloat><valueA>-17.25</valueA><valueA>0</valueA><valueB>-18.125</valueB><valueB>2.5e-06</valueB></VectorsOffloat>")
 DEFINE_COLLECTION_SIBLINGS_TEST(double,   ({-17.25, 0.0}), ({0.0, 0.0000025}), "<VectorsOfdouble><valueA>-17.25</valueA><valueA>0</valueA><valueB>0</valueB><valueB>2.5e-06</valueB></VectorsOfdouble>")
-DEFINE_COLLECTION_SIBLINGS_TEST(Time,     ({{0,0,0}, {14,34,15}}), ({{15,55,54}, {15,55,55}}), "<VectorsOfTime><valueA>0:00:00</valueA><valueA>14:34:15</valueA><valueB>15:55:54</valueB><valueB>15:55:55</valueB></VectorsOfTime>")
+DEFINE_COLLECTION_SIBLINGS_TEST(Time,     ({Time{0,0,0}, Time{14,34,15}}), ({Time{15,55,54}, Time{15,55,55}}), "<VectorsOfTime><valueA>0:00:00</valueA><valueA>14:34:15</valueA><valueB>15:55:54</valueB><valueB>15:55:55</valueB></VectorsOfTime>")
 namespace {
 typedef std::string string;
 DEFINE_COLLECTION_SIBLINGS_TEST(string, ({"Hallo", "Liebe"}), ({"Hallo", "Welt"}), "<VectorsOfstring><valueA>Hallo</valueA><valueA>Liebe</valueA><valueB>Hallo</valueB><valueB>Welt</valueB></VectorsOfstring>")
@@ -650,7 +650,7 @@ DEFINE_NESTED_VECTOR_TEST(int64_t,  (std::vector<int64_t>{-9223372036854775807LL
 DEFINE_NESTED_VECTOR_TEST(uint64_t, (std::vector<uint64_t>{0, 17, 9223372036854775808ULL}), "<NestedVectorOfuint64_t><values><value>0</value><value>17</value><value>9223372036854775808</value></values></NestedVectorOfuint64_t>")
 DEFINE_NESTED_VECTOR_TEST(float,    (std::vector<float>{0.0, -17.25, 0.0000025}), "<NestedVectorOffloat><values><value>0</value><value>-17.25</value><value>2.5e-06</value></values></NestedVectorOffloat>")
 DEFINE_NESTED_VECTOR_TEST(double,   (std::vector<double>{0.0, -17.25, 0.0000025}), "<NestedVectorOfdouble><values><value>0</value><value>-17.25</value><value>2.5e-06</value></values></NestedVectorOfdouble>")
-DEFINE_NESTED_VECTOR_TEST(Time,     (std::vector<Time>{{15,45,45},{0,0,0},{23,59,59}}), "<NestedVectorOfTime><values><value>15:45:45</value><value>0:00:00</value><value>23:59:59</value></values></NestedVectorOfTime>")
+DEFINE_NESTED_VECTOR_TEST(Time,     (std::vector<Time>{Time{15,45,45},Time{0,0,0},Time{23,59,59}}), "<NestedVectorOfTime><values><value>15:45:45</value><value>0:00:00</value><value>23:59:59</value></values></NestedVectorOfTime>")
 namespace {
 typedef std::string string;
 DEFINE_NESTED_VECTOR_TEST(string, (std::vector<string>{"hallo", "liebe", "Welt"}), "<NestedVectorOfstring><values><value>hallo</value><value>liebe</value><value>Welt</value></values></NestedVectorOfstring>")
@@ -1198,7 +1198,7 @@ TEST_CASE("Serialize complex class", "[sergut]")
 {
 
   GIVEN("A complex C++ POD datastructure")  {
-    const TestParent tp{ 21, 99, 124, TestChild{ -27, -42, {4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
+    const TestParent tp{ 21, 99, 124, TestChild{ -27, -42, Time{4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
                          "\nstring\\escaped\"quoted\" &<b>Daten</b>foo", "char* Daten", 'c', { {22}, {33}, {44} }, { 1, 2, 3, 4}, { -99 } };
 
     WHEN("The datastructure is serialized to XML") {

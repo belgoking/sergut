@@ -60,7 +60,7 @@ TEST_CASE("Call simple function 2 with RequestClient", "[RequestClient]")
         requestHandler._response = std::make_pair("application/xml", std::vector<char>(res.begin(), res.end()));
       }
       THEN("Deserialization, marshalling & unmarshalling works") {
-        CHECK(myInterfaceClient.sumUpSomeData(3, {23, 12, 20}, 5) == 23);
+        CHECK(myInterfaceClient.sumUpSomeData(3, Time{23, 12, 20}, 5) == 23);
         CHECK(requestHandler._seenRequest._functionName == "sumUpSomeData");
         CHECK(requestHandler._seenRequest._input == "<t>23:12:20</t>");
         CHECK(requestHandler._seenRequest._params ==
@@ -81,7 +81,7 @@ TEST_CASE("Call more complex function 3 with RequestClient", "[RequestClient]")
         requestHandler._response = std::make_pair("application/xml", std::vector<char>(res.begin(), res.end()));
       }
       THEN("Deserialization, marshalling & unmarshalling works") {
-        CHECK(myInterfaceClient.constructSomeMoreComplexTestData(1, 2, 3, 'b', 123, {23, 12, 20}) ==
+        CHECK(myInterfaceClient.constructSomeMoreComplexTestData(1, 2, 3, 'b', 123, Time{23, 12, 20}) ==
               SomeMoreComplexTestData(Time{1, 2, 3}, 'b', 123, Time{23, 12, 20}));
         CHECK(requestHandler._seenRequest._functionName == "constructSomeMoreComplexTestData");
         CHECK(requestHandler._seenRequest._input == "<time2>23:12:20</time2>");

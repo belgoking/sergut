@@ -26,6 +26,7 @@
 #include <cinttypes>
 #include <iomanip>
 #include <sstream>
+#include <vector>
 
 struct SomeTestData {
   SomeTestData() = default;
@@ -64,7 +65,7 @@ SERGUT_FUNCTION(SingleChildTestData, data, ar) {
 
 class Time {
 public:
-  Time(const std::uint8_t hour = 0, const std::uint8_t minute = 0, const std::uint8_t seconds = 0) : val(hour*10000+minute*100+seconds) { }
+  explicit Time(const std::uint8_t hour = 0, const std::uint8_t minute = 0, const std::uint8_t seconds = 0) : val(hour*10000+minute*100+seconds) { }
 
   uint32_t getInternalValue() const { return val; }
   bool operator==(const Time& rhs) const { return val == rhs.val; }

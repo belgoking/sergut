@@ -10,7 +10,7 @@ TEST_CASE("Serialize complex class to URL", "[sergut]")
 {
 
   GIVEN("A complex C++ POD datastructure")  {
-    const TestParent tp{ 21, 99, 124, TestChild{ -27, -42, {4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
+    const TestParent tp{ 21, 99, 124, TestChild{ -27, -42, Time{4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
                          "\nstring\\escaped\"quoted\" &<b>Daten</b>foo", "char* Daten", 'c', { {22}, {33}, {44} }, { 1, 2, 3, 4}, { -99 } };
 
     WHEN("The datastructure is serialized to URL (vector of pairs)") {
@@ -133,7 +133,7 @@ TEST_CASE("Deserialize an URL into class", "[sergut]")
       {"outer.intVectorMember10", "1"}, {"outer.intVectorMember10", "2"}, {"outer.intVectorMember10", "3"},
       {"outer.intVectorMember10", "4"}, {"outer.childMember11.grandChildValue", "-99"}
       };
-    const TestParentUrl origVal{ 21, 99, 124, TestChild{ -27, -42, {4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
+    const TestParentUrl origVal{ 21, 99, 124, TestChild{ -27, -42, Time{4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
                                  "\nstring\\escaped\"quoted\" &<b>Daten</b>foo", "char* Daten", 'c', { 1, 2, 3, 4}, { -99 } };
 
     WHEN("The URL-Parameters are deserialized into the simple class (UrlDeserializer)") {
@@ -146,7 +146,7 @@ TEST_CASE("Deserialize an URL into class", "[sergut]")
 
 TEST_CASE("Serialize/Deserialize several classes to Url", "[sergut]")
 {
-  const TestParentUrl tp1{ 21, 99, 124, TestChild{ -27, -42, {4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
+  const TestParentUrl tp1{ 21, 99, 124, TestChild{ -27, -42, Time{4, 45}, -23, 3.14159, 2.718, -127 }, 65000, 255,
                        "\nstring\\escaped\"quoted\" &<b>Daten</b>foo", "char* Daten", 'c', { 1, 2, 3, 4}, { -99 } };
   const Simple simple2{ 12345, 2.345, Time{3, 23, 99}, 'X', 21, Time{12, 34, 55}};
   const Simple simple3{ 54321, 543.2, Time{23, 3, 01}, 'Y', 12, Time{21, 55, 34}};

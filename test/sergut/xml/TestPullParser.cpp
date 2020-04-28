@@ -25,6 +25,8 @@
 #include "sergut/xml/detail/PullParserUtf16LE.h"
 #include "sergut/xml/detail/PullParserUtf16BE.h"
 
+#include <set>
+
 enum class TargetEncoding { Utf8, Utf16BE, Utf16LE };
 std::string toString(const TargetEncoding encoding, const bool shortDesc = false)
 {
