@@ -46,7 +46,6 @@ TEST_CASE("Serialize simple types to JSON", "[sergut]")
 }
 
 
-
 TEST_CASE("Serialize complex class to JSON", "[sergut]")
 {
 
@@ -109,7 +108,7 @@ TEST_CASE("Test some functions", "[sergut]") {
         CHECK(ser.str() == req);
       }
     }
-    WHEN("The datastructure is deserialized from JSON") {
+    WHEN("The datastructure is deserialized from (bool as int) JSON") {
       sergut::JsonDeserializer deser(req);
       const JTC1 desered = deser.deserializeData<JTC1>();
 
@@ -117,12 +116,21 @@ TEST_CASE("Test some functions", "[sergut]") {
         CHECK(desered == tp);
       }
     }
-    WHEN("The datastructure is deserialized from non-minimal JSON") {
-      const std::string req2 = "{\"path\":\"\\/home\\/\",\"active\":1}";
+    WHEN("The datastructure is deserialized with real bool JSON") {
+      const std::string req2 = "{\"path\":\"\\/home\\/\",\"active\":true}";
       sergut::JsonDeserializer deser(req2);
       const JTC1 desered = deser.deserializeData<JTC1>();
 
-      THEN("The result is the specified string") {
+      THEN("The result is the specified data") {
+        CHECK(desered == tp);
+      }
+    }
+    WHEN("The datastructure is deserialized with bool as non-zero int JSON") {
+      const std::string req2 = "{\"path\":\"\\/home\\/\",\"active\":23}";
+      sergut::JsonDeserializer deser(req2);
+      const JTC1 desered = deser.deserializeData<JTC1>();
+
+      THEN("The result is the specified data") {
         CHECK(desered == tp);
       }
     }

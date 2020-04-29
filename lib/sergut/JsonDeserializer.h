@@ -166,6 +166,19 @@ private:
   }
 
   // String types
+  void deserializeValue(bool& data) {
+    if(_currentElement->IsBool()) {
+      data = (*_currentElement).GetBool();
+    }
+    else if(_currentElement->IsInt()) {
+      data = (*_currentElement).GetInt() != 0;
+    }
+    else {
+      throw ParsingException("Expected Bool");
+    }
+  }
+
+  // String types
   void deserializeValue(std::string& data) {
     if(!_currentElement->IsString()) {
       throw ParsingException("Expected String");
