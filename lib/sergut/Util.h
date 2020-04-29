@@ -335,6 +335,9 @@
 #define SERGUT_MMEMBER(cls, mem) \
   Archive::toNamedMember(#mem, cls.mem, true)
 
+#define SERGUT_RENAMED_MMEMBER(memberAccess, serializedName) \
+  Archive::toNamedMember(serializedName, memberAccess, true)
+
 /**
  * \brief Serialize an optional member.
  *
@@ -347,6 +350,9 @@
  */
 #define SERGUT_OMEMBER(cls, mem) \
   Archive::toNamedMember(#mem, cls.mem, false)
+
+#define SERGUT_RENAMED_OMEMBER(memberAccess, serializedName) \
+  Archive::toNamedMember(serializedName, memberAccess, false)
 
 /**
  * \brief Serialize a nested mandatory member.
