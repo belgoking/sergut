@@ -30,13 +30,10 @@
 namespace sergut {
 
 struct JsonSerializer::LevelStatus {
-
-public:
   bool firstOfLevel = true;
 };
 
 struct JsonSerializer::Impl {
-public:
   std::vector<LevelStatus> levelStatus;
   std::ostringstream out;
 };
@@ -131,7 +128,7 @@ void JsonSerializer::addCommaIfNeeded()
   }
 }
 
-std::ostringstream &JsonSerializer::out()
+std::ostream &JsonSerializer::out()
 {
   return impl->out;
 }

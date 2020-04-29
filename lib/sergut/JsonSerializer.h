@@ -25,17 +25,17 @@
 #include "sergut/Util.h"
 #include "sergut/detail/DummySerializer.h"
 
-#include <sstream>
 #include <list>
 #include <set>
+#include <sstream>
 #include <vector>
 
 namespace sergut {
 
 class JsonSerializer: public SerializerBase
 {
-  class Impl;
-  class LevelStatus;
+  struct Impl;
+  struct LevelStatus;
 public:
   JsonSerializer();
   JsonSerializer(const JsonSerializer& ref);
@@ -136,7 +136,7 @@ public:
 private:
   void writeEscaped(const std::string& str);
   void addCommaIfNeeded();
-  std::ostringstream& out();
+  std::ostream& out();
 
 private:
   Impl* impl;
