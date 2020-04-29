@@ -66,6 +66,7 @@ public:
     writeEscaped(data);
     out() << "\"";
   }
+  void serializeValue(const char data[]) { serializeValue(std::string(data)); }
   void serializeValue(const char*& data) { serializeValue(std::string(data)); }
   void serializeValue(const char data) { serializeValue(std::string(1, data)); }
 
