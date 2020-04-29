@@ -23,9 +23,15 @@
 
 #include "sergut/DeserializerBase.h"
 #include "sergut/ParsingException.h"
+#include "sergut/SerializationException.h"
 #include "sergut/Util.h"
 #include "sergut/detail/DummySerializer.h"
 #include "sergut/misc/ReadHelper.h"
+
+#define RAPIDJSON_ASSERT(x) \
+    if(!(x)) { \
+        throw sergut::SerializationException("Assertion failed: " #x); \
+    }
 
 #include <rapidjson/document.h>
 
@@ -38,6 +44,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+
 
 namespace sergut {
 
