@@ -110,7 +110,7 @@ public:
   JsonDeserializer& operator&(const NamedMemberForDeserialization<DT>& data) {
     auto currentElement = _currentElement;
     auto memberIt = currentElement->FindMember(data.name);
-    if(memberIt == currentElement->MemberEnd()) {
+    if(memberIt == currentElement->MemberEnd() || memberIt->value.IsNull()) {
       if(data.mandatory) {
         throw ParsingException("Missing mandatory member");
       }
