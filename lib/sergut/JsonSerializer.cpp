@@ -36,13 +36,15 @@ struct JsonSerializer::LevelStatus {
 struct JsonSerializer::Impl {
   std::vector<LevelStatus> levelStatus;
   std::ostringstream out;
+  uint8_t flags = static_cast<uint8_t>(Flags::None);
 };
 
 
 
-JsonSerializer::JsonSerializer()
+JsonSerializer::JsonSerializer(const Flags flags)
   : impl(new Impl)
 {
+  impl->flags = static_cast<uint8_t>(flags);
   impl->levelStatus.push_back(LevelStatus{});
 }
 
@@ -62,6 +64,14 @@ JsonSerializer::~JsonSerializer() {
 std::string JsonSerializer::str() const
 {
   return impl->out.str();
+}
+
+void JsonSerializer::serializeValue(const bool data) {
+  if(impl->flags & static_cast<uint8_t>(Flags::BoolAsInt)) {
+    out() << (data ? 1 : 0);
+  } else {
+    out() << (data ? "true" : "false");
+  }
 }
 
 static

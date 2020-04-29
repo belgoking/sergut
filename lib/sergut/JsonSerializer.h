@@ -37,7 +37,11 @@ class JsonSerializer: public SerializerBase
   struct Impl;
   struct LevelStatus;
 public:
-  JsonSerializer();
+  enum class Flags {
+    None = 0,
+    BoolAsInt = 1  // set by default for backward-compatibility
+  };
+  JsonSerializer(const Flags flags = Flags::BoolAsInt);
   JsonSerializer(const JsonSerializer& ref);
   ~JsonSerializer();
 
@@ -61,6 +65,7 @@ public:
   void serializeValue(const unsigned char data) { out() << static_cast<unsigned short>(data); }
   void serializeValue(const double data) { out() << data; }
   void serializeValue(const float data) { out() << data; }
+  void serializeValue(const bool data);
   void serializeValue(const std::string& data) {
     out() << "\"";
     writeEscaped(data);

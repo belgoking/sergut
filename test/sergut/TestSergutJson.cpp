@@ -26,23 +26,40 @@ TEST_CASE("RapidJSON", "[sergut]")
 }
 
 template<typename DT>
-void testSerializeSimpleTypes(const DT& dt, const std::string& expectedResult) {
-  GIVEN("A simple C++ datastructure: " + std::string(typeid(DT).name()))  {
-    WHEN("The datastructure is serialized to JSON") {
-      THEN("The result is the specified string") {
-        sergut::JsonSerializer ser;
-        ser.serializeData(dt);
-        CHECK(ser.str() == expectedResult);
-      }
+void testSerializeSimpleTypes(const DT& dt, const std::string& expectedResult,
+                              const sergut::JsonSerializer::Flags flags = sergut::JsonSerializer::Flags::BoolAsInt) {
+  WHEN("The datastructure is serialized to JSON") {
+    THEN("The result is the specified string") {
+      sergut::JsonSerializer ser{flags};
+      ser.serializeData(dt);
+      CHECK(ser.str() == expectedResult);
     }
   }
 }
 
 TEST_CASE("Serialize simple types to JSON", "[sergut]")
 {
-  testSerializeSimpleTypes("abc", "\"abc\"");
-  testSerializeSimpleTypes(9943, "9943");
-  testSerializeSimpleTypes("Ich kann\nauch\x01mit Umlauten: \xc3\xa4 und Anf\xc3\xbchrungszeichen: \"", "\"Ich kann\\nauch\\u0001mit Umlauten: \xc3\xa4 und Anf\xc3\xbchrungszeichen: \\\"\"");
+  GIVEN("A simple C++ string") {
+    testSerializeSimpleTypes("abc", "\"abc\"");
+  }
+  GIVEN("A simple C++ int") {
+    testSerializeSimpleTypes(9943, "9943");
+  }
+  GIVEN("A complex C++ string") {
+    testSerializeSimpleTypes("Ich kann\nauch\x01mit Umlauten: \xc3\xa4 und Anf\xc3\xbchrungszeichen: \"", "\"Ich kann\\nauch\\u0001mit Umlauten: \xc3\xa4 und Anf\xc3\xbchrungszeichen: \\\"\"");
+  }
+  GIVEN("A simple C++ false as int") {
+    testSerializeSimpleTypes(false, "0");
+  }
+  GIVEN("A simple C++ true as int") {
+    testSerializeSimpleTypes(true, "1");
+  }
+  GIVEN("A simple C++ false as bool") {
+    testSerializeSimpleTypes(false, "false", sergut::JsonSerializer::Flags::None);
+  }
+  GIVEN("A simple C++ true as bool") {
+    testSerializeSimpleTypes(true, "true", sergut::JsonSerializer::Flags::None);
+  }
 }
 
 
