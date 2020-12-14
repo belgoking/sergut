@@ -1,0 +1,6 @@
+*.autosave
+.*.swp
+.*.swo
+local.pri
+Makefile
+sergut.pro.user*
