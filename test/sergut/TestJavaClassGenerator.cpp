@@ -26,7 +26,7 @@
 
 #include "TestSupportClasses.h"
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 #include <sstream>
 

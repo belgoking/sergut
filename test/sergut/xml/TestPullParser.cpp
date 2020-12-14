@@ -19,7 +19,7 @@
  * SOFTWARE.
  */
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 #include "sergut/xml/PullParser.h"
 #include "sergut/xml/detail/PullParserUtf16LE.h"

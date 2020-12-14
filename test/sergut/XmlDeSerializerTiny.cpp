@@ -19,7 +19,7 @@
  * SOFTWARE.
  */
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
 #include "sergut/Util.h"
 #include "sergut/JsonSerializer.h"
