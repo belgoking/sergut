@@ -10,6 +10,10 @@ TEMPLATE = lib
 QT -= core
 QT -= gui
 
+withQt {
+QT += core
+}
+
 TARGET =  sergut
 CONFIG += console
 CONFIG -= app_bundle
@@ -47,11 +51,13 @@ HEADERS += \
     sergut/DeserializerBase.h \
     sergut/Exception.h \
     sergut/JavaClassGenerator.h \
+    sergut/JsonDeserializerBase.h \
     sergut/JsonSerializer.h \
     sergut/Misc.h \
     sergut/ParsingException.h \
     sergut/SerializationException.h \
     sergut/SerializerBase.h \
+    sergut/TypeTraits.h \
     sergut/UrlNameCombiner.h \
     sergut/UrlDeserializer.h \
     sergut/UrlSerializeToVector.h \
@@ -127,5 +133,15 @@ SOURCES += \
 
 HEADERS += \
     sergut/JsonDeserializer.h \
+
+}
+
+withQt {
+
+SOURCES += \
+    sergut/JsonDeserializerQt.cpp \
+
+HEADERS += \
+    sergut/JsonDeserializerQt.h \
 
 }

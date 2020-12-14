@@ -5,6 +5,10 @@ TEMPLATE = app
 QT -= core
 QT -= gui
 
+withQt {
+QT += core
+}
+
 TARGET = test
 
 CONFIG += console
@@ -45,6 +49,15 @@ withTinyXml {
 
 SOURCES += \
     sergut/XmlDeSerializerTiny.cpp \
+
+HEADERS += \
+
+}
+
+withQt {
+
+SOURCES += \
+    sergut/TestSergutJsonPolymorphic.cpp \
 
 HEADERS += \
 
