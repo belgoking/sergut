@@ -23,7 +23,6 @@
 
 #include "sergut/SerializerBase.h"
 #include "sergut/Util.h"
-#include "sergut/detail/DummySerializer.h"
 
 #include <list>
 #include <set>
@@ -109,7 +108,7 @@ public:
 
   template<typename DT>
   auto serializeValue(const DT& data)
-  -> decltype(serialize(detail::DummySerializer::dummyInstance(), data, static_cast<typename std::decay<DT>::type*>(nullptr)), void())
+  -> decltype(serialize(declval<JsonSerializer&>(), data, static_cast<typename std::decay<DT>::type*>(nullptr)), void())
   {
     out() << "{";
     JsonSerializer ser(*this);

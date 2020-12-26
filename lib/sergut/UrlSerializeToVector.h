@@ -25,7 +25,6 @@
 #include "sergut/SerializerBase.h"
 #include "sergut/UrlNameCombiner.h"
 #include "sergut/Util.h"
-#include "sergut/detail/DummySerializer.h"
 #include "sergut/misc/ConstStringRef.h"
 
 #include <list>
@@ -139,7 +138,7 @@ public:
 
   template<typename DT>
   auto operator&(const NamedMemberForSerialization<DT>& data)
-  -> decltype(serialize(detail::DummySerializer::dummyInstance(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)), *this)
+  -> decltype(serialize(declval<UrlSerializeToVector&>(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)), *this)
   {
     UrlSerializeToVector ser(*this, misc::ConstStringRef(data.name));
     serialize(ser, data.data, static_cast<typename std::decay<DT>::type*>(nullptr));

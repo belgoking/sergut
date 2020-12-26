@@ -62,7 +62,6 @@ HEADERS += \
     sergut/XmlSerializer.h \
     sergut/XmlValueType.h \
     sergut/XsdGenerator.h \
-    sergut/detail/DummySerializer.h \
     sergut/detail/JavaClassGeneratorBase.h \
     sergut/detail/JavaClassGeneratorBuilder.h \
     sergut/detail/Member.h \

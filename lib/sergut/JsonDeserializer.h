@@ -25,7 +25,6 @@
 #include "sergut/ParsingException.h"
 #include "sergut/SerializationException.h"
 #include "sergut/Util.h"
-#include "sergut/detail/DummySerializer.h"
 #include "sergut/misc/ReadHelper.h"
 
 #define RAPIDJSON_ASSERT(x) \
@@ -260,7 +259,7 @@ private:
 
   template<typename DT>
   auto deserializeValue(DT& data)
-  -> decltype(serialize(DummyDeserializer::dummyInstance(), data, static_cast<typename std::decay<DT>::type*>(nullptr)),void())
+  -> decltype(serialize(declval<JsonDeserializer&>(), data, static_cast<typename std::decay<DT>::type*>(nullptr)),void())
   {
     auto* el = _currentElement;
     serialize(*this, data, static_cast<typename std::decay<DT>::type*>(nullptr));

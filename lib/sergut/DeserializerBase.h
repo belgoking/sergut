@@ -76,11 +76,4 @@ public:
   }
 };
 
-// Helper class to support SFINAE for code generators
-struct DummyDeserializer : public DeserializerBase {
-  template<typename T>
-  const DummyDeserializer& operator&(T) const { return *this; }
-  static DummyDeserializer& dummyInstance(); ///< This is not implemented
-};
-
 }

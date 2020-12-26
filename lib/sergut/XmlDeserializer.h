@@ -24,7 +24,6 @@
 #include "sergut/ParsingException.h"
 #include "sergut/SerializerBase.h"
 #include "sergut/Util.h"
-#include "sergut/detail/DummySerializer.h"
 #include "sergut/detail/MemberDeserializer.h"
 #include "sergut/detail/XmlDeserializerHelper.h"
 #include "sergut/xml/PullParser.h"
@@ -357,7 +356,7 @@ private:
   // structured data
   template<typename DT>
   static auto handleChild(const NamedMemberForDeserialization<DT>& data, const XmlValueType valueType, xml::PullParser& state)
-  -> decltype(serialize(detail::DummySerializer::dummyInstance(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)),void())
+  -> decltype(serialize(declval<XmlDeserializer&>(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)),void())
   {
     assert(state.getCurrentTokenType() == xml::ParseTokenType::OpenTag);
     if(valueType != XmlValueType::Child) {

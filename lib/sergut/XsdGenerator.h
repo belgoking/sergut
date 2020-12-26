@@ -25,7 +25,6 @@
 #include "sergut/SerializerBase.h"
 #include "sergut/Util.h"
 #include "sergut/XmlValueType.h"
-#include "sergut/detail/DummySerializer.h"
 #include "sergut/detail/XmlDeserializerHelper.h"
 #include "sergut/misc/ConstStringRef.h"
 
@@ -106,7 +105,7 @@ class XsdGenerator: public SerializerBase
 
     template<typename DT>
     auto operator&(const NamedMemberForSerialization<DT>& data)
-    -> decltype(serialize(detail::DummySerializer::dummyInstance(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)), *this)
+    -> decltype(serialize(declval<SingleChildFinder&>(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)), *this)
     {
       return *this;
     }
@@ -223,7 +222,7 @@ public:
 
   template<typename DT>
   auto operator&(const NamedMemberForSerialization<DT>& data)
-  -> decltype(serialize(detail::DummySerializer::dummyInstance(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)), *this)
+  -> decltype(serialize(declval<XsdGenerator&>(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)), *this)
   {
     _out << "<xs:complextype name='" << data.name;
     XsdGenerator::SingleChildFinder singleChildFinder;

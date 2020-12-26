@@ -488,4 +488,11 @@ struct PlainChildFollows {};
  */
 const PlainChildFollows plainChild;
 
+/**
+ * \brief Helper template function for SFINAE similar to \c std::declval()
+ */
+template<class T>
+T declval() noexcept;
+
+
 }

@@ -26,7 +26,6 @@
 #include "sergut/ParsingException.h"
 #include "sergut/Util.h"
 #include "sergut/detail/XmlDeserializerHelper.h"
-#include "sergut/detail/DummySerializer.h"
 #include "sergut/misc/ReadHelper.h"
 
 #include <list>
@@ -143,7 +142,7 @@ public: // The archive operator& that is used by the \c serialize() functions.
 
   template<typename DT>
   auto operator&(const NamedMemberForDeserialization<DT>& data)
-  -> decltype(serialize(DummyDeserializer::dummyInstance(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)),*this)
+  -> decltype(serialize(declval<UrlDeserializer&>(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)),*this)
   {
     UrlDeserializer ser(*this, misc::ConstStringRef(data.name));
     serialize(ser, data.data, static_cast<typename std::decay<DT>::type*>(nullptr));

@@ -25,7 +25,6 @@
 #include "sergut/ParsingException.h"
 #include "sergut/Util.h"
 #include "sergut/XmlValueType.h"
-#include "sergut/detail/DummySerializer.h"
 #include "sergut/detail/XmlDeserializerHelper.h"
 #include "sergut/misc/ReadHelper.h"
 
@@ -192,7 +191,7 @@ public: // The archive operator& that is used by the \c serialize() functions.
 
   template<typename DT>
   auto operator&(const NamedMemberForDeserialization<DT>& data)
-  -> decltype(serialize(DummyDeserializer::dummyInstance(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)),*this)
+  -> decltype(serialize(declval<XmlDeserializerDomBase&>(), data.data, static_cast<typename std::decay<DT>::type*>(nullptr)),*this)
   {
     // retrieve the correct node (with exception of the root tag)
     auto* el = currentElement->ToElement();

@@ -21,8 +21,8 @@
 
 #pragma once
 
+#include "sergut/Util.h"
 #include "sergut/XmlValueType.h"
-#include "sergut/detail/DummySerializer.h"
 #include "sergut/detail/TypeName.h"
 
 #include <list>
@@ -45,7 +45,7 @@ private:
 
   template<typename DT>
   static constexpr auto doCanDeserializeIntoAttribute(const DT*, const long)
-  -> decltype(serialize(DummySerializer::dummyInstance(), getHolder<DT>(), static_cast<typename std::decay<DT>::type*>(nullptr)),bool())
+  -> decltype(serialize(declval<XmlDeserializerHelper&>(), getHolder<DT>(), static_cast<typename std::decay<DT>::type*>(nullptr)),bool())
   { return false; }
 
   template<typename DT>
