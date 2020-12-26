@@ -101,4 +101,7 @@ public:
   }
 };
 
+template<>
+struct is_serialization_format<JsonDeserializerQt, JsonFormat>: public std::true_type { };
+
 } // namespace sergut

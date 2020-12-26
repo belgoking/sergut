@@ -400,6 +400,12 @@
   template<typename DT, typename Archive> \
   void serialize(Archive& archiveName, DT& dataName, const DataType*)
 
+#define SERGUT_FUNCTION_FOR(SerializationFormat, DataType, dataName, archiveName) \
+  inline const char* getTypeName(const DataType*) { return #DataType; } \
+  template<typename DT, typename Archive> \
+  typename std::enable_if<sergut::is_serialization_format<typename std::decay<Archive>::type, SerializationFormat>::value, void>::type \
+  serialize(Archive& archiveName, DT& dataName, const DataType*)
+
 /**
  * \brief Friend declaration of the deserialization/serialization function.
  */
