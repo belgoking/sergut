@@ -26,6 +26,7 @@
 #include "sergut/detail/Nesting.h"
 
 #include <type_traits>
+#include <utility>
 
 namespace sergut {
 
@@ -46,7 +47,36 @@ template<typename DT>
 struct DataHolder<NamedMemberForDeserialization<DT>> {
   NamedMemberForDeserialization<DT> data;
 };
+
 } // namespace detail
+
+template<typename DiscriminatorType, typename HandlerType>
+struct ObjectByKeyValue {
+  ObjectByKeyValue(const char* k, const char* v, DiscriminatorType d, HandlerType h)
+    : key(k)
+    , value(v)
+    , discriminator(std::move(d))
+    , handler(std::move(h))
+  { }
+
+  const char* key;
+  const char* value;
+  DiscriminatorType discriminator;
+  HandlerType handler;
+};
+
+template<typename DiscriminatorType, typename HandlerType>
+struct ObjectByKey {
+  ObjectByKey(const char* k, DiscriminatorType d, HandlerType h)
+    : key(k)
+    , discriminator(std::move(d))
+    , handler(std::move(h))
+  { }
+
+  const char* key;
+  DiscriminatorType discriminator;
+  HandlerType handler;
+};
 
 class DeserializerBase {
 public:
@@ -73,6 +103,25 @@ public:
     return detail::Nesting<
         typename std::remove_reference<
         typename std::remove_cv<DT>::type>::type>(name, data, mandatory, pXmlValueType);
+  }
+
+  template<typename DiscriminatorType, typename HandlerType>
+  static
+  ObjectByKeyValue<DiscriminatorType, HandlerType>
+  objectByKeyValue(const char* key, const char* value,
+                   DiscriminatorType discriminator, HandlerType handler)
+  {
+    return ObjectByKeyValue<DiscriminatorType, HandlerType>(
+          key, value, std::move(discriminator), std::move(handler));
+  }
+
+  template<typename DiscriminatorType, typename HandlerType>
+  static
+  ObjectByKey<DiscriminatorType, HandlerType>
+  objectByKey(const char* key, DiscriminatorType discriminator, HandlerType handler)
+  {
+    return ObjectByKey<DiscriminatorType, HandlerType>(
+          key, std::move(discriminator), std::move(handler));
   }
 };
 

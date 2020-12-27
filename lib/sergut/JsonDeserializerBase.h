@@ -247,6 +247,71 @@ public:
     _currentElement = el;
   }
 
+  template<typename DT, typename DiscriminatorFunction, typename ...TypeOptions>
+  JsonDeserializerBase& oneOf(DT& data, DiscriminatorFunction /*discriminatorFunction*/,
+                              TypeOptions... typeOptions)
+  {
+    doOneOf(data, typeOptions...);
+    return *this;
+  }
+
+protected:
+  template<typename DT, typename DiscriminatorType, typename HandlerType>
+  bool handleTypeOption(DT& data, ObjectByKeyValue<DiscriminatorType, HandlerType>& handler) {
+
+    const auto memberIt = _currentElement->FindMember(handler.key);
+    if(memberIt == _currentElement->MemberEnd()) {
+      return false;
+    }
+    bool found = false;
+    if(memberIt->value.IsString()) {
+      found = std::strncmp(memberIt->value.GetString(), handler.value, memberIt->value.GetStringLength()) == 0;
+    }
+    else if(memberIt->value.IsInt64()) {
+      found = std::to_string(memberIt->value.GetInt64()) == handler.value;
+    }
+    else if(memberIt->value.IsBool()) {
+      static std::string trueStr("true");
+      static std::string falseStr("false");
+      if(memberIt->value.GetBool()) {
+        found = trueStr == handler.value;
+      } else {
+        found = falseStr == handler.value;
+      }
+    }
+    if(!found) {
+      return false;
+    }
+    handler.handler.init(data);
+    static_cast<Dialect*>(this)->deserializeValue(handler.handler.forwardToSubtype(data));
+    return true;
+  }
+
+  template<typename DT, typename DiscriminatorType, typename HandlerType>
+  bool handleTypeOption(DT& data, ObjectByKey<DiscriminatorType, HandlerType>& handler) {
+    const auto memberIt = _currentElement->FindMember(handler.key);
+    if(memberIt == _currentElement->MemberEnd()) {
+      return false;
+    }
+    handler.handler.init(data);
+    static_cast<Dialect*>(this)->deserializeValue(handler.handler.forwardToSubtype(data));
+    return true;
+  }
+
+  template<typename DT>
+  void doOneOf(DT&)
+  {
+    throw ParsingException("failed to find matching type for 'oneOf'");
+  }
+
+  template<typename DT, typename TypeOptionHead, typename ...TypeOptionsTail>
+  void doOneOf(DT& data, TypeOptionHead& head, TypeOptionsTail&... tail)
+  {
+    if(!handleTypeOption(data, head)) {
+      doOneOf(data, tail...);
+    }
+  }
+
 protected:
   std::unique_ptr<typename rapidjson::Document> _jsonDocument;
   typename rapidjson::Value* _currentElement;
