@@ -27,6 +27,7 @@ QMAKE_CXXFLAGS += -ggdb3
 SOURCES += \
     VersionTracker.cpp \
     sergut/JsonSerializer.cpp \
+    sergut/JsonSerializerBase.cpp \
     sergut/ParsingException.cpp \
     sergut/UrlDeserializer.cpp \
     sergut/UrlSerializeToVector.cpp \
@@ -53,6 +54,7 @@ HEADERS += \
     sergut/JavaClassGenerator.h \
     sergut/JsonDeserializerBase.h \
     sergut/JsonSerializer.h \
+    sergut/JsonSerializerBase.h \
     sergut/Misc.h \
     sergut/ParsingException.h \
     sergut/SerializationException.h \
@@ -143,5 +145,6 @@ SOURCES += \
 
 HEADERS += \
     sergut/JsonDeserializerQt.h \
+    sergut/JsonSerializerQt.h \
 
 }
