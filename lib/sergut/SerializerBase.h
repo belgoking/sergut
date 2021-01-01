@@ -24,6 +24,8 @@
 #include "sergut/Util.h"
 #include "sergut/detail/Nesting.h"
 
+#include <utility>
+
 namespace sergut {
 
 template<typename DT>
@@ -36,6 +38,34 @@ struct NamedMemberForSerialization {
   const char* name;
   const DT& data;
   const bool mandatory;
+};
+
+template<typename DiscriminatorType, typename HandlerType>
+struct ObjectByKeyValueForSerialization {
+  ObjectByKeyValueForSerialization(const char* k, const char* v, DiscriminatorType d, HandlerType h)
+    : key(k)
+    , value(v)
+    , discriminator(std::move(d))
+    , handler(std::move(h))
+  { }
+
+  const char* key;
+  const char* value;
+  DiscriminatorType discriminator;
+  HandlerType handler;
+};
+
+template<typename DiscriminatorType, typename HandlerType>
+struct ObjectByKeyForSerialization {
+  ObjectByKeyForSerialization(const char* k, DiscriminatorType d, HandlerType h)
+    : key(k)
+    , discriminator(std::move(d))
+    , handler(std::move(h))
+  { }
+
+  const char* key;
+  DiscriminatorType discriminator;
+  HandlerType handler;
 };
 
 class SerializerBase {
@@ -51,6 +81,25 @@ public:
                                                         const XmlValueType pXmlValueType = XmlValueType::Child)
   {
     return detail::Nesting<const DT>(name, data, mandatory, pXmlValueType);
+  }
+
+  template<typename DiscriminatorType, typename HandlerType>
+  static
+  ObjectByKeyValueForSerialization<DiscriminatorType, HandlerType>
+  objectByKeyValue(const char* key, const char* value,
+                   DiscriminatorType discriminator, HandlerType handler)
+  {
+    return ObjectByKeyValueForSerialization<DiscriminatorType, HandlerType>(
+          key, value, std::move(discriminator), std::move(handler));
+  }
+
+  template<typename DiscriminatorType, typename HandlerType>
+  static
+  ObjectByKeyForSerialization<DiscriminatorType, HandlerType>
+  objectByKey(const char* key, DiscriminatorType discriminator, HandlerType handler)
+  {
+    return ObjectByKeyForSerialization<DiscriminatorType, HandlerType>(
+          key, std::move(discriminator), std::move(handler));
   }
 };
 

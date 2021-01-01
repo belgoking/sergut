@@ -103,7 +103,8 @@ std::type_index getInternalTypeIndex(const std::unique_ptr<TypesBase>& c) {
     if(c == nullptr) {
         return std::type_index(typeid(void));
     }
-    return std::type_index(typeid(c.get()));
+    const TypesBase& ptr = *c.get();
+    return std::type_index(typeid(ptr));
 }
 
 struct Type1SerializationHandlerPoly {
@@ -169,7 +170,7 @@ SERGUT_FUNCTION(PolyPoly, data, ar) {
     ar & SERGUT_MMEMBER(data, _p);
 }
 
-TEST_CASE("Test deserialization of polymorphic type", "[sergut]") {
+TEST_CASE("Test deSerialization of polymorphic type", "[sergut]") {
   GIVEN("A JSON with polymorphic element data types and Type1") {
     const std::string typeString = "{\"_p\":{\"serializationKey\":\"type1\",\"mynum1\":99,\"mybool1\":false}}";
     const PolyPoly referenceObject{ std::unique_ptr<TypesBase>(new Type1{99, false})};
@@ -178,6 +179,13 @@ TEST_CASE("Test deserialization of polymorphic type", "[sergut]") {
       const PolyPoly e = deser.deserializeData<PolyPoly>();
       THEN("The result is the specified string 1") {
         CHECK(e == referenceObject);
+      }
+    }
+    WHEN("Serializing a Type1") {
+      sergut::JsonSerializerQt deser(sergut::JsonSerializerQt::Flags::None);
+      deser.serializeData(referenceObject);
+      THEN("The result is the specified string 1") {
+        CHECK(deser.str() == typeString);
       }
     }
   }
@@ -191,6 +199,13 @@ TEST_CASE("Test deserialization of polymorphic type", "[sergut]") {
         CHECK(e == referenceObject);
       }
     }
+    WHEN("Serializing a Type2") {
+      sergut::JsonSerializerQt deser(sergut::JsonSerializerQt::Flags::None);
+      deser.serializeData(referenceObject);
+      THEN("The result is the specified string 2") {
+        CHECK(deser.str() == typeString);
+      }
+    }
   }
   GIVEN("A JSON with polymorphic element data types and Type3") {
     const std::string typeString = "{\"_p\":{\"uniqueKey\":\"lalala\",\"zahl\":17}}";
@@ -200,6 +215,13 @@ TEST_CASE("Test deserialization of polymorphic type", "[sergut]") {
       const PolyPoly e = deser.deserializeData<PolyPoly>();
       THEN("The result is the specified string 3") {
         CHECK(e == referenceObject);
+      }
+    }
+    WHEN("Serializing a Type3") {
+      sergut::JsonSerializerQt deser(sergut::JsonSerializerQt::Flags::None);
+      deser.serializeData(referenceObject);
+      THEN("The result is the specified string 3") {
+        CHECK(deser.str() == typeString);
       }
     }
   }

@@ -22,6 +22,7 @@
 #pragma once
 
 #include "sergut/SerializerBase.h"
+#include "sergut/SerializationException.h"
 #include "sergut/TypeTraits.h"
 #include "sergut/Util.h"
 
@@ -100,15 +101,12 @@ public:
     }
   }
 
-
-
   void serializeValue(const std::string& data) {
     out() << "\"";
     writeEscaped(data);
     out() << "\"";
   }
   void serializeValue(const char data[]) { serializeValue(std::string(data)); }
-  void serializeValue(const char*& data) { serializeValue(std::string(data)); }
   void serializeValue(const char data) { serializeValue(std::string(1, data)); }
 
   // Containers as members
@@ -171,6 +169,72 @@ public:
   template<typename DT>
   void serializeData(const DT& data) {
     asDialect().serializeValue(data);
+  }
+
+  template<typename DT, typename DiscriminatorFunction, typename ...TypeOptions>
+  Dialect& oneOf(DT& data, DiscriminatorFunction discriminatorFunction,
+                              TypeOptions... typeOptions)
+  {
+    const auto discriminator = discriminatorFunction(data);
+    doOneOf(data, discriminator, typeOptions...);
+    return asDialect();
+  }
+
+protected:
+  template<typename DT>
+  auto serializeValueWithoutDescend(const DT& data)
+  -> typename std::enable_if<has_serialize_function<Dialect, DT>::value, void>::type
+  {
+    serialize(*this, data, static_cast<typename std::decay<DT>::type*>(nullptr));
+  }
+
+  template<typename DT>
+  auto serializeValueWithoutDescend(const DT& data)
+  -> typename std::enable_if<!has_serialize_function<Dialect, DT>::value, void>::type
+  {
+    asDialect().serializeValue(data);
+  }
+
+  template<typename DT, typename DiscriminatorType, typename HandlerType>
+  bool handleTypeOption(DT& data,
+                        const DiscriminatorType& discriminator,
+                        ObjectByKeyValueForSerialization<DiscriminatorType, HandlerType>& handler)
+  {
+    if(discriminator != handler.discriminator) {
+      return false;
+    }
+    addCommaIfNeeded();
+    out() << "\"" << handler.key << "\":";
+    serializeValue(handler.value);
+    serializeValueWithoutDescend(handler.handler.forwardToSubtype(data));
+
+    return true;
+  }
+
+  template<typename DT, typename DiscriminatorType, typename HandlerType>
+  bool handleTypeOption(DT& data,
+                        const DiscriminatorType& discriminator,
+                        ObjectByKeyForSerialization<DiscriminatorType, HandlerType>& handler)
+  {
+    if(discriminator != handler.discriminator) {
+      return false;
+    }
+    asDialect().serializeValueWithoutDescend(handler.handler.forwardToSubtype(data));
+    return true;
+  }
+
+  template<typename DT, typename Discriminator>
+  void doOneOf(DT&, const Discriminator&)
+  {
+    throw SerializationException("failed to find matching type for 'oneOf'");
+  }
+
+  template<typename DT, typename Discriminator, typename TypeOptionHead, typename ...TypeOptionsTail>
+  void doOneOf(DT& data, const Discriminator& discriminator, TypeOptionHead& head, TypeOptionsTail&... tail)
+  {
+    if(!handleTypeOption(data, discriminator, head)) {
+      doOneOf(data, discriminator, tail...);
+    }
   }
 
   Dialect& asDialect() { return static_cast<Dialect&>(*this); }
