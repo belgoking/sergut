@@ -24,6 +24,7 @@
 #include "sergut/DeserializerBase.h"
 #include "sergut/ParsingException.h"
 #include "sergut/SerializationException.h"
+#include "sergut/TypeTraits.h"
 #include "sergut/Util.h"
 #include "sergut/misc/ReadHelper.h"
 
@@ -257,7 +258,7 @@ public:
 
 protected:
   template<typename DT, typename DiscriminatorType, typename HandlerType>
-  bool handleTypeOption(DT& data, ObjectByKeyValue<DiscriminatorType, HandlerType>& handler) {
+  bool handleTypeOption(DT& data, ObjectByKeyValueForDeserialization<DiscriminatorType, HandlerType>& handler) {
 
     const auto memberIt = _currentElement->FindMember(handler.key);
     if(memberIt == _currentElement->MemberEnd()) {
@@ -288,7 +289,7 @@ protected:
   }
 
   template<typename DT, typename DiscriminatorType, typename HandlerType>
-  bool handleTypeOption(DT& data, ObjectByKey<DiscriminatorType, HandlerType>& handler) {
+  bool handleTypeOption(DT& data, ObjectByKeyForDeserialization<DiscriminatorType, HandlerType>& handler) {
     const auto memberIt = _currentElement->FindMember(handler.key);
     if(memberIt == _currentElement->MemberEnd()) {
       return false;

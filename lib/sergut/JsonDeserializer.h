@@ -24,6 +24,7 @@
 #include "sergut/DeserializerBase.h"
 #include "sergut/ParsingException.h"
 #include "sergut/SerializationException.h"
+#include "sergut/TypeTraits.h"
 #include "sergut/Util.h"
 #include "sergut/misc/ReadHelper.h"
 

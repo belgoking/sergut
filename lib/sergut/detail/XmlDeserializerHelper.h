@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "sergut/TypeTraits.h"
 #include "sergut/Util.h"
 #include "sergut/XmlValueType.h"
 #include "sergut/detail/TypeName.h"

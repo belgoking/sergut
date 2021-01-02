@@ -13,4 +13,10 @@ struct XmlFormat { };
 
 struct UrlFormat { };
 
+/**
+ * \brief Helper template function for SFINAE similar to \c std::declval()
+ */
+template<class T>
+T declval() noexcept;
+
 }

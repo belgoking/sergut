@@ -22,6 +22,7 @@
 #pragma once
 
 #include "sergut/SerializerBase.h"
+#include "sergut/TypeTraits.h"
 #include "sergut/Util.h"
 
 #include <list>

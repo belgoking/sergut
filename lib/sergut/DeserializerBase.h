@@ -51,8 +51,8 @@ struct DataHolder<NamedMemberForDeserialization<DT>> {
 } // namespace detail
 
 template<typename DiscriminatorType, typename HandlerType>
-struct ObjectByKeyValue {
-  ObjectByKeyValue(const char* k, const char* v, DiscriminatorType d, HandlerType h)
+struct ObjectByKeyValueForDeserialization {
+  ObjectByKeyValueForDeserialization(const char* k, const char* v, DiscriminatorType d, HandlerType h)
     : key(k)
     , value(v)
     , discriminator(std::move(d))
@@ -66,8 +66,8 @@ struct ObjectByKeyValue {
 };
 
 template<typename DiscriminatorType, typename HandlerType>
-struct ObjectByKey {
-  ObjectByKey(const char* k, DiscriminatorType d, HandlerType h)
+struct ObjectByKeyForDeserialization {
+  ObjectByKeyForDeserialization(const char* k, DiscriminatorType d, HandlerType h)
     : key(k)
     , discriminator(std::move(d))
     , handler(std::move(h))
@@ -107,20 +107,20 @@ public:
 
   template<typename DiscriminatorType, typename HandlerType>
   static
-  ObjectByKeyValue<DiscriminatorType, HandlerType>
+  ObjectByKeyValueForDeserialization<DiscriminatorType, HandlerType>
   objectByKeyValue(const char* key, const char* value,
                    DiscriminatorType discriminator, HandlerType handler)
   {
-    return ObjectByKeyValue<DiscriminatorType, HandlerType>(
+    return ObjectByKeyValueForDeserialization<DiscriminatorType, HandlerType>(
           key, value, std::move(discriminator), std::move(handler));
   }
 
   template<typename DiscriminatorType, typename HandlerType>
   static
-  ObjectByKey<DiscriminatorType, HandlerType>
+  ObjectByKeyForDeserialization<DiscriminatorType, HandlerType>
   objectByKey(const char* key, DiscriminatorType discriminator, HandlerType handler)
   {
-    return ObjectByKey<DiscriminatorType, HandlerType>(
+    return ObjectByKeyForDeserialization<DiscriminatorType, HandlerType>(
           key, std::move(discriminator), std::move(handler));
   }
 };

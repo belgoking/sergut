@@ -24,6 +24,7 @@
 #include "sergut/SerializationException.h"
 #include "sergut/SerializerBase.h"
 #include "sergut/UrlNameCombiner.h"
+#include "sergut/TypeTraits.h"
 #include "sergut/Util.h"
 #include "sergut/misc/ConstStringRef.h"
 
