@@ -77,7 +77,7 @@ public:
     addCommaIfNeeded();
     if(data.name) { out() << "\"" << data.name << "\":"; }
     static_cast<Dialect*>(this)->serializeValue(data.data);
-    return static_cast<Dialect&>(*this);
+    return asDialect();
   }
 
   void serializeValue(const long long data) { out() << data; }
@@ -162,16 +162,18 @@ public:
   }
 
   // This is unused for JSON
-  Dialect& operator&(const ChildrenFollow&) { return static_cast<Dialect&>(*this); }
+  Dialect& operator&(const ChildrenFollow&) { return asDialect(); }
 
   // This is unused for JSON
-  Dialect& operator&(const PlainChildFollows&) { return static_cast<Dialect&>(*this); }
+  Dialect& operator&(const PlainChildFollows&) { return asDialect(); }
 
   /// \param name this is not needed for JSON, we just add it here for symmetry to XML.
   template<typename DT>
   void serializeData(const DT& data) {
-    static_cast<Dialect*>(this)->serializeValue(data);
+    asDialect().serializeValue(data);
   }
+
+  Dialect& asDialect() { return static_cast<Dialect&>(*this); }
 };
 
 } // namespace sergut

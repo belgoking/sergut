@@ -76,7 +76,7 @@ public:
     }
     DT data;
     try {
-      static_cast<Dialect*>(this)->deserializeValue(data);
+      asDialect().deserializeValue(data);
     } catch(...) {
       _currentElement = nullptr;
       _jsonDocument.reset();
@@ -99,7 +99,7 @@ public:
       return *this;
     }
     _currentElement = &memberIt->value;
-    static_cast<Dialect*>(this)->deserializeValue(data.data);
+    asDialect().deserializeValue(data.data);
     _currentElement = currentElement;
     _currentElement->RemoveMember(memberIt);
     return *this;
@@ -206,7 +206,7 @@ public:
     while(!currentElement->Empty()) {
       _currentElement = currentElement->Begin();
       typename Collection::value_type el;
-      static_cast<Dialect*>(this)->deserializeValue(el);
+      asDialect().deserializeValue(el);
       insertIntoCollection(data, std::move(el));
       currentElement->Erase(currentElement->Begin());
     }
@@ -284,7 +284,7 @@ protected:
       return false;
     }
     handler.handler.init(data);
-    static_cast<Dialect*>(this)->deserializeValue(handler.handler.forwardToSubtype(data));
+    asDialect().deserializeValue(handler.handler.forwardToSubtype(data));
     return true;
   }
 
@@ -295,7 +295,7 @@ protected:
       return false;
     }
     handler.handler.init(data);
-    static_cast<Dialect*>(this)->deserializeValue(handler.handler.forwardToSubtype(data));
+    asDialect().deserializeValue(handler.handler.forwardToSubtype(data));
     return true;
   }
 
@@ -312,6 +312,8 @@ protected:
       doOneOf(data, tail...);
     }
   }
+
+  Dialect& asDialect() { return static_cast<Dialect&>(*this); }
 
 protected:
   std::unique_ptr<typename rapidjson::Document> _jsonDocument;
