@@ -120,7 +120,7 @@ public:
       } else {
         first=false;
       }
-      Dialect ser(*this);
+      Dialect ser(asDialect());
       ser.serializeValue(value);
     }
     out() << "]";
