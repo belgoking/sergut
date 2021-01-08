@@ -74,6 +74,11 @@ public:
   JsonSerializerBase(const JsonSerializerBase& ref) = default;
 
   template<typename DT>
+  void serializeData(const DT& data) {
+    asDialect().serializeValue(data);
+  }
+
+  template<typename DT>
   Dialect& operator&(const NamedMemberForSerialization<DT>& data) {
     addCommaIfNeeded();
     if(data.name) { out() << "\"" << data.name << "\":"; }
@@ -164,12 +169,6 @@ public:
 
   // This is unused for JSON
   Dialect& operator&(const PlainChildFollows&) { return asDialect(); }
-
-  /// \param name this is not needed for JSON, we just add it here for symmetry to XML.
-  template<typename DT>
-  void serializeData(const DT& data) {
-    asDialect().serializeValue(data);
-  }
 
   template<typename DT, typename DiscriminatorFunction, typename ...TypeOptions>
   Dialect& oneOf(DT& data, DiscriminatorFunction discriminatorFunction,
