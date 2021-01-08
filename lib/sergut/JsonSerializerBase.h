@@ -74,6 +74,13 @@ public:
   JsonSerializerBase(const JsonSerializerBase& ref) = default;
 
   template<typename DT>
+  static std::string serialize1(const DT& data) {
+    Dialect ser(Flags::None);
+    ser.serializeData(data);
+    return ser.str();
+  }
+
+  template<typename DT>
   void serializeData(const DT& data) {
     asDialect().serializeValue(data);
   }
